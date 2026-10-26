@@ -112,12 +112,22 @@ nameservers. Switching first is what caused the outage.
 
 ## Verification
 
-Do not claim success from HTTP 200 alone. A passing run checks, in a real browser
-against the public hostname with zero console errors:
+Do not claim success from HTTP 200 alone, and do not trust DOM presence alone — a
+missing closing tag once nested the whole receive page inside the hidden mobile nav,
+so the page was blank while every DOM-based check still passed. A passing run checks,
+in a real browser against the public hostname with zero console errors:
 
-1. public text — 5 notes with Unicode, newlines and trailing spaces stored exactly,
+1. painted layout — for each route the body height is sane and the postcard /
+   collection / image element has a non-zero rect, no hidden ancestor, and is the hit
+   target at its centre
+2. public text — 5 notes with Unicode, newlines and trailing spaces stored exactly,
    rendered, and shown as `Verified`
-2. private text — ciphertext-only on the wire, exact plaintext after decrypt, 43-char
+3. private text — ciphertext-only on the wire, exact plaintext after decrypt, 43-char
    key in the fragment, wrong key rejected
-3. public PNG — byte-exact reconstruction (SHA-256 match), rendered, `Verified`
-4. single-use — 200 before open, 410 `{"error":"destroyed"}` after, destroyed UI on revisit
+4. public PNG — byte-exact reconstruction (SHA-256 match), rendered, `Verified`
+5. images — PNG, JPEG and WebP, public and private: exact bytes, painted render,
+   wrong key rejected
+6. single-use — 200 before open, 410 `{"error":"destroyed"}` after, destroyed UI on revisit
+
+The `div` open/close counts in every page must also match; a single missing `</div>`
+is enough to blank a page.
