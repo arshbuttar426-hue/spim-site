@@ -11,45 +11,73 @@
   window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static; window.format_delta_encode=format_delta_encode;
   window.wasmReady=false; window.wasmInitPromise=init().then(()=>{window.wasmReady=true; window.dispatchEvent(new Event('wasm-ready'));});
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],serif:['Instrument Serif','serif']}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],serif:['Instrument Serif','serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}}</script>
 <style>
-  :focus-visible{outline:2px solid #111; outline-offset:2px}
-  ::selection{background:#f59e0b}
-  @media (prefers-reduced-motion: reduce){*{animation:none!important}}
+  :root{color-scheme:dark}
+  html{scroll-behavior:smooth}
+  :focus-visible{outline:2px solid #34d399; outline-offset:2px}
+  ::selection{background:#34d399; color:#08080a}
+  textarea{caret-color:#34d399}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important; scroll-behavior:auto!important}}
 </style>
 </head>
-<body data-page="index" class="bg-[#fdfaf6] text-zinc-900 antialiased">
-<nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
-  <a href="/" class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
-    <span class="font-bold tracking-tight">SPIM</span>
-  </a>
-  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
-    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
-    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
-    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
-    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
-    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
-  </div>
-  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
-    <a href="/" class="hover:underline">Home</a>
-    <a href="/account.html" class="hover:underline">Dock</a>
-    <a href="/account.html" class="hover:underline">Connections</a>
-    <a href="/images.html" class="hover:underline">Images</a>
-    <a href="/account.html" class="hover:underline">API</a>
-    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
-    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
-      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
-      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
+<body data-page="index" class="bg-[#08080a] text-zinc-100 antialiased">
+<div class="pointer-events-none fixed inset-0 -z-10" style="background:radial-gradient(55% 45% at 50% 0%, rgba(16,185,129,0.10), transparent 70%)"></div>
+
+<!-- NAV -->
+<nav class="sticky top-0 z-30 border-b border-zinc-800/80 bg-[#08080a]/85 backdrop-blur-md">
+  <div class="max-w-[1200px] mx-auto px-5 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-6 min-w-0">
+      <a href="/" class="flex items-center gap-2.5 shrink-0">
+        <div class="w-8 h-8 rounded-md border border-zinc-700 bg-zinc-100 text-zinc-950 grid place-items-center font-bold text-[13px] font-mono">S</div>
+        <span class="font-semibold tracking-tight text-[15px]">SPIM</span>
+        <span class="hidden sm:inline font-mono text-[9px] tracking-[0.16em] text-zinc-500 border border-zinc-800 rounded px-1.5 py-0.5">STUDIO</span>
+      </a>
+      <div class="hidden md:flex items-center gap-1 font-mono text-[11px]">
+        <a href="/" aria-current="page" class="px-3 py-1.5 rounded-md bg-zinc-900 text-zinc-100 border border-zinc-700">Create Text</a>
+        <a href="/images.html" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60 border border-transparent">Create Image</a>
+        <a href="/receive.html" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60 border border-transparent">Open / Verify .spim</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="navPublic" class="flex items-center gap-5 text-[12px] text-zinc-400">
+        <a href="/use-cases.html" class="hidden lg:inline hover:text-zinc-100">Use Cases</a>
+        <a href="/why.html" class="hidden lg:inline hover:text-zinc-100">Why</a>
+        <a href="/about.html" class="hidden lg:inline hover:text-zinc-100">About</a>
+        <a href="/support.html" class="hidden sm:inline hover:text-zinc-100">Support</a>
+        <a href="/login.html" class="px-3.5 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Log in</a>
+      </div>
+      <div id="navAuthed" class="hidden items-center gap-5 text-[12px] font-medium text-zinc-300">
+        <a href="/" class="hover:text-zinc-100">Home</a>
+        <a href="/account.html" class="hover:text-zinc-100">Dock</a>
+        <a href="/account.html" class="hover:text-zinc-100">Connections</a>
+        <a href="/images.html" class="hover:text-zinc-100">Images</a>
+        <a href="/account.html" class="hover:text-zinc-100">API</a>
+        <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-950 grid place-items-center font-bold">A</button>
+        <div id="avatarMenu" class="hidden absolute right-5 top-[64px] w-[240px] rounded-lg bg-[#0c0c0f] border border-zinc-700 shadow-2xl p-2 text-[12px]">
+          <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
+          <a href="/account.html" class="block px-3 py-2 rounded-md hover:bg-zinc-900">Account</a>
+          <button onclick="doSignOut()" class="w-full text-left px-3 py-2 rounded-md hover:bg-zinc-900">Sign out</button>
+        </div>
+      </div>
+      <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="md:hidden w-8 h-8 grid place-items-center text-zinc-400" aria-label="Menu">☰</button>
     </div>
   </div>
-  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
 </nav>
-<div id="mnav" class="hidden max-w-[720px] mx-auto px-6 py-3 border-t border-zinc-100 text-[14px] space-y-2">
-  <div id="mnavPublic"><a href="/use-cases.html" class="block py-1">Use Cases</a><a href="/why.html" class="block py-1">Why</a><a href="/about.html" class="block py-1">About</a><a href="/support.html" class="block py-1">Support</a></div>
-  <div id="mnavAuthed" class="hidden"><a href="/account.html" class="block py-1">Dock</a><a href="/account.html" class="block py-1">Connections</a></div>
+<div id="mnav" class="hidden md:hidden border-b border-zinc-800 bg-[#0a0a0d] text-[13px]">
+  <div class="max-w-[1200px] mx-auto px-5 py-3 space-y-1">
+    <div id="mnavPublic">
+      <a href="/" class="block py-1.5 text-zinc-200">Create Text</a>
+      <a href="/images.html" class="block py-1.5 text-zinc-400">Create Image</a>
+      <a href="/receive.html" class="block py-1.5 text-zinc-400">Open / Verify .spim</a>
+      <a href="/use-cases.html" class="block py-1.5 text-zinc-400">Use Cases</a>
+      <a href="/why.html" class="block py-1.5 text-zinc-400">Why</a>
+      <a href="/about.html" class="block py-1.5 text-zinc-400">About</a>
+      <a href="/support.html" class="block py-1.5 text-zinc-400">Support</a>
+    </div>
+    <div id="mnavAuthed" class="hidden"><a href="/account.html" class="block py-1.5">Dock</a><a href="/account.html" class="block py-1.5">Connections</a></div>
+  </div>
 </div>
 <script src="/js/supabaseClient.js"></script>
 <script src="/js/entitlements.js"></script>
@@ -78,146 +106,306 @@ async function initAuth(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
 </script>
 
-<!-- HERO — ONE idea, no catalogue -->
-<section class="max-w-[720px] mx-auto px-6 pt-14 pb-6 text-center">
-  <div class="inline-flex px-3 py-1 rounded-full bg-[#FFD43B] border-2 border-zinc-900 font-mono text-[11px] font-bold">SHARE MORE THAN A LINK</div>
-  <h1 class="mt-3 font-serif text-[42px] sm:text-[52px] leading-[0.95] tracking-[-0.03em]"><span class="italic font-normal text-zinc-500">Share</span> more than a link.</h1>
-  <p class="mt-3 font-semibold text-[18px] tracking-[-0.02em]">Turn your notes into one searchable link.</p>
-  <p class="mt-2 text-[14px] leading-[1.6] text-zinc-600">Put your notes here. One link lets someone search all of them.</p>
-</section>
-
-<!-- COMPOSER — the product -->
-<section id="composer" class="max-w-[720px] mx-auto px-6">
-  <div class="rounded-2xl bg-white border-2 border-zinc-900 overflow-hidden">
-    <div class="px-6 py-3 border-b-2 border-zinc-900 flex items-center justify-between bg-zinc-50">
-      <span class="text-[12px] font-semibold tracking-widest text-zinc-500">CREATE CAPSULE</span>
-      <span id="wasmStatus" class="text-[12px] text-zinc-500">Preparing search</span>
-    </div>
-    <div id="notes" class="divide-y divide-zinc-100">
-      <div class="note p-6">
-        <div class="flex justify-between"><span class="text-[11px] font-semibold tracking-widest text-zinc-400">NOTE 01</span><button onclick="removeNote(this)" class="hidden text-[12px] text-zinc-400 hover:text-zinc-900">Remove</button></div>
-        <textarea placeholder="Project decisions — what you decided, why, what you tried first…" class="mt-3 w-full min-h-[120px] resize-none bg-transparent text-[15px] leading-[1.6] placeholder:text-zinc-400" oninput="updateMeta()"></textarea>
+<!-- HERO -->
+<section class="max-w-[1200px] mx-auto px-5 pt-12 sm:pt-16 pb-8">
+  <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-7">
+    <div class="max-w-[720px]">
+      <div class="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-emerald-400/90">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        PRECISION STUDIO · WASM · CLIENT-SIDE
       </div>
-      <div id="ghost" class="p-6 bg-amber-50/50 border-t-2 border-zinc-900">
-        <div class="text-[11px] font-semibold tracking-widest text-zinc-400">NOTE 02 — example (not saved)</div>
-        <div class="mt-1 text-[13px] text-zinc-500">API instructions — POST /capsules, GET /capsules/:id, search is client-side…</div>
-      </div>
+      <h1 class="mt-4 text-[38px] sm:text-[54px] leading-[0.95] tracking-[-0.045em] font-semibold">
+        Share <span class="font-serif italic font-normal text-zinc-500">more</span> than a link.
+      </h1>
+      <p class="mt-4 max-w-[600px] text-[14px] leading-[1.7] text-zinc-400">
+        Lossless positional compression, <span class="text-zinc-200">client-side encryption</span>, and
+        <span class="text-zinc-200">byte-exact reconstruction</span> in Rust/WASM. Search runs entirely in this tab —
+        the server only ever holds a sealed envelope.
+      </p>
     </div>
-    <div class="px-6 py-3 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
-      <button onclick="addNote()" class="text-[13px] font-semibold hover:underline">+ Add another note</button>
-      <span class="text-[12px] text-zinc-500 hidden sm:inline">Each note becomes searchable</span>
-    </div>
-    <div class="px-6 py-5 border-t border-zinc-100">
-      <div class="flex justify-between text-[12px] text-zinc-500"><span id="meta">1 note · 0 words</span><span id="metaStatus" class="hidden sm:inline">Searchable</span></div>
-      <div class="mt-3 flex gap-2 text-[12px]"><span class="text-zinc-500">Try:</span><button onclick="insertTry('API')" class="px-3 py-1 rounded-full bg-zinc-900 border-2 border-zinc-900 text-white font-medium">API</button><button onclick="insertTry('deadline')" class="px-3 py-1 rounded-full border border-zinc-300">deadline</button><button onclick="insertTry('project')" class="px-3 py-1 rounded-full border border-zinc-300">project</button></div>
-      <button id="createBtn" onclick="createCapsule()" class="mt-4 w-full py-3.5 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black disabled:opacity-40"><span id="createBtnText">Create capsule</span> →</button>
-      <div id="inlineError" class="hidden mt-2 text-center text-[12px] text-red-600"></div>
-      <p id="createHint" class="mt-2 text-center text-[11px] text-zinc-500">You'll choose Public or Private next</p>
+    <div class="flex flex-wrap items-center gap-2 shrink-0">
+      <button onclick="loadSamplePayload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-amber-300 text-zinc-950 font-semibold text-[12px] hover:bg-amber-200 transition">
+        <span class="font-mono text-[11px]">↳</span> Load Sample Payload
+      </button>
+      <a href="#open" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md border border-zinc-700 text-zinc-300 font-mono text-[11px] hover:bg-zinc-900 transition">OPEN A CAPSULE</a>
     </div>
   </div>
-  <div class="mt-3 text-center"><a href="#open" class="text-[12px] text-zinc-500 underline underline-offset-4">Already have a link? Open it →</a></div>
-</section>
 
-<section id="open" class="max-w-[720px] mx-auto px-6 mt-4">
-  <div class="flex gap-2 p-2 rounded-2xl bg-white border-2 border-zinc-900"><input id="openInput" placeholder="Paste capsule link: www.spim.co.in/receive#c/Ab3x9Q" class="flex-1 rounded-full border border-zinc-300 px-4 py-2.5 text-[14px]"><button onclick="openCapsuleLink()" class="px-5 py-2.5 rounded-full border border-zinc-900 font-semibold text-[13px]">Open</button></div>
-  <p id="openMsg" class="hidden mt-2 text-[12px] text-red-600"></p>
-</section>
-
-
-
-<section class="max-w-[720px] mx-auto px-6 mt-10 text-center">
-  <p class="text-[13px] text-zinc-600">Anonymous: <span class="font-semibold text-zinc-900">CREATE → SEARCH → SHARE</span> &nbsp;·&nbsp; With account: <span class="font-semibold text-zinc-900">CREATE CAPSULE → SEND TO CONNECTION → DOCK → UNLOAD</span></p>
-  <div class="mt-6 flex justify-center gap-6 text-[12px]"><a href="/account.html" class="underline underline-offset-4">View Dock</a><a href="/account.html" class="underline underline-offset-4">Connections</a><a href="/images.html" class="underline underline-offset-4">Images</a></div>
-</section>
-
-
-
-<!-- ECOSYSTEM — muted, below composer -->
-<section class="max-w-[720px] mx-auto px-6 mt-8">
-  <div class="rounded-2xl bg-white border-2 border-zinc-900 p-6">
-    <div class="font-mono text-[11px] tracking-widest font-bold text-zinc-500">SPIM CAPABILITIES</div>
-    <h2 class="mt-1 font-bold text-[16px]">Text is free. Everything else waits at your Dock.</h2>
-    <div class="mt-4 grid sm:grid-cols-3 gap-3 text-[12px]">
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4"><div class="font-bold">Text capsule</div><div class="text-zinc-500">Free — no account</div><div class="mt-1 font-semibold">One searchable link for many notes.</div></div>
-      <div class="rounded-xl bg-white border-2 border-zinc-900 p-4"><div class="font-bold">Image capsule</div><div class="text-zinc-500">16 free, then paid</div><div class="mt-1 font-semibold">Exact bytes, preserved.</div><a href="/images.html" class="mt-2 inline-block text-[12px] font-bold underline">Hold an image →</a></div>
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4"><div class="font-bold">Dock</div><div class="text-zinc-500">Capsules wait 24h</div><div class="mt-1 font-semibold">You decide to unload.</div><a href="/account.html" class="mt-2 inline-block text-[12px] font-bold underline">View Dock →</a></div>
-    </div>
+  <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-lg border border-zinc-800 bg-zinc-800">
+    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">01 · LOSSLESS</div><div class="mt-1 text-[12px] text-zinc-300">Positions, not vectors</div></div>
+    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">02 · PRIVATE</div><div class="mt-1 text-[12px] text-zinc-300">AES-256-GCM in-tab</div></div>
+    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">03 · EXACT</div><div class="mt-1 text-[12px] text-zinc-300">Byte-exact restore</div></div>
+    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">04 · VERIFIED</div><div class="mt-1 text-[12px] text-zinc-300">BLAKE3 per note</div></div>
   </div>
 </section>
 
-<!-- DOCK — keep, intuitive -->
-<section class="max-w-[720px] mx-auto px-6 mt-10">
-  <div class="rounded-2xl bg-white border-2 border-zinc-900 p-6">
-    <div class="inline-flex px-3 py-1 rounded-full bg-[#FFD43B] border-2 border-zinc-900 font-mono text-[11px] font-bold">DOCK</div>
-    <h2 class="mt-2 font-black text-[18px]">Something is waiting here.</h2>
-    <p class="mt-1 text-[13px] text-zinc-600">A capsule waits at the boundary. Nothing enters your workspace until you unload it.</p>
-    <div class="mt-4 max-w-[360px] mx-auto rounded-2xl bg-white border-2 border-zinc-900 p-5">
-      <div class="flex justify-between items-start">
-        <div>
-          <div class="font-mono text-[11px] font-bold tracking-widest text-zinc-500">FROM</div>
-          <div class="font-bold">Frank's Agent</div>
+<!-- WORKBENCH -->
+<div class="max-w-[1200px] mx-auto px-5 pb-16">
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <div class="flex-1 min-w-0 w-full">
+
+      <!-- COMPOSER -->
+      <section id="composer" class="rounded-xl border border-zinc-800 bg-[#0b0b0e] overflow-hidden">
+        <div class="px-5 py-3 border-b border-zinc-800 bg-[#0e0e12] flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="font-mono text-[10px] tracking-[0.18em] text-zinc-300">CREATE CAPSULE</span>
+            <span class="font-mono text-[9px] tracking-[0.12em] text-zinc-600 border border-zinc-800 rounded px-1.5 py-0.5">TEXT</span>
+          </div>
+          <span class="flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 shrink-0">
+            <span id="wasmDot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span id="wasmStatus">Preparing search</span>
+          </span>
         </div>
-        <span class="px-2.5 py-1 rounded-full bg-amber-400 border-2 border-zinc-900 text-zinc-900 font-mono text-[11px] font-bold">DOCKED</span>
-      </div>
-      <div class="mt-2 text-[12px] text-zinc-500">Notes · 14 KB · Received 2m ago</div>
-      <div class="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Verified</div>
-      <div class="mt-4 grid grid-cols-2 gap-2">
-        <a href="/account.html" class="text-center py-2.5 rounded-full bg-zinc-900 text-white font-semibold text-[13px]">UNLOAD</a>
-        <a href="/account.html" class="text-center py-2.5 rounded-full bg-white border-2 border-zinc-900 font-semibold text-[13px]">REJECT</a>
-      </div>
-    </div>
-    <p class="mt-3 text-center text-[12px] text-zinc-500">DOCKED ≠ OPENED. You decide whether it enters.</p>
-    <p class="mt-1 text-center text-[11px] text-zinc-500">Capsules wait 24 hours at your Dock.</p>
-  </div>
-</section>
+        <div id="notes" class="divide-y divide-zinc-800">
+          <div class="note p-5 sm:p-6">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] tracking-[0.16em] text-zinc-500">NOTE 01</span>
+              <button onclick="removeNote(this)" class="hidden font-mono text-[10px] tracking-[0.1em] text-zinc-600 hover:text-zinc-200">REMOVE</button>
+            </div>
+            <textarea placeholder="Project decisions — what you decided, why, what you tried first…" class="mt-3 w-full min-h-[120px] resize-none bg-transparent text-[14px] leading-[1.7] text-zinc-100 placeholder:text-zinc-600 focus:outline-none" oninput="updateMeta()"></textarea>
+          </div>
+          <div id="ghost" class="p-5 sm:p-6 bg-zinc-900/30">
+            <div class="font-mono text-[10px] tracking-[0.16em] text-zinc-600">NOTE 02 — EXAMPLE (NOT SAVED)</div>
+            <div class="mt-2 text-[12px] leading-relaxed text-zinc-500">API instructions — POST /capsules, GET /capsules/:id, search is client-side…</div>
+          </div>
+        </div>
+        <div class="px-5 sm:px-6 py-3 bg-[#0a0a0d] border-t border-zinc-800 flex items-center justify-between gap-3">
+          <button onclick="addNote()" class="font-mono text-[11px] text-zinc-400 hover:text-zinc-100 transition">+ Add another note</button>
+          <span class="hidden sm:inline font-mono text-[9px] tracking-[0.12em] text-zinc-600">EACH NOTE BECOMES SEARCHABLE</span>
+        </div>
+        <div class="px-5 sm:px-6 py-5 border-t border-zinc-800">
+          <div class="flex justify-between font-mono text-[10px] text-zinc-500"><span id="meta">1 note · 0 words</span><span id="metaStatus" class="hidden sm:inline">Searchable</span></div>
+          <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+            <span class="font-mono text-[9px] tracking-[0.14em] text-zinc-600">TRY</span>
+            <button onclick="insertTry('API')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-200 font-mono text-[10px] hover:border-zinc-500">API</button>
+            <button onclick="insertTry('deadline')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] hover:border-zinc-600 hover:text-zinc-200">deadline</button>
+            <button onclick="insertTry('project')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] hover:border-zinc-600 hover:text-zinc-200">project</button>
+          </div>
+          <button id="createBtn" onclick="createCapsule()" class="mt-4 w-full py-3.5 rounded-lg bg-zinc-100 text-zinc-950 font-semibold text-[14px] hover:bg-white disabled:opacity-40 transition"><span id="createBtnText">Create capsule</span> →</button>
+          <div id="inlineError" class="hidden mt-2 text-center font-mono text-[11px] text-red-400"></div>
+          <p id="createHint" class="mt-2 text-center font-mono text-[10px] text-zinc-600">You’ll choose Public or Private next</p>
+        </div>
+      </section>
+      <div class="mt-3 text-right"><a href="#open" class="font-mono text-[10px] text-zinc-600 hover:text-zinc-300 underline underline-offset-4">Already have a link? Open it →</a></div>
 
-<!-- CONNECTIONS -->
-<section class="max-w-[720px] mx-auto px-6 mt-8">
-  <div class="rounded-2xl bg-white border-2 border-zinc-900 p-6">
-    <div class="inline-flex px-3 py-1 rounded-full bg-[#A78BFA] border-2 border-zinc-900 font-mono text-[11px] font-bold text-white">CONNECTIONS</div>
-    <h2 class="mt-2 font-black text-[18px]">Your destinations</h2>
-    <p class="mt-1 text-[13px] text-zinc-600">Not a social network. Where capsules go.</p>
-    <div class="mt-4 grid sm:grid-cols-2 gap-3 text-[13px]">
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4 border-l-[6px] border-l-[#29B6F6]"><div class="font-mono text-[11px] font-bold tracking-widest text-zinc-500">PEOPLE</div><div class="mt-1 font-semibold">Frank · Sarah</div><div class="text-zinc-500 text-[12px]">person · online</div></div>
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4 border-l-[6px] border-l-[#FFD43B]"><div class="font-mono text-[11px] font-bold tracking-widest text-zinc-500">TEAMS</div><div class="mt-1 font-semibold">Product Team · Research Team</div><div class="text-zinc-500 text-[12px]">8 members · SEND TO Team delivers to all</div></div>
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4 border-l-[6px] border-l-[#A78BFA]"><div class="font-mono text-[11px] font-bold tracking-widest text-zinc-500">AGENTS</div><div class="mt-1 font-semibold">Frank's Agent · Research Agent</div><div class="text-zinc-500 text-[12px]">automated connection · API key</div></div>
-      <div class="rounded-xl bg-zinc-50 border-2 border-zinc-900 p-4 border-l-[6px] border-l-[#4ADE80]"><div class="font-mono text-[11px] font-bold tracking-widest text-zinc-500">YOURSELF</div><div class="mt-1 font-semibold">My Laptop · Myself</div><div class="text-zinc-500 text-[12px]">your device · always there</div></div>
-    </div>
-  </div>
-</section>
+      <!-- OPEN -->
+      <section id="open" class="mt-4 scroll-mt-24">
+        <div class="flex gap-2 p-2 rounded-lg border border-zinc-800 bg-[#0b0b0e]">
+          <input id="openInput" placeholder="Paste capsule link: www.spim.co.in/receive#c/Ab3x9Q" class="flex-1 min-w-0 rounded-md bg-transparent px-3 py-2.5 text-[12px] font-mono text-zinc-200 placeholder:text-zinc-600 focus:outline-none">
+          <button onclick="openCapsuleLink()" class="px-4 py-2.5 rounded-md border border-zinc-700 text-zinc-200 font-mono text-[10px] tracking-[0.1em] hover:bg-zinc-900 transition">OPEN</button>
+        </div>
+        <p id="openMsg" class="hidden mt-2 font-mono text-[10px] text-red-400"></p>
+      </section>
 
-<footer class="max-w-[1120px] mx-auto px-6 py-8 mt-12 border-t-2 border-zinc-900 flex justify-between text-[11px] font-mono">
-  <div class="flex gap-4"><a href="/why.html" class="hover:underline">Why</a><a href="/use-cases.html" class="hover:underline">Use Cases</a><a href="/support.html" class="hover:underline">Support</a></div>
-  <a href="mailto:apbuttar01@gmail.com" class="hover:underline">apbuttar01@gmail.com</a>
+      <!-- FLOW STRIP -->
+      <section class="mt-8">
+        <div class="rounded-lg border border-zinc-800 bg-[#0a0a0d] px-5 py-4 font-mono text-[10px] leading-[1.9] text-zinc-500">
+          <div><span class="text-zinc-600">ANONYMOUS</span> &nbsp;<span class="text-zinc-300">CREATE → SEARCH → SHARE</span></div>
+          <div><span class="text-zinc-600">WITH ACCOUNT</span> &nbsp;<span class="text-zinc-300">CREATE CAPSULE → SEND TO CONNECTION → DOCK → UNLOAD</span></div>
+        </div>
+        <div class="mt-4 flex flex-wrap justify-center gap-5 font-mono text-[10px] text-zinc-500">
+          <a href="/account.html" class="hover:text-zinc-200 underline underline-offset-4">View Dock</a>
+          <a href="/account.html" class="hover:text-zinc-200 underline underline-offset-4">Connections</a>
+          <a href="/images.html" class="hover:text-zinc-200 underline underline-offset-4">Images</a>
+        </div>
+      </section>
+
+      <!-- CAPABILITIES -->
+      <section class="mt-8">
+        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
+          <div class="font-mono text-[9px] tracking-[0.2em] text-zinc-500">SPIM CAPABILITIES</div>
+          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Text is free. Everything else waits at your Dock.</h2>
+          <div class="mt-5 grid sm:grid-cols-3 gap-3 text-[12px]">
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
+              <div class="font-semibold text-zinc-100">Text capsule</div>
+              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-emerald-400/80">FREE — NO ACCOUNT</div>
+              <div class="mt-2 text-zinc-400">One searchable link for many notes.</div>
+            </div>
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
+              <div class="font-semibold text-zinc-100">Image capsule</div>
+              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-zinc-500">16 FREE, THEN PAID</div>
+              <div class="mt-2 text-zinc-400">Exact bytes, preserved.</div>
+              <a href="/images.html" class="mt-2 inline-block font-mono text-[10px] text-amber-300 hover:text-amber-200 underline underline-offset-4">Hold an image →</a>
+            </div>
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
+              <div class="font-semibold text-zinc-100">Dock</div>
+              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-zinc-500">CAPSULES WAIT 24H</div>
+              <div class="mt-2 text-zinc-400">You decide to unload.</div>
+              <a href="/account.html" class="mt-2 inline-block font-mono text-[10px] text-amber-300 hover:text-amber-200 underline underline-offset-4">View Dock →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCK -->
+      <section class="mt-4">
+        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
+          <span class="inline-flex px-2 py-0.5 rounded border border-amber-400/40 bg-amber-400/10 font-mono text-[9px] tracking-[0.16em] text-amber-300">DOCK</span>
+          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Something is waiting here.</h2>
+          <p class="mt-1 text-[12px] text-zinc-500">A capsule waits at the boundary. Nothing enters your workspace until you unload it.</p>
+          <div class="mt-5 max-w-[380px] mx-auto rounded-xl bg-[#0e0e12] border border-zinc-800 p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">FROM</div>
+                <div class="font-semibold text-zinc-100">Frank's Agent</div>
+              </div>
+              <span class="px-2 py-0.5 rounded border border-amber-400/40 bg-amber-400/10 font-mono text-[9px] tracking-[0.1em] text-amber-300">DOCKED</span>
+            </div>
+            <div class="mt-2 font-mono text-[10px] text-zinc-500">Notes · 14 KB · Received 2m ago</div>
+            <div class="mt-1 flex items-center gap-1.5 font-mono text-[10px] text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Verified</div>
+            <div class="mt-4 grid grid-cols-2 gap-2">
+              <a href="/account.html" class="text-center py-2.5 rounded-md bg-zinc-100 text-zinc-950 font-semibold text-[12px] hover:bg-white">UNLOAD</a>
+              <a href="/account.html" class="text-center py-2.5 rounded-md border border-zinc-700 text-zinc-300 font-semibold text-[12px] hover:bg-zinc-900">REJECT</a>
+            </div>
+          </div>
+          <p class="mt-3 text-center font-mono text-[9px] tracking-[0.1em] text-zinc-600">DOCKED ≠ OPENED. YOU DECIDE WHETHER IT ENTERS.</p>
+          <p class="mt-1 text-center font-mono text-[9px] text-zinc-600">Capsules wait 24 hours at your Dock.</p>
+        </div>
+      </section>
+
+      <!-- CONNECTIONS -->
+      <section class="mt-4">
+        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
+          <span class="inline-flex px-2 py-0.5 rounded border border-violet-400/40 bg-violet-400/10 font-mono text-[9px] tracking-[0.16em] text-violet-300">CONNECTIONS</span>
+          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Your destinations</h2>
+          <p class="mt-1 text-[12px] text-zinc-500">Not a social network. Where capsules go.</p>
+          <div class="mt-5 grid sm:grid-cols-2 gap-3 text-[12px]">
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-sky-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">PEOPLE</div><div class="mt-1 font-semibold text-zinc-100">Frank · Sarah</div><div class="text-zinc-500 text-[11px]">person · online</div></div>
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-amber-300 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">TEAMS</div><div class="mt-1 font-semibold text-zinc-100">Product Team · Research Team</div><div class="text-zinc-500 text-[11px]">8 members · SEND TO Team delivers to all</div></div>
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-violet-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">AGENTS</div><div class="mt-1 font-semibold text-zinc-100">Frank's Agent · Research Agent</div><div class="text-zinc-500 text-[11px]">automated connection · API key</div></div>
+            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-emerald-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">YOURSELF</div><div class="mt-1 font-semibold text-zinc-100">My Laptop · Myself</div><div class="text-zinc-500 text-[11px]">your device · always there</div></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TELEMETRY -->
+    <aside class="w-full lg:w-[360px] shrink-0 lg:sticky lg:top-20">
+      <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] overflow-hidden">
+        <div class="px-4 py-3 border-b border-zinc-800 bg-[#0e0e12] flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-mono text-[10px] tracking-[0.16em] text-zinc-300">ENGINE TELEMETRY</span>
+          </div>
+          <span id="telemetryStatus" class="font-mono text-[9px] tracking-[0.12em] text-zinc-500">BOOTING</span>
+        </div>
+        <div class="p-4 space-y-4">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] tracking-[0.12em] text-zinc-600">
+              <span>RAW → ENVELOPE</span>
+              <span id="telemetryRatio">—</span>
+            </div>
+            <div class="mt-3 space-y-3">
+              <div>
+                <div class="flex items-baseline justify-between gap-2">
+                  <span class="font-mono text-[10px] text-zinc-500">RAW <span class="text-zinc-700">UTF-8</span></span>
+                  <span id="telemetryRaw" class="font-mono text-[13px] text-zinc-200">—</span>
+                </div>
+                <div class="mt-1.5 h-1 rounded-full bg-zinc-900 overflow-hidden"><div id="telemetryBarRaw" class="h-full bg-zinc-500 rounded-full transition-all duration-200" style="width:0%"></div></div>
+              </div>
+              <div>
+                <div class="flex items-baseline justify-between gap-2">
+                  <span class="font-mono text-[10px] text-zinc-500">SPIM ENVELOPE</span>
+                  <span id="telemetryEnv" class="font-mono text-[13px] text-zinc-200">—</span>
+                </div>
+                <div class="mt-1.5 h-1 rounded-full bg-zinc-900 overflow-hidden"><div id="telemetryBarEnv" class="h-full bg-emerald-400 rounded-full transition-all duration-200" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="mt-2 flex justify-between gap-2 font-mono text-[9px] text-zinc-600">
+              <span id="telemetrySpim">spim_b64 —</span>
+              <span id="telemetryFmt">fmt_b64 —</span>
+            </div>
+          </div>
+
+          <div class="rounded-lg border border-zinc-800 bg-[#0e0e12] p-3">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-mono text-[9px] tracking-[0.12em] text-zinc-600">DELTA</span>
+              <span id="telemetryDelta" class="font-mono text-[11px] text-zinc-500">—</span>
+            </div>
+            <p class="mt-1 text-[10px] leading-relaxed text-zinc-600">Envelope = spim_b64 + fmt_b64. Index overhead dominates short notes; savings compound with repetition.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 font-mono">
+            <div class="rounded-lg border border-zinc-800 p-3">
+              <div class="text-[9px] tracking-[0.12em] text-zinc-600">VOCAB</div>
+              <div class="mt-1 text-[13px] text-zinc-200"><span id="telemetryVocab">—</span> <span class="text-[9px] text-zinc-500">tokens</span></div>
+            </div>
+            <div class="rounded-lg border border-zinc-800 p-3">
+              <div class="text-[9px] tracking-[0.12em] text-zinc-600">NOTES</div>
+              <div class="mt-1 text-[13px] text-zinc-200"><span id="telemetryNotes">—</span> <span class="text-[9px] text-zinc-500">indexed</span></div>
+            </div>
+          </div>
+
+          <div class="rounded-lg border border-zinc-800 p-3">
+            <div class="flex items-center justify-between gap-2 font-mono text-[9px] tracking-[0.12em]">
+              <span class="text-zinc-600">BLAKE3</span>
+              <span class="text-zinc-700">PRIMARY NOTE</span>
+            </div>
+            <div id="telemetryHash" class="mt-1.5 font-mono text-[9px] leading-[1.7] break-all text-emerald-300/90">—</div>
+          </div>
+        </div>
+        <div class="px-4 py-3 border-t border-zinc-800 bg-[#0e0e12] flex items-center justify-between font-mono text-[9px] tracking-[0.1em] text-zinc-600">
+          <span>WASM · IN-TAB</span><span>NO UPLOAD</span>
+        </div>
+      </div>
+      <div class="mt-3 px-4 py-3 rounded-lg border border-zinc-800/60 bg-[#0a0a0d] font-mono text-[9px] leading-relaxed text-zinc-600">
+        TELEMETRY IS COMPUTED LOCALLY. NO NOTE TEXT LEAVES THIS TAB.
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer class="border-t border-zinc-800 mt-2">
+  <div class="max-w-[1200px] mx-auto px-5 py-8 flex flex-col sm:flex-row justify-between gap-4 font-mono text-[10px] text-zinc-500">
+    <div class="flex flex-wrap gap-5"><a href="/why.html" class="hover:text-zinc-200">Why</a><a href="/use-cases.html" class="hover:text-zinc-200">Use Cases</a><a href="/support.html" class="hover:text-zinc-200">Support</a></div>
+    <a href="mailto:apbuttar01@gmail.com" class="hover:text-zinc-200">apbuttar01@gmail.com</a>
+  </div>
 </footer>
 
 <!-- RESULT -->
-<div id="result" class="hidden fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur p-4 overflow-auto">
-  <div class="max-w-[480px] mx-auto mt-12 rounded-2xl bg-white border-2 border-zinc-900 p-6">
-    <div class="inline-flex px-3 py-1 rounded-full bg-[#4ADE80] border-2 border-zinc-900 font-mono text-[11px] font-bold">● Your capsule is ready</div>
-    <h3 class="mt-2 font-bold text-[18px]">One link. All your notes inside.</h3>
-    <div class="mt-3 flex gap-2"><input id="shareLink" readonly class="flex-1 rounded-full bg-zinc-900 text-white px-4 py-3 text-[13px] font-mono"><button onclick="copyLink()" class="px-4 rounded-full bg-amber-400 border border-zinc-900 font-semibold text-[13px]">Copy</button></div>
-    <div class="mt-2 flex gap-2 text-[11px]"><span class="px-2 py-1 rounded-full bg-zinc-900 text-white">Searchable</span><span id="resultVerifyBadge" class="px-2 py-1 rounded-full bg-zinc-100">Verified</span><span id="resultMeta" class="px-2 py-1 rounded-full bg-zinc-100">—</span></div>
-    <div class="mt-4 grid grid-cols-3 gap-2 text-[13px]"><button onclick="openResult()" class="py-2.5 rounded-full bg-zinc-900 text-white font-semibold">Open</button><button onclick="toggleQR()" class="py-2.5 rounded-full border border-zinc-900 font-semibold">QR</button><button onclick="closeResult()" class="py-2.5 rounded-full border border-zinc-200">Close</button></div>
-    <div class="mt-2 grid grid-cols-3 gap-2 text-[12px]"><button onclick="downloadTxt()" class="py-2 rounded-full border border-zinc-900">Download .txt</button><button onclick="downloadExact()" class="py-2 rounded-full border border-zinc-900">Download .json</button><button onclick="downloadSpim()" class="py-2 rounded-full border border-zinc-900">Download .spim</button></div>
-    <div id="qrBox" class="hidden mt-4 p-4 bg-zinc-50 rounded-xl text-center"><img id="qrImg" class="w-40 h-40 mx-auto hidden" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR"><div id="qrText" class="text-[10px] break-all mt-2 text-zinc-500"></div></div>
+<div id="result" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-4 overflow-auto">
+  <div class="max-w-[520px] mx-auto mt-12 rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6">
+    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md border border-emerald-400/40 bg-emerald-400/10 font-mono text-[9px] tracking-[0.14em] text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>YOUR CAPSULE IS READY</div>
+    <h3 class="mt-3 text-[19px] font-semibold tracking-tight">One link. All your notes inside.</h3>
+    <div class="mt-4 flex gap-2">
+      <input id="shareLink" readonly class="flex-1 min-w-0 rounded-md border border-zinc-700 bg-black/60 px-3 py-2.5 text-[11px] font-mono text-emerald-300 focus:outline-none">
+      <button onclick="copyLink()" class="px-4 rounded-md bg-amber-300 text-zinc-950 font-semibold text-[12px] hover:bg-amber-200">Copy</button>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-1.5 font-mono text-[9px]">
+      <span class="px-2 py-1 rounded border border-zinc-700 text-zinc-300">SEARCHABLE</span>
+      <span id="resultVerifyBadge" class="px-2 py-1 rounded border border-zinc-700 text-zinc-400">Verified</span>
+      <span id="resultMeta" class="px-2 py-1 rounded border border-zinc-700 text-zinc-400">—</span>
+    </div>
+    <div class="mt-5 grid grid-cols-3 gap-2 text-[12px]">
+      <button onclick="openResult()" class="py-2.5 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Open</button>
+      <button onclick="toggleQR()" class="py-2.5 rounded-md border border-zinc-700 text-zinc-200 hover:bg-zinc-900">QR</button>
+      <button onclick="closeResult()" class="py-2.5 rounded-md border border-zinc-800 text-zinc-500 hover:text-zinc-200">Close</button>
+    </div>
+    <div class="mt-2 grid grid-cols-3 gap-2 text-[9px] font-mono">
+      <button onclick="downloadTxt()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .txt</button>
+      <button onclick="downloadExact()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .json</button>
+      <button onclick="downloadSpim()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .spim</button>
+    </div>
+    <div id="qrBox" class="hidden mt-4 p-4 bg-[#0e0e12] border border-zinc-800 rounded-lg text-center"><img id="qrImg" class="w-40 h-40 mx-auto hidden rounded bg-white p-1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR"><div id="qrText" class="text-[9px] break-all mt-2 font-mono text-zinc-500"></div></div>
   </div>
 </div>
 
 <!-- CHOICE -->
-<div id="choice" class="hidden fixed inset-0 z-40 bg-zinc-900/50 backdrop-blur p-4 grid place-items-center">
-  <div class="w-full max-w-[480px] rounded-2xl bg-white border-2 border-zinc-900 p-6">
-    <h4 class="font-bold">How should this capsule open?</h4>
+<div id="choice" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-sm p-4 grid place-items-center">
+  <div class="w-full max-w-[500px] rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6">
+    <div class="font-mono text-[9px] tracking-[0.18em] text-zinc-500">DELIVERY MODE</div>
+    <h4 class="mt-1 text-[18px] font-semibold tracking-tight">How should this capsule open?</h4>
     <p class="text-[12px] text-zinc-500 mt-1">Choose who can open it. Single view burns after opening.</p>
     <div class="mt-4 grid gap-3">
-      <button id="choicePublic" onclick="selectChoice('public')" class="text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#4ADE80]"><div class="flex gap-3"><span>🌐</span><div><div class="font-semibold">Public</div><div class="text-[12px] text-zinc-600">Anyone with the link can open it.</div><div class="mt-1 text-[11px] text-zinc-500 bg-white px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q</div></div></div></button>
-      <button id="choicePrivate" onclick="selectChoice('private')" class="text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#29B6F6]"><div class="flex gap-3"><span>🔒</span><div><div class="font-semibold">Private</div><div class="text-[12px] text-zinc-600">The key stays in the URL fragment and is not sent to the server.</div><div class="mt-1 text-[11px] bg-amber-50 px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q#key…</div></div></div></button>
-      <label class="flex gap-3 p-3 rounded-2xl border-2 border-zinc-900 bg-amber-50 cursor-pointer border-l-[6px] border-l-[#FFD43B]"><input type="checkbox" id="singleViewCheck" class="mt-1"><div><div class="font-semibold text-[13px]">Single view — Burn after opening</div><div class="text-[11px] text-zinc-600">Can only be opened once.</div></div></label>
+      <button id="choicePublic" onclick="selectChoice('public')" class="text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] border-l-emerald-400 bg-[#111114]"><div class="flex gap-3"><span class="text-[16px]">🌐</span><div><div class="font-semibold text-[13px] text-zinc-100">Public</div><div class="text-[11px] text-zinc-500">Anyone with the link can open it.</div><div class="mt-1.5 font-mono text-[9px] text-zinc-400 bg-black/40 border border-zinc-800 px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q</div></div></div></button>
+      <button id="choicePrivate" onclick="selectChoice('private')" class="text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] border-l-zinc-800 bg-[#111114] opacity-60"><div class="flex gap-3"><span class="text-[16px]">🔒</span><div><div class="font-semibold text-[13px] text-zinc-100">Private</div><div class="text-[11px] text-zinc-500">The key stays in the URL fragment and is not sent to the server.</div><div class="mt-1.5 font-mono text-[9px] text-amber-300/90 bg-amber-400/[0.06] border border-amber-400/20 px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q#key…</div></div></div></button>
+      <label class="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-amber-400/[0.06] cursor-pointer"><input type="checkbox" id="singleViewCheck" class="mt-0.5 accent-amber-300"><div><div class="font-semibold text-[12px] text-zinc-200">Single view — Burn after opening</div><div class="text-[10px] text-zinc-500">Can only be opened once.</div></div></label>
     </div>
-    <div class="mt-4 flex gap-2"><button onclick="closeChoice()" class="flex-1 py-3 rounded-full border border-zinc-900 font-semibold">Cancel</button><button onclick="confirmChoice()" class="flex-1 py-3 rounded-full bg-zinc-900 text-white font-semibold">Create →</button></div>
+    <div class="mt-5 flex gap-2"><button onclick="closeChoice()" class="flex-1 py-3 rounded-md border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900">Cancel</button><button onclick="confirmChoice()" class="flex-1 py-3 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Create →</button></div>
   </div>
 </div>
-<div id="singleConfirm" class="hidden fixed inset-0 z-50 bg-zinc-900/50 grid place-items-center p-4"><div class="bg-white rounded-2xl border-2 border-zinc-900 p-6 max-w-[360px]"><h4 class="font-bold">Create single-view capsule?</h4><p class="text-[12px] text-zinc-600 mt-1">Can only be opened once. After first opening it is destroyed.</p><div class="mt-4 flex gap-2"><button onclick="closeSingleConfirm()" class="flex-1 py-2 rounded-full border border-zinc-900">Cancel</button><button onclick="confirmSingleCreate()" class="flex-1 py-2 rounded-full bg-zinc-900 text-white">Create</button></div></div></div>
+<div id="singleConfirm" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm grid place-items-center p-4"><div class="rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6 max-w-[380px]"><h4 class="font-semibold text-[16px]">Create single-view capsule?</h4><p class="text-[12px] text-zinc-500 mt-1">Can only be opened once. After first opening it is destroyed.</p><div class="mt-4 flex gap-2"><button onclick="closeSingleConfirm()" class="flex-1 py-2 rounded-md border border-zinc-700 text-zinc-300">Cancel</button><button onclick="confirmSingleCreate()" class="flex-1 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold">Create</button></div></div></div>
 
 <script>
 const SERVER=''; const CANONICAL_BASE=location.origin+'/receive';
@@ -228,8 +416,32 @@ function b64encodeStr(s){return btoa(unescape(encodeURIComponent(s)))}
 function b64decodeStr(b){return decodeURIComponent(escape(atob(b)))}
 function b64urlEncode(b){let s=b64encodeBytes(b);return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function wasmBlake3Hex(s){if(window.wasmReady&&window.blake3_hex_static)try{return window.blake3_hex_static(s)}catch(e){}return 'pending'}
-let noteCount=1,selectedChoice='public',pendingNotes=null,lastEnvelopeJson=null,lastBlob=null,lastKeyB64=null;
-function addNote(){noteCount++;const w=document.createElement('div');w.className='note p-6';w.innerHTML=`<div class="flex justify-between"><span class="text-[11px] font-semibold tracking-widest text-zinc-400">NOTE ${String(noteCount).padStart(2,'0')}</span><button onclick="removeNote(this)" class="text-[12px] text-zinc-400">Remove</button></div><textarea placeholder="Paste or type…" class="mt-3 w-full min-h-[110px] resize-none bg-transparent text-[15px]" oninput="updateMeta()"></textarea>`;document.getElementById('notes').appendChild(w);document.getElementById('ghost').style.display='none';renumber();updateMeta();w.querySelector('textarea').focus()}
+let noteCount=1,selectedChoice='public',pendingNotes=null,lastEnvelopeJson=null,lastBlob=null,lastKeyB64=null,telemetryTimer=null;
+
+/* Sample payload — realistic structured logs, tests, and a results table.
+   Repetition is real (heartbeat logs, generated test cases, uniform rows), so
+   the live telemetry demonstrates savings. Nothing here is pre-computed. */
+function buildSamplePayload(){
+  const stamp=i=>`2026-10-27T09:${String(14+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}Z`;
+  const logs=Array.from({length:16},(_,i)=>`${stamp(i)} INFO capsule_id=Ab3x9Q reconstruction_status=verified envelope_status=sealed positional_index_status=ready verification_hash=blake3`).join('\n');
+  const tests=Array.from({length:6},(_,i)=>`test("reconstructEnvelope verifies reconstruction ${i}", () => {\n  const positionalIndex = buildPositionalIndex();\n  const reconstruction = reconstructEnvelope(positionalIndex);\n  const verification = verifyReconstruction(reconstruction);\n  expect(verification).toBe(true);\n});`).join('\n');
+  const row='| Ab3x9Q | verified | sealed | ready | blake3 |';
+  const table=[
+    '| capsule_id | reconstruction_status | envelope_status | positional_index_status | verification_hash |',
+    row,
+    ...Array.from({length:10},()=>row),
+  ].join('\n');
+  return [logs,tests,table];
+}
+function loadSamplePayload(){
+  while(document.querySelectorAll('.note textarea').length<3){ addNote(); }
+  const areas=[...document.querySelectorAll('.note textarea')];
+  buildSamplePayload().forEach((s,i)=>{ if(areas[i]) areas[i].value=s; });
+  const g=document.getElementById('ghost'); if(g) g.style.display='none';
+  renumber(); updateMeta();
+  if(areas[0]){ areas[0].focus(); areas[0].setSelectionRange(0,0); }
+}
+function addNote(){noteCount++;const w=document.createElement('div');w.className='note p-5 sm:p-6';w.innerHTML=`<div class="flex items-center justify-between"><span class="font-mono text-[10px] tracking-[0.16em] text-zinc-500">NOTE ${String(noteCount).padStart(2,'0')}</span><button onclick="removeNote(this)" class="font-mono text-[10px] tracking-[0.1em] text-zinc-600 hover:text-zinc-200">REMOVE</button></div><textarea placeholder="Paste or type…" class="mt-3 w-full min-h-[110px] resize-none bg-transparent text-[14px] leading-[1.7] text-zinc-100 placeholder:text-zinc-600 focus:outline-none" oninput="updateMeta()"></textarea>`;document.getElementById('notes').appendChild(w);document.getElementById('ghost').style.display='none';renumber();updateMeta();w.querySelector('textarea').focus()}
 function removeNote(b){b.closest('.note').remove();noteCount=document.querySelectorAll('.note').length;document.getElementById('ghost').style.display=noteCount<2?'block':'none';renumber();updateMeta()}
 function renumber(){document.querySelectorAll('.note').forEach((el,i)=>el.querySelector('span').textContent=`NOTE ${String(i+1).padStart(2,'0')}`)}
 function insertTry(t){const f=document.querySelector('.note textarea');if(f){f.value=(f.value?f.value+' ':'')+t;f.focus();updateMeta()}}
@@ -239,7 +451,9 @@ function updateMeta(){
   document.getElementById('meta').textContent=`${document.querySelectorAll('.note').length} notes · ${words} words`;
   const s=document.getElementById('wasmStatus'),b=document.getElementById('createBtn'),h=document.getElementById('createHint');
   if(!window.wasmReady){s.textContent='Preparing search';b.disabled=true;h.textContent='Preparing search…'} else {s.textContent='Searchable';b.disabled=filled.length===0;h.textContent=filled.length===0?'Add a note':'You’ll choose Public or Private next'}
+  const dot=document.getElementById('wasmDot'); if(dot) dot.className='w-1.5 h-1.5 rounded-full '+(window.wasmReady?'bg-emerald-400':'bg-amber-400');
   document.getElementById('inlineError').classList.add('hidden');
+  scheduleTelemetry();
 }
 window.addEventListener('wasm-ready',updateMeta);
 function makeEnvelope(notes){const w=new window.WasmSpim();const notes_blake3=[],fmt_b64=[];notes.forEach(s=>{w.remember(s);notes_blake3.push(wasmBlake3Hex(s));fmt_b64.push(window.format_delta_encode(s))});const b=w.encoded_bytes_b64();const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,fmt_b64,word_count:wc,blake3:""};env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));return env}
@@ -250,7 +464,7 @@ function createCapsule(){const notes=[...document.querySelectorAll('.note textar
 function showErr(m){const e=document.getElementById('inlineError');e.textContent=m;e.classList.remove('hidden')}
 function closeChoice(){document.getElementById('choice').classList.add('hidden');pendingNotes=null}
 function selectChoice(c){selectedChoice=c;updateChoiceUI()}
-function updateChoiceUI(){const p=document.getElementById('choicePublic'),q=document.getElementById('choicePrivate');if(selectedChoice==='public'){p.className='text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#4ADE80]';q.className='text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#29B6F6] opacity-60'}else{q.className='text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#29B6F6]';p.className='text-left p-4 rounded-2xl border-2 border-zinc-900 bg-white border-l-[6px] border-l-[#4ADE80] opacity-60'}}
+function updateChoiceUI(){const p=document.getElementById('choicePublic'),q=document.getElementById('choicePrivate');const on='text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] bg-[#111114]',off='text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] bg-[#111114] opacity-60';p.className=selectedChoice==='public'?on+' border-l-emerald-400':off+' border-l-zinc-800';q.className=selectedChoice==='private'?on+' border-l-sky-400':off+' border-l-zinc-800'}
 function confirmChoice(){if(document.getElementById('singleViewCheck').checked){document.getElementById('singleConfirm').classList.remove('hidden');return}doCreate(selectedChoice,false)}
 function closeSingleConfirm(){document.getElementById('singleConfirm').classList.add('hidden')}
 function confirmSingleCreate(){document.getElementById('singleConfirm').classList.add('hidden');doCreate(selectedChoice,true)}
@@ -276,6 +490,63 @@ function downloadExact(){if(!lastEnvelopeJson)return;const b=new Blob([lastEnvel
 function downloadSpim(){if(!lastEnvelopeJson||!lastBlob)return;const id=document.getElementById('shareLink').dataset.id||'capsule';const spim={spim_file:1,version:1,locked:!!lastKeyB64,key_b64url:lastKeyB64||null,blob:lastBlob};const b=new Blob([JSON.stringify(spim)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.spim';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function openResult(){const id=document.getElementById('shareLink').dataset.id;const k=document.getElementById('shareLink').dataset.key;location.href=`${CANONICAL_BASE}#c/${id}`+(k?'#'+k:'')}
 function openCapsuleLink(){const v=document.getElementById('openInput').value.trim(),m=document.getElementById('openMsg');if(!v){m.textContent='Paste a capsule link';m.classList.remove('hidden');return}let id=(v.match(/c\/([A-Za-z0-9_-]{6,16})/)||[])[1];if(!id&&/^[A-Za-z0-9_-]{6,16}$/.test(v))id=v;if(!id){m.textContent='Invalid link — Example: www.spim.co.in/receive#c/Ab3x9Q';m.classList.remove('hidden');return}m.classList.add('hidden');let k=v.split('#').pop();const p=v.split('#');if(p.length>=3)k=p[p.length-1];else if(v.includes('#')&&!v.includes('/c/'))k=v.split('#')[1]||'';else if(k&&k.length<20)k='';location.href=`${CANONICAL_BASE}#c/${id}`+(k&&k.length>=20?'#'+k:'')}
+
+/* ---- Live engine telemetry (client-side only) ---------------------------- */
+function telemetrySetText(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
+function telemetrySetBar(id,pct){const el=document.getElementById(id);if(el)el.style.width=Math.max(0,Math.min(100,pct))+'%'}
+function telemetryReset(status){
+  ['telemetryRaw','telemetryEnv','telemetryRatio','telemetrySpim','telemetryFmt','telemetryVocab','telemetryNotes'].forEach(id=>telemetrySetText(id,'—'));
+  const d=document.getElementById('telemetryDelta');if(d){d.textContent='—';d.className='font-mono text-[11px] text-zinc-500'}
+  const h=document.getElementById('telemetryHash');if(h){h.textContent='—';h.removeAttribute('title')}
+  telemetrySetBar('telemetryBarRaw',0);telemetrySetBar('telemetryBarEnv',0);
+  telemetrySetText('telemetryStatus',status);
+}
+function scheduleTelemetry(){clearTimeout(telemetryTimer);telemetryTimer=setTimeout(updateTelemetry,200)}
+function updateTelemetry(){
+  const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value).filter(v=>v.trim().length>0);
+  if(!window.wasmReady||typeof window.WasmSpim!=='function'){telemetryReset('BOOTING');return}
+  if(!notes.length){telemetryReset('IDLE');return}
+  let engine=null;
+  try{
+    engine=new window.WasmSpim();
+    const enc=new TextEncoder();
+    let raw=0,fmt=0;
+    notes.forEach(s=>{raw+=enc.encode(s).length;engine.remember(s);fmt+=window.format_delta_encode(s).length});
+    const spim=engine.encoded_bytes_b64().length;
+    const env=spim+fmt;
+    const vocab=engine.vocab_size(),mem=engine.num_memories();
+    const ratio=raw>0?env/raw:0;
+    const delta=raw>0?(env-raw)/raw*100:0;
+    telemetrySetText('telemetryRaw',raw.toLocaleString('en-US')+' B');
+    telemetrySetText('telemetryEnv',env.toLocaleString('en-US')+' B');
+    telemetrySetText('telemetryRatio',ratio.toFixed(2)+'×');
+    telemetrySetText('telemetrySpim','spim_b64 '+spim.toLocaleString('en-US'));
+    telemetrySetText('telemetryFmt','fmt_b64 '+fmt.toLocaleString('en-US'));
+    telemetrySetText('telemetryVocab',vocab.toLocaleString('en-US'));
+    telemetrySetText('telemetryNotes',mem.toLocaleString('en-US'));
+    const barMax=Math.max(raw,env,1);
+    telemetrySetBar('telemetryBarRaw',raw/barMax*100);
+    telemetrySetBar('telemetryBarEnv',env/barMax*100);
+    const saved=env<raw;
+    const d=document.getElementById('telemetryDelta');
+    if(d){
+      if(raw===0){d.textContent='EVEN';d.className='font-mono text-[11px] text-zinc-300'}
+      else if(saved){d.textContent='SAVED '+Math.abs(delta).toFixed(1)+'%';d.className='font-mono text-[11px] text-emerald-400'}
+      else{d.textContent='OVERHEAD +'+delta.toFixed(1)+'%';d.className='font-mono text-[11px] text-amber-300'}
+    }
+    const h=document.getElementById('telemetryHash');
+    if(h){
+      if(window.blake3_hex_static){const digest=window.blake3_hex_static(notes[0]);h.textContent=digest;h.title=digest}
+      else h.textContent='—';
+    }
+    telemetrySetText('telemetryStatus','READY');
+  }catch(e){
+    telemetryReset('ERROR');
+    console.warn('telemetry unavailable',e);
+  }finally{
+    if(engine){try{engine.free()}catch(e){}}
+  }
+}
 
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 document.addEventListener('keydown',e=>{
