@@ -1,11 +1,17 @@
 const DEFAULT_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com";
 
-function origin(env) {
+async function origin(env) {
+  try {
+    if (env && env.SPIM_KV) {
+      const current = await env.SPIM_KV.get("origin");
+      if (current) return current;
+    }
+  } catch (e) {}
   return (env && env.SPIM_ORIGIN) || DEFAULT_ORIGIN;
 }
 
 async function proxy(request, env, path) {
-  const target = origin(env).replace(/\/+$/, "") + path;
+  const target = (await origin(env)).replace(/\/+$/, "") + path;
   let res;
   try {
     res = await fetch(target, { method: request.method, headers: { accept: "application/json" } });

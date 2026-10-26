@@ -1,6 +1,11 @@
-name = "s-pim"
+name = "spim-site"
 compatibility_date = "2024-09-23"
 pages_build_output_dir = "."
 
 [vars]
 SPIM_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com"
+SPIM_UPDATE_TOKEN = "<REDACTED>"
+
+[[kv_namespaces]]
+binding = "SPIM_KV"
+id = "0df622028d884c439f064e3673f4bfe9"
