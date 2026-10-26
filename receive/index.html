@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" data-page="receive">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Someone sent you something — Share</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import init, { WasmSpim, blake3_hex_static } from '/pkg/spim_wasm.js';
+  window.WasmSpim = WasmSpim;
+  window.blake3_hex_static = blake3_hex_static;
+  window.wasmReady = false;
+  window.wasmInitPromise = init().then(()=>{ window.wasmReady=true; });
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],serif:['Instrument Serif','serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+</head>
+<body data-page="receive" class="bg-[#fdfaf6] text-zinc-900 antialiased">
+  <nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
+  <a href="/" class="flex items-center gap-2">
+    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
+    <span class="font-bold tracking-tight">SPIM</span>
+  </a>
+  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
+    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
+    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
+    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
+    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
+    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
+  </div>
+  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
+    <a href="/" class="hover:underline">Home</a>
+    <a href="/account.html" class="hover:underline">Dock</a>
+    <a href="/account.html" class="hover:underline">Connections</a>
+    <a href="/images.html" class="hover:underline">Images</a>
+    <a href="/account.html" class="hover:underline">API</a>
+    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
+    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
+      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
+      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
+      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
+    </div>
+  </div>
+  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
+</nav>
+<div id="mnav" class="hidden max-w-[720px] mx-auto px-6 py-3 border-t border-zinc-100 text-[14px] space-y-2">
+  <div id="mnavPublic"><a href="/use-cases.html" class="block py-1">Use Cases</a><a href="/why.html" class="block py-1">Why</a><a href="/about.html" class="block py-1">About</a><a href="/support.html" class="block py-1">Support</a></div>
+<script src="/js/supabaseClient.js"></script>
+<script src="/js/entitlements.js"></script>
+<script>
+function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
+async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
+document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
+async function initAuth(){
+  const {data:{session}}=await window.supabase.auth.getSession();
+  const a=!!session;
+  const el=(id)=>document.getElementById(id);
+  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
+  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
+  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
+  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
+  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
+  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
+</script>
+
+  <div id="postcardView" class="min-h-[80vh] flex items-center justify-center px-6 py-8">
+    <div class="w-full max-w-[560px]" id="postcardCard">
+      <div class="relative rounded-[24px] bg-[#fdfaf6] border-2 border-zinc-900 overflow-hidden shadow-[8px_8px_0_#09090b] p-6 sm:p-8">
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><filter id=%22n%22><feTurbulence baseFrequency=%220.9%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.4%22/></svg>');"></div>
+        <div class="absolute top-4 right-4 flex gap-2">
+          <div class="w-14 h-16 rounded-lg bg-[#29B6F6] border-2 border-zinc-900 grid place-items-center rotate-2 shadow-[2px_2px_0_#09090b]"><div class="text-center leading-none"><div class="font-black text-[8px] tracking-widest">AIR MAIL</div><div class="text-[10px]">✈︎</div><div class="font-mono text-[6px]">SPECIAL</div></div></div>
+          <div class="w-14 h-16 rounded-lg bg-[#FF5C7A] border-2 border-zinc-900 grid place-items-center -rotate-1 shadow-[2px_2px_0_#09090b]"><div class="text-center"><div class="font-serif italic text-[10px]">For you</div><div class="w-6 h-6 mx-auto mt-1 rounded-full bg-[#FFD43B] border-2 border-zinc-900 grid place-items-center text-[10px]">♥</div><div class="font-mono text-[6px] tracking-widest">PERSONAL</div></div></div>
+        </div>
+        <div class="absolute top-20 right-8 w-20 h-20 rounded-full border-2 border-[#A78BFA] bg-[#A78BFA]/10 grid place-items-center rotate-12 hidden sm:grid"><div class="text-center font-mono text-[7px] leading-none text-[#A78BFA]"><div>POSTED</div><div class="text-[8px] font-black">OPENED</div><div>2026</div></div></div>
+        <div class="relative">
+          <div class="inline-flex px-2.5 py-1 rounded-full bg-[#4ADE80] border-2 border-zinc-900 text-zinc-900 font-mono text-[10px] font-bold tracking-widest">DELIVERY — ONE LINK</div>
+          <h1 class="mt-4 font-serif text-[28px] sm:text-[32px] leading-[1.1]">Someone sent you<br><span class="font-black font-sans tracking-tight">something.</span></h1>
+          <p class="mt-2 font-mono text-[11px] text-zinc-500"><span id="postcardMeta">—</span> — ready to open.</p>
+          <div id="postcardLoading" class="mt-6 py-8 text-center font-mono text-[11px] text-zinc-500 animate-pulse">Opening delivery… Verifying…</div>
+          <div id="postcardActions" class="hidden mt-6 space-y-3">
+            <button onclick="handleDownload()" class="w-full py-4 rounded-full bg-[#FF5C7A] border-2 border-zinc-900 text-white font-black text-[14px] flex items-center justify-center gap-2 hover:bg-[#FF3366]">⬇ Download file <span class="font-mono text-[10px] font-normal opacity-70">Save a copy to your device</span></button>
+            <button onclick="handleOpenHere()" class="w-full py-4 rounded-full bg-[#29B6F6] border-2 border-zinc-900 font-black text-[14px] flex items-center justify-center gap-2 text-white hover:bg-[#0EA5E9]">↗ Open here <span class="font-mono text-[10px] font-normal">Read and search in your browser</span></button>
+          </div>
+          <div id="postcardError" class="hidden mt-6 p-4 rounded-2xl bg-red-50 border-2 border-zinc-900 text-center">
+            <div class="font-bold" id="postcardErrorTitle">This delivery couldn’t be found.</div>
+            <div class="font-mono text-[11px] text-zinc-500 mt-1" id="postcardErrorMsg">Check the link. Example: www.spim.co.in/receive#c/QrXaxNll</div>
+          </div>
+          <div id="postcardPrivate" class="hidden mt-6 p-4 rounded-2xl bg-amber-50 border-2 border-zinc-900 text-center">
+            <div class="font-black">This delivery is private.</div>
+            <div class="font-mono text-[11px] text-zinc-600 mt-1">This is a private capsule. The key is after # in the full link. Paste the complete link or enter the key below.</div>
+            <div class="mt-3 flex gap-2 justify-center"><input id="privKeyInput" placeholder="Enter access key" class="rounded-full border-2 border-zinc-900 px-4 py-2 font-mono text-[13px] w-[220px]"><button onclick="tryPrivateKey()" class="px-5 py-2 rounded-full bg-zinc-900 text-white font-bold">Unlock</button></div>
+            <div id="privErr2" class="hidden mt-2 font-mono text-[11px] text-red-600">Could not decrypt — check the key.</div>
+          </div>
+          <div id="postcardDestroyed" class="hidden mt-6 p-4 rounded-2xl bg-zinc-900 text-white text-center">
+            <div class="font-black">This delivery has already been opened.</div>
+            <div class="font-mono text-[11px] text-zinc-400 mt-1">The sender made this one-time. It was destroyed after the first successful opening.</div>
+          </div>
+          <div class="mt-4 flex items-center justify-center gap-2 font-mono text-[10px] text-zinc-400"><span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span> Verified · Reconstructed, not generated. <span class="underline cursor-pointer" onclick="document.getElementById('verifyDetail2').classList.toggle('hidden')">ⓘ</span></div>
+          <div id="verifyDetail2" class="hidden mt-2 p-3 rounded-xl bg-white border text-left max-w-[520px] mx-auto font-mono text-[10px]"><div class="font-bold">Verified</div><div class="break-all">BLAKE3: <span id="blake3hex">—</span></div><div>SPIM: <span id="spimVerify">—</span></div></div>
+          <div class="mt-6 pt-4 border-t border-dashed border-zinc-300 flex justify-between font-mono text-[10px] text-zinc-400"><span>To: You</span><span>From: Someone who cares</span></div>
+        </div>
+      </div>
+      <div class="mt-3 text-center font-mono text-[10px] text-zinc-400">Private links keep your key in the fragment — never sent to the server.</div>
+    </div>
+  </div>
+
+  <!-- COLLECTION VIEW (hidden until Open here) -->
+  <div id="collectionView" class="hidden bg-[#fdfaf6]/50">
+    <header class="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between sticky top-0 bg-[#fdfaf6]/90 backdrop-blur z-20 border-b border-zinc-200">
+      <a href="/" class="font-mono text-[11px] font-bold">‹ Create</a>
+      <div class="font-mono text-[11px] text-zinc-500 flex items-center gap-2"><span id="recDot2" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span id="recTrust2">Verified</span> <span class="underline cursor-pointer" onclick="document.getElementById('verifyDetail3').classList.toggle('hidden')">ⓘ</span></div>
+    </header>
+    <div class="max-w-[760px] mx-auto px-6 pt-6">
+      <div class="text-center">
+        <div class="inline-flex gap-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold"><span id="recCount2">—</span> Shared capsule</div>
+        <h1 class="mt-3 text-[28px] font-black">Shared capsule</h1>
+        <p class="font-mono text-[11px] text-zinc-500">Find anything in this collection — type to search across all notes.</p>
+      </div>
+      <div class="mt-4 rounded-[24px] bg-white border-2 border-zinc-900 p-2 flex gap-2 focus-within:border-sky-400 focus-within:ring-4 focus-within:ring-sky-100 shadow-sm"><div class="pl-4 text-sky-500">⌕</div><input id="search2" placeholder="Search notes…" class="flex-1 py-3 bg-transparent text-[15px]" oninput="doSearch2()" autofocus><button id="clearSearch2" onclick="clearSearch2()" class="hidden mr-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold">Clear</button></div>
+      <div class="mt-2 flex justify-center gap-2 font-mono text-[11px]"><span class="text-zinc-400">Try:</span><button onclick="document.getElementById('search2').value='API';doSearch2()" class="px-2.5 py-1 rounded-full bg-sky-100 border-2 border-sky-400 text-sky-900 font-bold hover:bg-sky-200">API</button><button onclick="document.getElementById('search2').value='deadline';doSearch2()" class="px-2.5 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-900 font-bold hover:bg-amber-200">deadline</button><button onclick="document.getElementById('search2').value='project';doSearch2()" class="px-2.5 py-1 rounded-full bg-emerald-100 border-2 border-emerald-400 text-emerald-900 font-bold hover:bg-emerald-200">project</button></div>
+      <div id="searchMeta2" class="mt-3 font-mono text-[11px] text-zinc-500 text-center"></div>
+      <div id="recContent2" class="mt-6 space-y-3"></div>
+      <div id="recEmpty2" class="hidden mt-8 text-center py-8 border-2 border-zinc-900 rounded-2xl"><div class="font-bold">No matches</div></div>
+      <div class="mt-8 mb-16 text-center font-mono text-[10px] text-zinc-400"><span id="verifiedDot2" class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> <span id="verifiedText2">Verified</span></div>
+    </div>
+  </div>
+
+  <!-- IMAGE VIEW (hidden until Open here for image capsules) -->
+  <div id="imageView" class="hidden bg-[#fdfaf6]/50">
+    <header class="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between sticky top-0 bg-[#fdfaf6]/90 backdrop-blur z-20 border-b border-zinc-200">
+      <a href="/" class="font-mono text-[11px] font-bold">‹ Create</a>
+      <div class="font-mono text-[11px] text-zinc-500 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Verified · Image</div>
+    </header>
+    <div class="max-w-[760px] mx-auto px-6 pt-6 pb-16">
+      <div class="text-center">
+        <div class="inline-flex gap-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold">Shared image</div>
+        <h1 class="mt-3 text-[22px] font-black" id="imageTitle">Shared image</h1>
+        <p class="font-mono text-[11px] text-zinc-500" id="imageMeta">—</p>
+      </div>
+      <div class="mt-6 rounded-[24px] bg-white border-2 border-zinc-900 overflow-hidden shadow-[4px_4px_0_#09090b]">
+        <img id="imageDisplay" class="w-full h-auto max-h-[70vh] object-contain bg-zinc-50" alt="Shared image">
+        <div class="p-4 border-t-2 border-zinc-900 flex flex-wrap gap-2 justify-center">
+          <button onclick="handleImageSave()" class="px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-[13px]">Save image</button>
+          <button onclick="handleImageView()" class="px-6 py-3 rounded-full bg-white border-2 border-zinc-900 font-bold text-[13px]">View full size</button>
+        </div>
+      </div>
+      <div class="mt-3 text-center font-mono text-[10px] text-zinc-400" id="imageVerify">Verified · Reconstructed, not generated.</div>
+    </div>
+  </div>
+
+<script>
+function b64d(b){ return decodeURIComponent(escape(atob(b))); }
+function b64dBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
+function b64urlDecode(s){ let b=s.replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4) b+='='; return b64dBytes(b); }
+let currentEnv=null, currentId=null, currentKey=null;
+function parseReceiveHash(){
+  const h=location.hash.replace(/^#/,'');
+  if(h.startsWith('c/')){
+    const r=h.slice(2).split('#'); return {id:r[0], key:r[1]||null};
+  }
+  const m=location.pathname.match(/\/c\/([A-Za-z0-9_-]{6,16})/);
+  if(m){ const id=m[1]; const hk=location.hash.replace(/^#/,'').split('#').pop(); return {id, key: (hk&&hk!==id)?hk:null}; }
+  const q=new URLSearchParams(location.search).get('id');
+  if(q) return {id:q, key:new URLSearchParams(location.search).get('key')};
+  return null;
+}
+async function decryptEnvelope(b64, keyBytes){
+  const combined=b64dBytes(b64);
+  const iv=combined.slice(0,12);
+  const ct=combined.slice(12);
+  const key=await crypto.subtle.importKey('raw',keyBytes,{name:'AES-GCM'},false,['decrypt']);
+  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+  return new TextDecoder().decode(dec);
+}
+async function loadReceive(){
+  const p=parseReceiveHash();
+  if(!p){ document.getElementById('postcardError').classList.remove('hidden'); document.getElementById('postcardLoading').classList.add('hidden'); return; }
+  currentId=p.id; currentKey=p.key;
+  if(!window.wasmReady) await window.wasmInitPromise;
+  try{
+    const res=await fetch('/capsules/'+encodeURIComponent(p.id));
+    if(res.status===404) throw new Error('not found');
+    if(res.status===410) throw new Error('destroyed');
+    if(!res.ok) throw new Error('fetch '+res.status);
+    const j=await res.json();
+    let jsonStr;
+    if(p.key){
+      try{ const kb=b64urlDecode(p.key); jsonStr=await decryptEnvelope(j.blob, kb); }catch(e){ throw new Error('decrypt failed'); }
+    }else{
+      try{ jsonStr=b64d(j.blob); }catch(e){ document.getElementById('postcardPrivate').classList.remove('hidden'); document.getElementById('postcardLoading').classList.add('hidden'); return; }
+      try{ JSON.parse(jsonStr); }catch(e){ document.getElementById('postcardPrivate').classList.remove('hidden'); document.getElementById('postcardLoading').classList.add('hidden'); return; }
+    }
+    const env=JSON.parse(jsonStr);
+    if(env.magic!=="CAP1") throw new Error('bad magic');
+    const stored=env.blake3; const comp=window.blake3_hex_static(JSON.stringify({...env, blake3:""}));
+    document.getElementById('blake3hex').textContent=comp;
+    if(comp!==stored) throw new Error('blake3 mismatch');
+    // Verify SPIM for text notes only
+    if(env.notes && env.notes.length){
+      const w=new window.WasmSpim(); env.notes.forEach(n=> w.remember(b64d(n.source_b64)));
+      document.getElementById('spimVerify').textContent='Verified';
+    } else {
+      document.getElementById('spimVerify').textContent='—';
+    }
+    // Image integrity: verify source_blake3 on bytes
+    if(env.images && env.images.length){
+      for(const img of env.images){
+        if(!img.source_bytes_b64 || !img.source_blake3) throw new Error('blake3 mismatch');
+        // blake3_bytes_hex expects base64 of bytes
+        let calc;
+        try{
+          const tmp=new window.WasmSpim();
+          calc=tmp.blake3_bytes_hex(img.source_bytes_b64);
+          tmp.free();
+        }catch(e){ calc=''; }
+        if(calc && calc!==img.source_blake3) throw new Error('blake3 mismatch');
+      }
+    }
+    document.getElementById('postcardLoading').classList.add('hidden');
+    document.getElementById('postcardActions').classList.remove('hidden');
+    if(env.images && env.images.length){
+      const img=env.images[0];
+      document.getElementById('postcardMeta').textContent=`1 image · ${img.filename||img.mime} · ${(img.source_bytes_b64.length*3/4/1024).toFixed(1)} KB` + ((env.flags&1)?' · One-time':'');
+      // Change postcard title for image
+      document.querySelector('#postcardView h1').innerHTML='Someone sent you<br><span class="font-black font-sans tracking-tight">an image.</span>';
+    } else {
+      document.getElementById('postcardMeta').textContent=`${env.notes.length} ${env.notes.length===1?'note':'notes'} · ${env.word_count} words` + ((env.flags&1)?' · One-time':'');
+    }
+    currentEnv=env;
+  }catch(e){
+    document.getElementById('postcardLoading').classList.add('hidden');
+    const m=e.message||'';
+    if(m.includes('decrypt')){ document.getElementById('postcardPrivate').classList.remove('hidden'); document.getElementById('privErr2').textContent='The private key does not match this capsule. Check that you copied the full link including the key after #.'; document.getElementById('privErr2').classList.remove('hidden'); }
+    else if(m.includes('not found')){ document.getElementById('postcardError').classList.remove('hidden'); document.getElementById('postcardErrorTitle').textContent='The capsule doesn’t exist or has expired.'; document.getElementById('postcardErrorMsg').textContent='Check the link. Example: www.spim.co.in/receive#c/Ab3x9Q'; }
+    else if(m.includes('destroyed')){ document.getElementById('postcardDestroyed').classList.remove('hidden'); }
+    else if(m.includes('blake3')||m.includes('verification')||m.includes('integrity')){ document.getElementById('postcardError').classList.remove('hidden'); document.getElementById('postcardErrorTitle').textContent='The capsule was received, but its contents could not be verified.'; document.getElementById('postcardErrorMsg').textContent='The data may be corrupted. Ask the sender to recreate the capsule.'; }
+    else document.getElementById('postcardError').classList.remove('hidden');
+  }
+}
+let currentImageUrl=null;
+async function handleDownload(){
+  if(!currentEnv) return;
+  if(currentEnv.images && currentEnv.images.length){
+    // Image download - exact bytes
+    const img=currentEnv.images[0];
+    const bytes=b64dBytes(img.source_bytes_b64);
+    const blob=new Blob([bytes],{type:img.mime||'image/jpeg'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=img.filename||'image'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  } else {
+    const content=currentEnv.notes.map((n,i)=>`Note ${String(i+1).padStart(2,'0')}\n---------\n${b64d(n.source_b64)}`).join('\n\n');
+    const blob=new Blob([content],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='collection.txt'; a.click();
+  }
+  if(currentEnv.flags & 1){
+    try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
+  }
+}
+function handleImageSave(){ handleDownload(); }
+function handleImageView(){
+  if(!currentImageUrl) return;
+  window.open(currentImageUrl, '_blank');
+}
+let currentWasm2=null;
+async function handleOpenHere(){
+  if(currentEnv.images && currentEnv.images.length){
+    // Image capsule - show imageView
+    document.getElementById('postcardView').classList.add('hidden');
+    document.getElementById('imageView').classList.remove('hidden');
+    const img=currentEnv.images[0];
+    const bytes=b64dBytes(img.source_bytes_b64);
+    const blob=new Blob([bytes],{type:img.mime||'image/jpeg'});
+    if(currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+    currentImageUrl=URL.createObjectURL(blob);
+    document.getElementById('imageDisplay').src=currentImageUrl;
+    document.getElementById('imageTitle').textContent=img.filename||'Shared image';
+    document.getElementById('imageMeta').textContent=`${img.mime} · ${(bytes.length/1024).toFixed(1)} KB` + (currentEnv.flags & 1 ? ' · One-time' : '');
+    if(currentEnv.flags & 1){
+      try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
+    }
+    return;
+  }
+  document.getElementById('postcardView').classList.add('hidden');
+  document.getElementById('collectionView').classList.remove('hidden');
+  // init WASM search for this collection (reuse already verified env)
+  const w = new window.WasmSpim();
+  currentEnv.notes.forEach(n=> w.remember(decodeURIComponent(escape(atob(n.source_b64)))));
+  currentWasm2 = w;
+  window._wasmSpim2 = w;
+  document.getElementById('recCount2').textContent = `${currentEnv.notes.length} ${currentEnv.notes.length===1?'note':'notes'}`;
+  // render all notes initially
+  renderCollection2();
+  if(currentEnv.flags & 1){
+    try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
+  }
+}
+function doSearch2(){
+  const q=document.getElementById('search2').value;
+  document.getElementById('clearSearch2').classList.toggle('hidden', !q.trim());
+  renderCollection2();
+}
+function clearSearch2(){ document.getElementById('search2').value=''; doSearch2(); }
+function renderCollection2(){
+  const w=currentWasm2;
+  const notes=currentEnv.notes.map(n=> ({source: decodeURIComponent(escape(atob(n.source_b64))), tokens: []}));
+  // Use WASM reconstruct for tokens
+  notes.forEach((n,i)=>{ const rec=w.reconstruct(i)||''; n.tokens=rec.split(' ').filter(Boolean); });
+  const q=document.getElementById('search2').value.trim();
+  const qt=q.split(/\s+/).map(t=>t.toLowerCase()).filter(Boolean);
+  const c=document.getElementById('recContent2');
+  c.innerHTML='';
+  const meta=document.getElementById('searchMeta2');
+  if(!q){
+    meta.textContent=`${notes.length} notes — scroll to read`;
+    notes.forEach((n,i)=>{
+      const d=document.createElement('div'); d.className='rounded-2xl bg-white border-2 border-zinc-900 p-5';
+      d.innerHTML=`<div class="flex justify-between"><span class="px-2.5 py-1 rounded-full bg-zinc-900 text-white text-[11px] font-bold">NOTE ${String(i+1).padStart(2,'0')}</span><span class="font-mono text-[11px] text-zinc-400">${n.tokens.length} words</span></div><div class="mt-3 text-[14px] leading-[1.6]">${n.source.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div><div class="mt-2"><button onclick="this.nextElementSibling.classList.toggle('hidden')" class="font-mono text-[11px] underline">View original</button><pre class="hidden mt-2 whitespace-pre-wrap break-words font-mono text-[12px] bg-zinc-50 rounded-xl p-3 border">${n.source.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></div>`;
+      c.appendChild(d);
+    });
+    return;
+  }
+  let ranked=[];
+  try{ ranked=JSON.parse(w.ask_ranked(q)).map(o=>({idx:o.id,score:o.score})); }catch(e){}
+  if(!ranked.length){ document.getElementById('recEmpty2').classList.remove('hidden'); meta.textContent=`No matches for “${q}”`; return; }
+  document.getElementById('recEmpty2').classList.add('hidden');
+  meta.textContent=`${ranked.length} result${ranked.length===1?'':'s'} for “${q}”`;
+  ranked.forEach(({idx,score})=>{
+    const n=notes[idx];
+    const d=document.createElement('div'); d.className='rounded-2xl bg-white border-2 border-zinc-900 p-5';
+    const hl=(t,qt)=>{ let o=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); qt.forEach(v=>{ o=o.replace(new RegExp('('+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>');}); return o; };
+    d.innerHTML=`<div class="flex justify-between"><span class="px-2.5 py-1 rounded-full bg-amber-400 border-2 border-zinc-900 text-[11px] font-bold">NOTE ${String(idx+1).padStart(2,'0')}</span><span class="font-mono text-[11px] text-zinc-500">${score.toFixed(2)}</span></div><div class="mt-2 text-[13px] leading-[1.6]">${hl(n.source.slice(0,400),qt)}</div>`;
+    c.appendChild(d);
+  });
+}
+function tryPrivateKey(){
+  const k=document.getElementById('privKeyInput').value.trim();
+  const p=parseReceiveHash();
+  if(!p) return;
+  location.hash='c/'+p.id+(k?'#'+k:'');
+  location.reload();
+}
+window.addEventListener('load', loadReceive);
+window.addEventListener('hashchange', loadReceive);
+</script>
+</body>
+</html>

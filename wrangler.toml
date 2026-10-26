@@ -1,0 +1,6 @@
+name = "s-pim"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "."
+
+[vars]
+SPIM_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com"
