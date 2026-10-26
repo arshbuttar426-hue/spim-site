@@ -105,7 +105,7 @@
         <h3 class="mt-3 text-[18px] font-black">One link. <span class="font-light text-zinc-400">Your image inside.</span></h3>
         <div class="mt-4 flex gap-2"><input id="shareLinkImage" readonly class="flex-1 rounded-full bg-zinc-900 text-white px-4 py-3 font-mono text-[13px]"><button onclick="copyLinkImage()" class="px-5 py-3 rounded-full bg-amber-400 border-2 border-zinc-900 font-bold">Copy</button></div>
         <div class="mt-2 flex gap-2 font-mono text-[11px]"><span class="px-2.5 py-1 rounded-full bg-zinc-900 text-white font-bold">Exact</span><span id="imageResultVerify" class="px-2.5 py-1 rounded-full bg-zinc-100">Verifying…</span><span id="imageResultMeta" class="px-2.5 py-1 rounded-full bg-zinc-100">—</span></div>
-        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="openResultImage()" class="py-3 rounded-full bg-zinc-900 text-white font-bold">Open →</button><button onclick="closeResultImage()" class="py-3 rounded-full bg-white border-2 border-zinc-900 font-bold">Close</button></div>
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="openResultImage()" class="py-3 rounded-full bg-zinc-900 text-white font-bold">Open →</button><button onclick="closeResultImage()" class="py-3 rounded-full bg-white border-2 border-zinc-900 font-bold">Close</button><button onclick="downloadSpimImage()" class="py-3 rounded-full bg-white border border-zinc-300 font-mono text-[12px] text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 sm:col-span-2">⬇ Download .spim</button></div>
       </div>
     </div>
   </section>
@@ -137,6 +137,7 @@ const MAX_DIM = 8192;
 const MAX_PIXELS = 25 * 1024 * 1024;
 let selectedFile=null, selectedBytes=null, selectedMime=null, selectedName=null, selectedDims=null;
 let thumbUrl=null;
+let lastImageBlob=null, lastImageKeyB64=null;
 
 function b64encodeBytes(b){ let s=''; b.forEach(v=>s+=String.fromCharCode(v)); return btoa(s); }
 function b64decodeBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
@@ -297,6 +298,7 @@ async function confirmHold(mode){
     if(isPrivate){ const kb=await generateKey(); keyB64=b64urlEncode(kb); blob=await encryptEnvelope(j,kb);} else blob=b64encodeStr(j);
     const destroyable=document.getElementById('destroyableCheckImage')?.checked || false;
     const id=await postCapsule(blob, destroyable);
+    lastImageBlob=blob; lastImageKeyB64=keyB64;
     const base=`${location.origin}/receive#c/${id}`;
     const link=isPrivate?`${base}#${keyB64}`:base;
     document.getElementById('shareLinkImage').value=link;
@@ -311,6 +313,14 @@ async function confirmHold(mode){
 function copyLinkImage(){ navigator.clipboard.writeText(document.getElementById('shareLinkImage').value); const b=event.target; const old=b.textContent; b.textContent='Copied ✓'; setTimeout(()=>b.textContent=old,1200); }
 function openResultImage(){ const id=document.getElementById('shareLinkImage').dataset.id; const k=document.getElementById('shareLinkImage').dataset.key; location.href='/receive#c/'+id+(k?'#'+k:''); }
 function closeResultImage(){ document.getElementById('imageResult').classList.add('hidden'); }
+function downloadSpimImage(){
+  if(!lastImageBlob) return;
+  const id=document.getElementById('shareLinkImage').dataset.id||'image';
+  const spim={spim_file:1, version:1, locked:!!lastImageKeyB64, key_b64url:lastImageKeyB64||null, blob:lastImageBlob};
+  const b=new Blob([JSON.stringify(spim)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=id+'.spim'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
 
 // Drag/drop
 const dz=document.getElementById('dropZone');

@@ -1,6 +1,12 @@
 /* @ts-self-types="./spim_wasm.d.ts" */
 
 export class WasmSpim {
+    static __wrap(ptr) {
+        const obj = Object.create(WasmSpim.prototype);
+        obj.__wbg_ptr = ptr;
+        WasmSpimFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -12,6 +18,8 @@ export class WasmSpim {
         wasm.__wbg_wasmspim_free(ptr, 0);
     }
     /**
+     * BM25-ranked relevance (`k1=1.5`, `b=0.75`). Returns a JSON array of
+     * `{"id": <u32>, "score": <f64>}` sorted by descending score.
      * @param {string} query
      * @returns {string}
      */
@@ -30,6 +38,8 @@ export class WasmSpim {
         }
     }
     /**
+     * BLAKE3 of the base64-decoded bytes of `b64`, lowercase hex.
+     * Invalid base64 degrades to the hash of empty bytes (never panics).
      * @param {string} b64
      * @returns {string}
      */
@@ -48,6 +58,7 @@ export class WasmSpim {
         }
     }
     /**
+     * BLAKE3 of the UTF-8 bytes of `data`, lowercase hex.
      * @param {string} data
      * @returns {string}
      */
@@ -66,6 +77,7 @@ export class WasmSpim {
         }
     }
     /**
+     * Base64 of the compact positional encoding (Golomb-Rice postings).
      * @returns {string}
      */
     encoded_bytes_b64() {
@@ -79,6 +91,21 @@ export class WasmSpim {
         } finally {
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
+    }
+    /**
+     * Rebuild an engine from the base64 produced by `encoded_bytes_b64`.
+     * Round-trips exactly (vocab, postings, mem_lengths). Returns `null` if the
+     * base64 or the encoding is invalid. Enables zero-redundancy envelopes:
+     * `receive.html` reconstructs notes purely from `spim_b64` with no raw
+     * `notes[]` copy.
+     * @param {string} b64
+     * @returns {WasmSpim | undefined}
+     */
+    static from_encoded_bytes_b64(b64) {
+        const ptr0 = passStringToWasm0(b64, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmspim_from_encoded_bytes_b64(ptr0, len0);
+        return ret === 0 ? undefined : WasmSpim.__wrap(ret);
     }
     constructor() {
         const ret = wasm.wasmspim_new();
@@ -94,6 +121,7 @@ export class WasmSpim {
         return ret >>> 0;
     }
     /**
+     * Phrase search. Returns a JSON array of `[memory_id, [start_positions]]`.
      * @param {string} query
      * @returns {string}
      */
@@ -112,6 +140,8 @@ export class WasmSpim {
         }
     }
     /**
+     * Exact contiguous phrase recall. Returns a JSON array of matching memory ids
+     * (the candidate-locking C3 matcher result), e.g. `[1]` or `[]`.
      * @param {string} query
      * @returns {string}
      */
@@ -130,6 +160,7 @@ export class WasmSpim {
         }
     }
     /**
+     * Reconstruct one memory from its positional data (lossless, space-joined).
      * @param {number} id
      * @returns {string | undefined}
      */
@@ -143,6 +174,7 @@ export class WasmSpim {
         return v1;
     }
     /**
+     * Insert a memory's normalized token sequence. Returns the 0-based memory id.
      * @param {string} text
      * @returns {number}
      */
@@ -153,6 +185,8 @@ export class WasmSpim {
         return ret >>> 0;
     }
     /**
+     * The normalized token sequence of one memory as a JSON array of strings,
+     * or the literal `null` when the id is out of range.
      * @param {number} id
      * @returns {string}
      */
@@ -169,6 +203,7 @@ export class WasmSpim {
         }
     }
     /**
+     * Does `reconstruct(id)` equal the normalized `original`?
      * @param {number} id
      * @param {string} original
      * @returns {boolean}
@@ -190,6 +225,8 @@ export class WasmSpim {
 if (Symbol.dispose) WasmSpim.prototype[Symbol.dispose] = WasmSpim.prototype.free;
 
 /**
+ * Free-function BLAKE3 (no instance needed) — used at compose time before the
+ * envelope exists, matching the live site's `blake3_hex_static` export.
  * @param {string} data
  * @returns {string}
  */
@@ -210,7 +247,7 @@ export function blake3_hex_static(data) {
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg___wbindgen_throw_5d9e815e6fdf150f: function(arg0, arg1) {
+        __wbg___wbindgen_throw_bb96b2010945f0bc: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
         __wbindgen_init_externref_table: function() {
