@@ -20,8 +20,8 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json(400, { error: "invalid json" });
   }
-  const origin = String((body && body.origin) || "");
-  if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(origin)) {
+  const origin = String((body && body.origin) || "").replace(/\/+$/, "");
+  if (!/^https:\/\/(?:[a-z0-9-]+\.trycloudflare\.com|api\.spim\.co\.in)$/.test(origin)) {
     return json(400, { error: "invalid origin" });
   }
   await env.SPIM_KV.put("origin", origin);

@@ -57,6 +57,11 @@ VPS units (enabled, survive reboot):
 
 Recovery: `systemctl restart spim-tunnel spim-report`, then wait for KV to catch up.
 
+A named tunnel `spim-api` (`4e51ccbd-726f-49e4-b519-448cfe7b110b`) and its
+`api.spim.co.in → <id>.cfargotunnel.com` record exist in the zone configuration, and
+the unit `/etc/systemd/system/spim-tunnel-named.service` is installed but **disabled**.
+It cannot serve traffic until `spim.co.in` is an active Cloudflare zone.
+
 ## DNS and certificates
 
 GoDaddy DNS for `spim.co.in`:
@@ -68,6 +73,24 @@ GoDaddy DNS for `spim.co.in`:
 
 Both hostnames are registered as Pages custom domains in the `spim-site` project and
 report active with Google Trust Services certificates.
+
+### Zone migration attempt (2026-10-26) — aborted
+
+Moving the zone to Cloudflare was attempted so the apex could point at Pages and the
+API could use a named tunnel. Sequence: zone created (Free, full setup, NS
+`carioca.ns.cloudflare.com` / `gannon.ns.cloudflare.com`), records pre-created, apex
+added as a Pages custom domain, then nameservers switched at GoDaddy.
+
+The Cloudflare zone stayed in `initializing` (meta step 1) for over an hour; both
+assigned nameservers returned `REFUSED` for the zone, so public resolution failed even
+though the registry delegated to them. Nameservers were switched back to
+`ns61/ns62.domaincontrol.com`; service returned and the apex Pages domain was removed.
+The zone object was deleted and re-created once, landing in the same `initializing`
+state, so the failure is in zone provisioning for this account, not the DNS records.
+
+Before any retry: create the zone, wait until its status is `pending` (not
+`initializing`) and its nameservers actually answer, **then** switch registrar
+nameservers. Switching first is what caused the outage.
 
 ## Accounts / history
 
@@ -81,9 +104,9 @@ report active with Google Trust Services certificates.
 
 ## Known gaps
 
-- Apex `spim.co.in` still serves the GoDaddy Website Builder page. Pointing it at Pages
-  requires moving the zone to Cloudflare nameservers (or a GoDaddy forwarding feature,
-  which its public API does not expose).
+- Apex `spim.co.in` still serves the GoDaddy Website Builder page. Options: GoDaddy
+  dashboard forwarding to `https://www.spim.co.in` (no public API), or a proper zone
+  migration once Cloudflare provisions the zone.
 - Upstream origin is a single VPS behind a quick tunnel; there is no second origin.
 - KV origin updates are eventually consistent (~60s).
 
