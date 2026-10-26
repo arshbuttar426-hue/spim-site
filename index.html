@@ -7,8 +7,8 @@
 <title>SPIM — Share more than a link</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
-  import init, { WasmSpim, blake3_hex_static } from '/pkg/spim_wasm.js';
-  window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static;
+  import init, { WasmSpim, blake3_hex_static, format_delta_encode } from '/pkg/spim_wasm.js';
+  window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static; window.format_delta_encode=format_delta_encode;
   window.wasmReady=false; window.wasmInitPromise=init().then(()=>{window.wasmReady=true; window.dispatchEvent(new Event('wasm-ready'));});
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -242,7 +242,7 @@ function updateMeta(){
   document.getElementById('inlineError').classList.add('hidden');
 }
 window.addEventListener('wasm-ready',updateMeta);
-function makeEnvelope(notes){const w=new window.WasmSpim();const notes_blake3=[];notes.forEach(s=>{const id=w.remember(s);notes_blake3.push(wasmBlake3Hex(w.reconstruct(id)||''))});const b=w.encoded_bytes_b64();const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,word_count:wc,blake3:""};env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));return env}
+function makeEnvelope(notes){const w=new window.WasmSpim();const notes_blake3=[],fmt_b64=[];notes.forEach(s=>{w.remember(s);notes_blake3.push(wasmBlake3Hex(s));fmt_b64.push(window.format_delta_encode(s))});const b=w.encoded_bytes_b64();const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,fmt_b64,word_count:wc,blake3:""};env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));return env}
 async function generateKey(){const b=new Uint8Array(32);crypto.getRandomValues(b);return b}
 async function encryptEnvelope(j,k){const iv=new Uint8Array(12);crypto.getRandomValues(iv);const key=await crypto.subtle.importKey('raw',k,{name:'AES-GCM'},false,['encrypt']);const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(j));const c=new Uint8Array(iv.length+enc.byteLength);c.set(iv,0);c.set(new Uint8Array(enc),iv.length);return b64encodeBytes(c)}
 async function postCapsule(b,d=false){const r=await fetch(SERVER+'/capsules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blob:b,destroyable:d})});if(!r.ok)throw new Error('POST '+r.status);return (await r.json()).id}

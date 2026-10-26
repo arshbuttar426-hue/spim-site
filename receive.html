@@ -7,9 +7,10 @@
 <title>Someone sent you something — Share</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
-  import init, { WasmSpim, blake3_hex_static } from '/pkg/spim_wasm.js';
+  import init, { WasmSpim, blake3_hex_static, format_delta_apply } from '/pkg/spim_wasm.js';
   window.WasmSpim = WasmSpim;
   window.blake3_hex_static = blake3_hex_static;
+  window.format_delta_apply = format_delta_apply;
   window.wasmReady = false;
   window.wasmInitPromise = init().then(()=>{ window.wasmReady=true; });
 </script>
@@ -184,7 +185,9 @@ async function decryptEnvelope(b64, keyBytes){
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 // Resolve the note list from an envelope. Legacy capsules carry raw notes[];
-// zero-redundancy capsules store only spim_b64 and reconstruct the notes.
+// zero-redundancy capsules store only spim_b64 (+ optional fmt_b64 delta) and
+// reconstruct the notes. When a fmt delta is present, apply it to recover the
+// sender's exact bytes (case, newlines, indentation, multiple spaces).
 function resolveNotes(env){
   if(env.images && env.images.length) return [];
   if(env.notes && env.notes.length) return env.notes.map(n=>({source:b64d(n.source_b64), blake3:n.source_blake3||null}));
@@ -192,7 +195,13 @@ function resolveNotes(env){
     const w=window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
     if(!w) throw new Error('bad spim');
     const out=[]; const n=w.num_memories();
-    for(let i=0;i<n;i++){ const src=w.reconstruct(i); if(src==null){w.free();throw new Error('reconstruct failed');} out.push({source:src, blake3:(env.notes_blake3&&env.notes_blake3[i])||null}); }
+    for(let i=0;i<n;i++){
+      const norm=w.reconstruct(i);
+      if(norm==null){w.free();throw new Error('reconstruct failed');}
+      const fmt=(env.fmt_b64 && env.fmt_b64[i])||null;
+      const source=fmt?(window.format_delta_apply(norm,fmt)??norm):norm;
+      out.push({source, blake3:(env.notes_blake3&&env.notes_blake3[i])||null});
+    }
     w.free();
     return out;
   }

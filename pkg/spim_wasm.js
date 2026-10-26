@@ -244,6 +244,50 @@ export function blake3_hex_static(data) {
         wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
+
+/**
+ * Apply a base64 format delta (from `format_delta_encode`) to a normalized
+ * string (== `reconstruct(id)`), returning the exact original. Returns `null`
+ * if the delta is invalid or the token counts mismatch.
+ * @param {string} norm
+ * @param {string} delta_b64
+ * @returns {string | undefined}
+ */
+export function format_delta_apply(norm, delta_b64) {
+    const ptr0 = passStringToWasm0(norm, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(delta_b64, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.format_delta_apply(ptr0, len0, ptr1, len1);
+    let v3;
+    if (ret[0] !== 0) {
+        v3 = getStringFromWasm0(ret[0], ret[1]);
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    }
+    return v3;
+}
+
+/**
+ * Encode the case/whitespace format delta for raw text, base64. Together with
+ * `reconstruct(id)` (the normalized stream), this restores the sender's exact
+ * bytes — uppercase runs, newlines, tabs, indentation, multiple spaces.
+ * @param {string} orig
+ * @returns {string}
+ */
+export function format_delta_encode(orig) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(orig, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.format_delta_encode(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
