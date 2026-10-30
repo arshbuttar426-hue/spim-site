@@ -107,35 +107,31 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 </script>
 
 <!-- HERO -->
-<section class="max-w-[1200px] mx-auto px-5 pt-12 sm:pt-16 pb-8">
-  <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-7">
-    <div class="max-w-[720px]">
-      <div class="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-emerald-400/90">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-        PRECISION STUDIO · WASM · CLIENT-SIDE
-      </div>
-      <h1 class="mt-4 text-[38px] sm:text-[54px] leading-[0.95] tracking-[-0.045em] font-semibold">
-        Share <span class="font-serif italic font-normal text-zinc-500">more</span> than a link.
-      </h1>
-      <p class="mt-4 max-w-[600px] text-[14px] leading-[1.7] text-zinc-400">
-        Lossless positional compression, <span class="text-zinc-200">client-side encryption</span>, and
-        <span class="text-zinc-200">byte-exact reconstruction</span> in Rust/WASM. Search runs entirely in this tab —
-        the server only ever holds a sealed envelope.
-      </p>
+<section class="max-w-[1200px] mx-auto px-5 pt-14 sm:pt-20 pb-12">
+  <div class="flex flex-col items-center text-center">
+    <div class="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-emerald-400/90">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+      LOSSLESS · PRIVATE · BYTE-EXACT
     </div>
-    <div class="flex flex-wrap items-center gap-2 shrink-0">
+    <h1 class="mt-6 text-[38px] sm:text-[54px] leading-[0.95] tracking-[-0.045em] font-semibold">
+      Share <span class="font-serif italic font-normal text-zinc-500">more</span> than a link.
+    </h1>
+    <p class="mt-6 max-w-[540px] text-[15px] leading-[1.75] text-zinc-400">
+      One private link carries every note you make. Your words are sealed in your browser and rebuilt byte-for-byte for the recipient.
+      No accounts. No servers in the loop. No AI. Just the original — returned exactly.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="#composer" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-zinc-100 text-zinc-950 font-semibold text-[13px] hover:bg-white transition">
+        <span class="font-mono text-[10px]">✎</span> Create a text link
+      </a>
+      <a href="/images.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-zinc-700 text-zinc-200 font-semibold text-[13px] hover:bg-zinc-900 transition">
+        <span class="font-mono text-[10px]">▣</span> Create an image link
+      </a>
       <button onclick="loadSamplePayload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-amber-300 text-zinc-950 font-semibold text-[12px] hover:bg-amber-200 transition">
         <span class="font-mono text-[11px]">↳</span> Load Sample Payload
       </button>
-      <a href="#open" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md border border-zinc-700 text-zinc-300 font-mono text-[11px] hover:bg-zinc-900 transition">OPEN A CAPSULE</a>
+      <a href="#open" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-zinc-700 text-zinc-200 font-semibold text-[13px] hover:bg-zinc-900 transition">OPEN A CAPSULE</a>
     </div>
-  </div>
-
-  <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-lg border border-zinc-800 bg-zinc-800">
-    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">01 · LOSSLESS</div><div class="mt-1 text-[12px] text-zinc-300">Positions, not vectors</div></div>
-    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">02 · PRIVATE</div><div class="mt-1 text-[12px] text-zinc-300">AES-256-GCM in-tab</div></div>
-    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">03 · EXACT</div><div class="mt-1 text-[12px] text-zinc-300">Byte-exact restore</div></div>
-    <div class="bg-[#0a0a0d] px-4 py-3"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">04 · VERIFIED</div><div class="mt-1 text-[12px] text-zinc-300">BLAKE3 per note</div></div>
   </div>
 </section>
 
@@ -166,7 +162,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
           </div>
           <div id="ghost" class="p-5 sm:p-6 bg-zinc-900/30">
             <div class="font-mono text-[10px] tracking-[0.16em] text-zinc-600">NOTE 02 — EXAMPLE (NOT SAVED)</div>
-            <div class="mt-2 text-[12px] leading-relaxed text-zinc-500">API instructions — POST /capsules, GET /capsules/:id, search is client-side…</div>
+            <div class="mt-2 text-[12px] leading-relaxed text-zinc-500">Shared context — gift ideas for our June anniversary. She pointed at the blue ceramic mug twice.</div>
           </div>
         </div>
         <div class="px-5 sm:px-6 py-3 bg-[#0a0a0d] border-t border-zinc-800 flex items-center justify-between gap-3">
@@ -198,7 +194,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       </section>
 
       <!-- FLOW STRIP -->
-      <section class="mt-8">
+      <section class="mt-8 hidden">
         <div class="rounded-lg border border-zinc-800 bg-[#0a0a0d] px-5 py-4 font-mono text-[10px] leading-[1.9] text-zinc-500">
           <div><span class="text-zinc-600">ANONYMOUS</span> &nbsp;<span class="text-zinc-300">CREATE → SEARCH → SHARE</span></div>
           <div><span class="text-zinc-600">WITH ACCOUNT</span> &nbsp;<span class="text-zinc-300">CREATE CAPSULE → SEND TO CONNECTION → DOCK → UNLOAD</span></div>
@@ -211,7 +207,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       </section>
 
       <!-- CAPABILITIES -->
-      <section class="mt-8">
+      <section class="mt-8 hidden">
         <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
           <div class="font-mono text-[9px] tracking-[0.2em] text-zinc-500">SPIM CAPABILITIES</div>
           <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Text is free. Everything else waits at your Dock.</h2>
@@ -238,7 +234,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       </section>
 
       <!-- DOCK -->
-      <section class="mt-4">
+      <section class="mt-4 hidden">
         <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
           <span class="inline-flex px-2 py-0.5 rounded border border-amber-400/40 bg-amber-400/10 font-mono text-[9px] tracking-[0.16em] text-amber-300">DOCK</span>
           <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Something is waiting here.</h2>
@@ -264,7 +260,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
       </section>
 
       <!-- CONNECTIONS -->
-      <section class="mt-4">
+      <section class="mt-4 hidden">
         <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
           <span class="inline-flex px-2 py-0.5 rounded border border-violet-400/40 bg-violet-400/10 font-mono text-[9px] tracking-[0.16em] text-violet-300">CONNECTIONS</span>
           <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Your destinations</h2>
