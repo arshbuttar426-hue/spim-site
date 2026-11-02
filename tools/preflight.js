@@ -43,7 +43,7 @@ for (const f of [
 
 /* --- nothing experimental ------------------------------------------------ */
 for (const f of [
-  'landing-proto.html', 'mature.html', 'prima-four.html', 'spim-chirp.html',
+  'landing-proto.html', 'prima-four.html', 'spim-chirp.html',
   'spim-field.html', 'spim-quiet.html', 'spim-textfield.html', 'spim-typography.html',
   'js/chirp-receive.js'
 ]) mustNot(f);
