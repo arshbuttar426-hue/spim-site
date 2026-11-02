@@ -38,7 +38,7 @@ for (const f of [
   'css/spim-theme.css', 'js/spim-codec.js',
   'pkg/spim_wasm.js', 'favicon.svg',
   'functions/capsules.js',
-  '404.html'
+  '404.html', '_headers'
 ]) must(f);
 
 /* --- nothing experimental ------------------------------------------------ */
