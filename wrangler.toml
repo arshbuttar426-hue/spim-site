@@ -4,7 +4,9 @@ pages_build_output_dir = "."
 
 [vars]
 SPIM_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com"
-SPIM_UPDATE_TOKEN = "<REDACTED>"
+# SPIM_UPDATE_TOKEN is a Pages secret, set with:
+#   wrangler pages secret put SPIM_UPDATE_TOKEN --project-name=spim-site
+# Never put it back in this file: everything in the deploy tree is public.
 
 [[kv_namespaces]]
 binding = "SPIM_KV"
