@@ -259,6 +259,16 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
         var resetBtn = document.getElementById('resetDrop');
 
         var catchCount = 0, lastKey = '', lastKeyAt = 0, customDropBuf = null;
+        var dropCtx = null;
+
+        // Browsers start an AudioContext suspended unless it was created in a
+        // user gesture, so reuse the one unlocked by the listen tap.
+        function audioCtx() {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!dropCtx) dropCtx = new Ctx();
+          if (dropCtx.state === 'suspended') dropCtx.resume();
+          return dropCtx;
+        }
 
         function setState(label, colour) {
           stateEl.textContent = label;
@@ -267,14 +277,12 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 
         function playDrop() {
           try {
-            var Ctx = window.AudioContext || window.webkitAudioContext;
-            var ctx = new Ctx();
+            var ctx = audioCtx();
             if (customDropBuf) {
               var s = ctx.createBufferSource();
               s.buffer = customDropBuf;
               s.connect(ctx.destination);
               s.start();
-              setTimeout(function () { try { ctx.close(); } catch (e) {} }, 2000);
               return;
             }
             var o = ctx.createOscillator(), g = ctx.createGain();
@@ -303,7 +311,6 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
               g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.22);
               o.start(); o.stop(ctx.currentTime + 0.22);
             }
-            setTimeout(function () { try { ctx.close(); } catch (e) {} }, 800);
           } catch (e) {}
         }
 
@@ -335,6 +342,8 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
             levelBar.style.width = '0%';
             return;
           }
+          // Unlock playback inside the user gesture that starts listening.
+          audioCtx();
           receiver.start().then(function () {
             btn.textContent = 'Listening — tap to stop';
             setState('Listening…', 'bg-emerald-400');
