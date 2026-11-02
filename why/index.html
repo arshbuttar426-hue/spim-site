@@ -1,70 +1,182 @@
-<!DOCTYPE html><html lang="en" data-page="why"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"><title>Why</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"><script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script></head><body data-page="why" class="bg-[#fdfaf6] text-zinc-900 antialiased">
-  <nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
-  <a href="/" class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
-    <span class="font-bold tracking-tight">SPIM</span>
-  </a>
-  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
-    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
-    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
-    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
-    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
-    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
-  </div>
-  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
-    <a href="/" class="hover:underline">Home</a>
-    <a href="/account.html" class="hover:underline">Dock</a>
-    <a href="/account.html" class="hover:underline">Connections</a>
-    <a href="/images.html" class="hover:underline">Images</a>
-    <a href="/account.html" class="hover:underline">API</a>
-    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
-    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
-      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
-      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
+<!DOCTYPE html>
+<html lang="en" data-page="why">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Why SPIM — own your memory</title>
+<meta name="description" content="Your notes and voice belong in capsules you can verify, not in a database you rent.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
+</head>
+<body class="spim-page" data-page="why">
+<div class="spim-aurora"></div>
+
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/" data-nav="beam">Beam</a>
+      <a href="/#catch" data-nav="catch">Catch</a>
+      <a href="/why" data-nav="why" aria-current="page">Why SPIM</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <a class="spim-btn spim-btn--primary spim-btn--sm" href="/#beam">Create</a>
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/" data-nav="beam">Beam</a>
+          <a href="/#catch" data-nav="catch">Catch</a>
+          <a href="/why" data-nav="why" aria-current="page">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <a href="/receive">Open a capsule</a>
+        </nav>
+      </details>
     </div>
   </div>
-  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
-</nav>
-<main class="max-w-[760px] mx-auto px-6 py-10">
-<div class="inline-flex px-3 py-1 rounded-full bg-[#29B6F6] border-2 border-zinc-900 font-mono text-[11px] font-bold text-white">WHY IT MATTERS</div>
-<h1 class="mt-3 text-[36px] font-black tracking-tight leading-[0.9]">Why this exists</h1>
-<p class="mt-4 text-[15px] leading-[1.6] text-zinc-600">Information is scattered. A meeting note in Slack, an API endpoint in Notion, a decision in an email, a link in Discord — and when someone needs one piece, they scroll through five places.</p>
-<div class="mt-6 grid sm:grid-cols-2 gap-3 font-mono text-[11px]">
-  <div class="rounded-2xl border-2 border-zinc-900 p-4 bg-white border-l-[6px] border-l-[#FF5C7A]"><div class="font-bold">Problem</div><div class="text-zinc-500 mt-1">Five separate links, one long doc no one reads, repeated “where is…?”</div></div>
-  <div class="rounded-2xl border-2 border-zinc-900 p-4 bg-[#4ADE80]/10 border-l-[6px] border-l-[#4ADE80]"><div class="font-bold">Solution</div><div class="text-zinc-500 mt-1">Put several pieces in one place. Send one link. Let them find what they need.</div></div>
-</div>
-<h2 class="mt-8 font-black">How it works — without the jargon</h2>
-<p class="mt-2 text-[14px] leading-[1.6] text-zinc-600">You paste notes. We keep your source exactly as you typed it, and we build a searchable view that is reconstructed without AI. Your recipient opens one link and searches across everything — instantly, on their phone, without an account.</p>
-<div class="mt-4 rounded-2xl bg-zinc-900 text-white p-5 font-mono text-[11px] flex justify-between"><span>Your original →</span><span>Compact view →</span><span>Reconstructed here</span></div>
-<p class="mt-6 text-[13px] text-zinc-600">One link instead of a pile of messages. That’s the whole idea.</p>
-<div class="mt-6"><a href="/" class="px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-[14px]">Create your first collection →</a></div>
+</header>
+<!-- /chrome:nav -->
+
+<main>
+  <section class="spim-shell spim-section" style="padding-bottom:40px">
+    <div style="max-width:680px">
+      <span class="spim-kicker">Why SPIM</span>
+      <h1 class="spim-h1">Your words should<br>arrive intact.</h1>
+      <p class="spim-lede">A link is a promise someone else keeps. A capsule is one you can check yourself — byte for byte, with or without a network.</p>
+    </div>
+  </section>
+
+  <section class="spim-shell" style="padding-bottom:24px">
+    <div class="spim-pillars">
+
+      <article class="spim-pillar">
+        <div class="spim-pillar-top">
+          <span class="spim-pillar-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4.4 3.4 7.4 8 8 4.6-.6 8-3.6 8-8V7l-8-4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="spim-pillar-num">01</span>
+        </div>
+        <h2 class="spim-h3">Own your memory</h2>
+        <p>A capsule is self-contained. The words, the structure, the seal — all of it lives with the thing you sent, not in a database you rent. Export it, keep it, open it in ten years.</p>
+      </article>
+
+      <article class="spim-pillar">
+        <div class="spim-pillar-top">
+          <span class="spim-pillar-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h3l2-5 3 10 2.5-7 2 5H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="spim-pillar-num">02</span>
+        </div>
+        <h2 class="spim-h3">Zero-network freedom</h2>
+        <p>Two devices in a room need no Wi-Fi, no server, no account. A sound carries the link. A .spim file carries everything else. Both work when the internet does not.</p>
+      </article>
+
+      <article class="spim-pillar">
+        <div class="spim-pillar-top">
+          <span class="spim-pillar-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="9.5" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 15v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <span class="spim-pillar-num">03</span>
+        </div>
+        <h2 class="spim-h3">Cryptographic truth</h2>
+        <p>Every capsule is sealed with BLAKE3. If a single byte changes — in transit, on disk, or by an editor — the seal breaks and the page says so. Trust the maths, not the messenger.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="spim-shell spim-section">
+    <div class="spim-card">
+      <div class="spim-card-head">
+        <span class="spim-eyebrow">How it works</span>
+        <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>No account needed</span>
+      </div>
+      <div class="spim-card-body">
+        <div class="spim-pillars" style="gap:24px">
+          <div>
+            <span class="spim-eyebrow" style="color:var(--spim-accent)">01 — Write</span>
+            <h3 class="spim-h3" style="margin-top:8px">Type it, or record a short drop.</h3>
+            <p class="spim-body" style="margin-top:6px">One note or ten. Your text is never rewritten to fit a template.</p>
+          </div>
+          <div>
+            <span class="spim-eyebrow" style="color:var(--spim-accent)">02 — Seal</span>
+            <h3 class="spim-h3" style="margin-top:8px">Sealed in your browser.</h3>
+            <p class="spim-body" style="margin-top:6px">A BLAKE3 hash and, if you choose, an AES key that never leaves the link.</p>
+          </div>
+          <div>
+            <span class="spim-eyebrow" style="color:var(--spim-accent)">03 — Send</span>
+            <h3 class="spim-h3" style="margin-top:8px">Link, QR, file, or sound.</h3>
+            <p class="spim-body" style="margin-top:6px">Pick the path that fits the room. The capsule is the same on every one.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="spim-shell" style="padding-bottom:56px">
+    <div class="spim-center">
+      <h2 class="spim-h2">See it for yourself.</h2>
+      <p class="spim-body" style="margin:12px auto 0;max-width:44ch">The demo is the product. Write a note, beam it to your phone, and watch the seal hold.</p>
+      <div class="spim-row" style="justify-content:center;margin-top:24px">
+        <a class="spim-btn spim-btn--primary spim-btn--lg" href="/#beam">Create a capsule</a>
+        <a class="spim-btn spim-btn--lg" href="/support">Read the FAQ</a>
+      </div>
+    </div>
+  </section>
 </main>
-  <footer class="max-w-[1120px] mx-auto px-6 py-8 border-t-2 border-zinc-900 mt-12">
-    <div class="flex flex-wrap gap-4 justify-between font-mono text-[11px]">
-      <div class="flex gap-4"><a href="/why.html">Why</a><a href="/use-cases.html">Use Cases</a><a href="/about.html">About</a><a href="/support.html">Support</a><a href="/feedback.html">Feedback</a><a href="/contact.html">Contact</a></div>
-      <div><a href="/support.html" class="px-3 py-1 rounded-full bg-amber-400 border-2 border-zinc-900 font-bold">Support</a> <a href="mailto:apbuttar01@gmail.com" class="ml-2 underline">apbuttar01@gmail.com</a></div>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <p>Notes and voice that arrive intact — over a link, a file, or a sound.</p>
     </div>
-    <div class="mt-3 font-mono text-[10px] text-zinc-400">© 2026 Share — One link instead of a pile of messages. · Built by Arsh · Reconstructed, not generated.</div>
-  </footer>
-<script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
-<script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
-  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
-</body></html>
+
+    <div class="spim-footer-col">
+      <h4>Product</h4>
+      <a href="/#beam">Beam</a>
+      <a href="/#catch">Catch</a>
+      <a href="/receive">Open a capsule</a>
+      <a href="/images">Images</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/about">About</a>
+      <a href="/use-cases">Use cases</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Help</h4>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+      <a href="/login">Log in</a>
+      <a href="/account">Dock</a>
+    </div>
+  </div>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+</body>
+</html>

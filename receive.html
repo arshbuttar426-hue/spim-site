@@ -4,8 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>Someone sent you something — Share</title>
+<title>Open a capsule — SPIM</title>
+<meta name="description" content="Open, verify, and search a SPIM capsule. It reconstructs exactly what was sent.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
 <script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],mono:['JetBrains Mono','ui-monospace','monospace']}}}}</script>
 <script type="module">
   import init, { WasmSpim, blake3_hex_static, format_delta_apply } from '/pkg/spim_wasm.js';
   window.WasmSpim = WasmSpim;
@@ -14,151 +20,195 @@
   window.wasmReady = false;
   window.wasmInitPromise = init().then(()=>{ window.wasmReady=true; });
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],serif:['Instrument Serif','serif'],mono:['JetBrains Mono','monospace']}}}}</script>
 </head>
-<body data-page="receive" class="bg-[#fdfaf6] text-zinc-900 antialiased">
-  <nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
-  <a href="/" class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
-    <span class="font-bold tracking-tight">SPIM</span>
-  </a>
-  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
-    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
-    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
-    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
-    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
-    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
-  </div>
-  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
-    <a href="/" class="hover:underline">Home</a>
-    <a href="/account.html" class="hover:underline">Dock</a>
-    <a href="/account.html" class="hover:underline">Connections</a>
-    <a href="/images.html" class="hover:underline">Images</a>
-    <a href="/account.html" class="hover:underline">API</a>
-    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
-    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
-      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
-      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
+<body class="spim-page" data-page="receive">
+<div class="spim-aurora"></div>
+
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/" data-nav="beam">Beam</a>
+      <a href="/#catch" data-nav="catch" aria-current="page">Catch</a>
+      <a href="/why" data-nav="why">Why SPIM</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <a class="spim-btn spim-btn--primary spim-btn--sm" href="/#beam">Create</a>
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/" data-nav="beam">Beam</a>
+          <a href="/#catch" data-nav="catch" aria-current="page">Catch</a>
+          <a href="/why" data-nav="why">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <a href="/receive">Open a capsule</a>
+        </nav>
+      </details>
     </div>
   </div>
-  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
-</nav>
-<div id="mnav" class="hidden max-w-[720px] mx-auto px-6 py-3 border-t border-zinc-100 text-[14px] space-y-2">
-  <div id="mnavPublic"><a href="/use-cases.html" class="block py-1">Use Cases</a><a href="/why.html" class="block py-1">Why</a><a href="/about.html" class="block py-1">About</a><a href="/support.html" class="block py-1">Support</a></div>
-</div>
-<script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
-<script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
-  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
+</header>
+<!-- /chrome:nav -->
 
-  <div id="postcardView" class="min-h-[80vh] flex items-center justify-center px-6 py-8">
-    <div class="w-full max-w-[560px]" id="postcardCard">
-      <div class="relative rounded-[24px] bg-[#fdfaf6] border-2 border-zinc-900 overflow-hidden shadow-[8px_8px_0_#09090b] p-6 sm:p-8">
-        <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><filter id=%22n%22><feTurbulence baseFrequency=%220.9%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.4%22/></svg>');"></div>
-        <div class="absolute top-4 right-4 flex gap-2">
-          <div class="w-14 h-16 rounded-lg bg-[#29B6F6] border-2 border-zinc-900 grid place-items-center rotate-2 shadow-[2px_2px_0_#09090b]"><div class="text-center leading-none"><div class="font-black text-[8px] tracking-widest">AIR MAIL</div><div class="text-[10px]">✈︎</div><div class="font-mono text-[6px]">SPECIAL</div></div></div>
-          <div class="w-14 h-16 rounded-lg bg-[#FF5C7A] border-2 border-zinc-900 grid place-items-center -rotate-1 shadow-[2px_2px_0_#09090b]"><div class="text-center"><div class="font-serif italic text-[10px]">For you</div><div class="w-6 h-6 mx-auto mt-1 rounded-full bg-[#FFD43B] border-2 border-zinc-900 grid place-items-center text-[10px]">♥</div><div class="font-mono text-[6px] tracking-widest">PERSONAL</div></div></div>
+<main class="spim-shell" style="max-width:720px;padding-top:44px;padding-bottom:64px">
+
+  <!-- POSTCARD VIEW -->
+  <div id="postcardView">
+    <div class="spim-card">
+      <div class="spim-card-head">
+        <span class="spim-pill spim-pill--accent"><i class="spim-dot"></i>Incoming capsule</span>
+        <span id="postcardMeta" class="spim-eyebrow">—</span>
+      </div>
+      <div class="spim-card-body">
+        <h1 class="spim-h2">Someone sent you something.</h1>
+        <p class="spim-body" style="margin-top:8px">Sealed when it was written. Verified when it opens.</p>
+
+        <div id="postcardLoading" class="spim-note" style="margin-top:20px">Opening · verifying…</div>
+
+        <div id="postcardActions" class="hidden spim-stack" style="margin-top:20px">
+          <button onclick="handleOpenHere()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Read it here</button>
+          <button onclick="handleDownload()" class="spim-btn spim-btn--block">Download file</button>
+          <div class="spim-row" style="justify-content:center;margin-top:4px">
+            <button onclick="downloadSpimReceive()" class="spim-btn spim-btn--ghost spim-btn--sm">Download .spim</button>
+            <span class="spim-dim">·</span>
+            <button onclick="document.getElementById('spimFileInput').click()" class="spim-btn spim-btn--ghost spim-btn--sm">Open local .spim</button>
+            <input type="file" id="spimFileInput" accept=".spim,application/json,.json" class="hidden" onchange="openSpimFile(this.files[0])">
+          </div>
         </div>
-        <div class="absolute top-20 right-8 w-20 h-20 rounded-full border-2 border-[#A78BFA] bg-[#A78BFA]/10 grid place-items-center rotate-12 hidden sm:grid"><div class="text-center font-mono text-[7px] leading-none text-[#A78BFA]"><div>POSTED</div><div class="text-[8px] font-black">OPENED</div><div>2026</div></div></div>
-        <div class="relative">
-          <div class="inline-flex px-2.5 py-1 rounded-full bg-[#4ADE80] border-2 border-zinc-900 text-zinc-900 font-mono text-[10px] font-bold tracking-widest">DELIVERY — ONE LINK</div>
-          <h1 class="mt-4 font-serif text-[28px] sm:text-[32px] leading-[1.1]">Someone sent you<br><span class="font-black font-sans tracking-tight">something.</span></h1>
-          <p class="mt-2 font-mono text-[11px] text-zinc-500"><span id="postcardMeta">—</span> — ready to open.</p>
-          <div id="postcardLoading" class="mt-6 py-8 text-center font-mono text-[11px] text-zinc-500 animate-pulse">Opening delivery… Verifying…</div>
-          <div id="postcardActions" class="hidden mt-6 space-y-3">
-            <button onclick="handleDownload()" class="w-full py-4 rounded-full bg-[#FF5C7A] border-2 border-zinc-900 text-white font-black text-[14px] flex items-center justify-center gap-2 hover:bg-[#FF3366]">⬇ Download file <span class="font-mono text-[10px] font-normal opacity-70">Save a copy to your device</span></button>
-            <button onclick="handleOpenHere()" class="w-full py-4 rounded-full bg-[#29B6F6] border-2 border-zinc-900 font-black text-[14px] flex items-center justify-center gap-2 text-white hover:bg-[#0EA5E9]">↗ Open here <span class="font-mono text-[10px] font-normal">Read and search in your browser</span></button>
-            <div class="flex items-center gap-2 justify-center pt-1">
-              <button onclick="downloadSpimReceive()" class="px-4 py-2 rounded-full border border-zinc-300 hover:border-zinc-900 font-mono text-[11px] text-zinc-600 hover:text-zinc-900 transition-colors">⬇ Download .spim</button>
-              <span class="text-zinc-300">·</span>
-              <button onclick="document.getElementById('spimFileInput').click()" class="px-4 py-2 rounded-full border border-zinc-300 hover:border-zinc-900 font-mono text-[11px] text-zinc-600 hover:text-zinc-900 transition-colors">📂 Open local .spim</button>
-              <input type="file" id="spimFileInput" accept=".spim,application/json,.json" class="hidden" onchange="openSpimFile(this.files[0])">
-            </div>
+
+        <div id="postcardError" class="spim-note spim-note--error hidden" style="margin-top:20px">
+          <div>
+            <div id="postcardErrorTitle" style="font-weight:600">This capsule could not be found.</div>
+            <div id="postcardErrorMsg" class="spim-mono" style="margin-top:4px;font-size:11px">Check the link. Example: www.spim.co.in/receive#c/QrXaxNll</div>
           </div>
-          <div id="postcardError" class="hidden mt-6 p-4 rounded-2xl bg-red-50 border-2 border-zinc-900 text-center">
-            <div class="font-bold" id="postcardErrorTitle">This delivery couldn’t be found.</div>
-            <div class="font-mono text-[11px] text-zinc-500 mt-1" id="postcardErrorMsg">Check the link. Example: www.spim.co.in/receive#c/QrXaxNll</div>
-          </div>
-          <div id="postcardPrivate" class="hidden mt-6 p-4 rounded-2xl bg-amber-50 border-2 border-zinc-900 text-center">
-            <div class="font-black">This delivery is private.</div>
-            <div class="font-mono text-[11px] text-zinc-600 mt-1">This is a private capsule. The key is after # in the full link. Paste the complete link or enter the key below.</div>
-            <div class="mt-3 flex gap-2 justify-center"><input id="privKeyInput" placeholder="Enter access key" class="rounded-full border-2 border-zinc-900 px-4 py-2 font-mono text-[13px] w-[220px]"><button onclick="tryPrivateKey()" class="px-5 py-2 rounded-full bg-zinc-900 text-white font-bold">Unlock</button></div>
-            <div id="privErr2" class="hidden mt-2 font-mono text-[11px] text-red-600">Could not decrypt — check the key.</div>
-          </div>
-          <div id="postcardDestroyed" class="hidden mt-6 p-4 rounded-2xl bg-zinc-900 text-white text-center">
-            <div class="font-black">This delivery has already been opened.</div>
-            <div class="font-mono text-[11px] text-zinc-400 mt-1">The sender made this one-time. It was destroyed after the first successful opening.</div>
-          </div>
-          <div class="mt-4 flex items-center justify-center gap-2 font-mono text-[10px] text-zinc-400"><span class="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span> Verified · Reconstructed, not generated. <span class="underline cursor-pointer" onclick="document.getElementById('verifyDetail2').classList.toggle('hidden')">ⓘ</span></div>
-          <div id="verifyDetail2" class="hidden mt-2 p-3 rounded-xl bg-white border text-left max-w-[520px] mx-auto font-mono text-[10px]"><div class="font-bold">Verified</div><div class="break-all">BLAKE3: <span id="blake3hex">—</span></div><div>SPIM: <span id="spimVerify">—</span></div></div>
-          <div class="mt-6 pt-4 border-t border-dashed border-zinc-300 flex justify-between font-mono text-[10px] text-zinc-400"><span>To: You</span><span>From: Someone who cares</span></div>
         </div>
-      </div>
-      <div class="mt-3 text-center font-mono text-[10px] text-zinc-400">Private links keep your key in the fragment — never sent to the server.</div>
-    </div>
-  </div>
 
-  <!-- COLLECTION VIEW (hidden until Open here) -->
-  <div id="collectionView" class="hidden bg-[#fdfaf6]/50">
-    <header class="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between sticky top-0 bg-[#fdfaf6]/90 backdrop-blur z-20 border-b border-zinc-200">
-      <a href="/" class="font-mono text-[11px] font-bold">‹ Create</a>
-      <div class="font-mono text-[11px] text-zinc-500 flex items-center gap-2"><span id="recDot2" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span id="recTrust2">Verified</span> <span class="underline cursor-pointer" onclick="document.getElementById('verifyDetail3').classList.toggle('hidden')">ⓘ</span></div>
-    </header>
-    <div class="max-w-[760px] mx-auto px-6 pt-6">
-      <div class="text-center">
-        <div class="inline-flex gap-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold"><span id="recCount2">—</span> Shared capsule</div>
-        <h1 class="mt-3 text-[28px] font-black">Shared capsule</h1>
-        <p class="font-mono text-[11px] text-zinc-500">Find anything in this collection — type to search across all notes.</p>
-      </div>
-      <div class="mt-4 rounded-[24px] bg-white border-2 border-zinc-900 p-2 flex gap-2 focus-within:border-sky-400 focus-within:ring-4 focus-within:ring-sky-100 shadow-sm"><div class="pl-4 text-sky-500">⌕</div><input id="search2" placeholder="Search notes…" class="flex-1 py-3 bg-transparent text-[15px]" oninput="doSearch2()" autofocus><button id="clearSearch2" onclick="clearSearch2()" class="hidden mr-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold">Clear</button></div>
-      <div class="mt-2 flex justify-center gap-2 font-mono text-[11px]"><span class="text-zinc-400">Try:</span><button onclick="document.getElementById('search2').value='API';doSearch2()" class="px-2.5 py-1 rounded-full bg-sky-100 border-2 border-sky-400 text-sky-900 font-bold hover:bg-sky-200">API</button><button onclick="document.getElementById('search2').value='deadline';doSearch2()" class="px-2.5 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-900 font-bold hover:bg-amber-200">deadline</button><button onclick="document.getElementById('search2').value='project';doSearch2()" class="px-2.5 py-1 rounded-full bg-emerald-100 border-2 border-emerald-400 text-emerald-900 font-bold hover:bg-emerald-200">project</button></div>
-      <div id="searchMeta2" class="mt-3 font-mono text-[11px] text-zinc-500 text-center"></div>
-      <div id="recContent2" class="mt-6 space-y-3"></div>
-      <div id="recEmpty2" class="hidden mt-8 text-center py-8 border-2 border-zinc-900 rounded-2xl"><div class="font-bold">No matches</div></div>
-      <div class="mt-8 mb-16 text-center font-mono text-[10px] text-zinc-400"><span id="verifiedDot2" class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> <span id="verifiedText2">Verified</span></div>
-    </div>
-  </div>
+        <div id="postcardPrivate" class="spim-note hidden" style="margin-top:20px;flex-direction:column;gap:10px">
+          <div style="font-weight:600;color:var(--spim-text)">This capsule is private.</div>
+          <div>The key is the part after the final <span class="spim-mono">#</span> in the full link.</div>
+          <div class="spim-row" style="flex-wrap:nowrap">
+            <input id="privKeyInput" class="spim-input spim-mono" style="font-size:12px" placeholder="Paste the access key">
+            <button onclick="tryPrivateKey()" class="spim-btn">Unlock</button>
+          </div>
+          <div id="privErr2" class="spim-note spim-note--error hidden">Could not decrypt — check the key.</div>
+        </div>
 
-  <!-- IMAGE VIEW (hidden until Open here for image capsules) -->
-  <div id="imageView" class="hidden bg-[#fdfaf6]/50">
-    <header class="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between sticky top-0 bg-[#fdfaf6]/90 backdrop-blur z-20 border-b border-zinc-200">
-      <a href="/" class="font-mono text-[11px] font-bold">‹ Create</a>
-      <div class="font-mono text-[11px] text-zinc-500 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Verified · Image</div>
-    </header>
-    <div class="max-w-[760px] mx-auto px-6 pt-6 pb-16">
-      <div class="text-center">
-        <div class="inline-flex gap-2 px-3 py-1 rounded-full bg-zinc-900 text-white font-mono text-[11px] font-bold">Shared image</div>
-        <h1 class="mt-3 text-[22px] font-black" id="imageTitle">Shared image</h1>
-        <p class="font-mono text-[11px] text-zinc-500" id="imageMeta">—</p>
-      </div>
-      <div class="mt-6 rounded-[24px] bg-white border-2 border-zinc-900 overflow-hidden shadow-[4px_4px_0_#09090b]">
-        <img id="imageDisplay" class="w-full h-auto max-h-[70vh] object-contain bg-zinc-50" alt="Shared image">
-        <div class="p-4 border-t-2 border-zinc-900 flex flex-wrap gap-2 justify-center">
-          <button onclick="handleImageSave()" class="px-6 py-3 rounded-full bg-zinc-900 text-white font-bold text-[13px]">Save image</button>
-          <button onclick="handleImageView()" class="px-6 py-3 rounded-full bg-white border-2 border-zinc-900 font-bold text-[13px]">View full size</button>
+        <div id="postcardDestroyed" class="spim-note hidden" style="margin-top:20px;flex-direction:column;gap:6px">
+          <div style="font-weight:600;color:var(--spim-text)">This capsule has already been opened.</div>
+          <div>It was created as single-view, so it was destroyed after the first successful opening.</div>
+        </div>
+
+        <div class="spim-row" style="justify-content:center;margin-top:22px">
+          <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Verified · reconstructed</span>
+          <button class="spim-btn spim-btn--ghost spim-btn--sm" onclick="document.getElementById('verifyDetail2').classList.toggle('hidden')">Details</button>
+        </div>
+        <div id="verifyDetail2" class="hidden spim-note" style="margin-top:10px;flex-direction:column;gap:4px;font-family:var(--spim-mono);font-size:10px">
+          <div style="color:var(--spim-text)">Verified</div>
+          <div style="word-break:break-all">BLAKE3: <span id="blake3hex">—</span></div>
+          <div>SPIM: <span id="spimVerify">—</span></div>
         </div>
       </div>
-      <div class="mt-3 text-center font-mono text-[10px] text-zinc-400" id="imageVerify">Verified · Reconstructed, not generated.</div>
     </div>
+    <p class="spim-eyebrow spim-center" style="margin-top:14px">A private key stays in the link fragment and never reaches the server.</p>
   </div>
 
+  <!-- COLLECTION VIEW -->
+  <div id="collectionView" class="hidden">
+    <div class="spim-spread" style="margin-bottom:22px">
+      <a href="/" class="spim-link" style="font-size:13px">← Create</a>
+      <div class="spim-row">
+        <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i><span id="recTrust2">Verified</span></span>
+        <button class="spim-btn spim-btn--ghost spim-btn--sm" onclick="document.getElementById('verifyDetail3').classList.toggle('hidden')">Details</button>
+      </div>
+    </div>
+    <div id="verifyDetail3" class="hidden spim-note" style="margin-bottom:18px;font-family:var(--spim-mono);font-size:10px">
+      Reconstructed from the capsule, then checked against its BLAKE3 seal.
+    </div>
+
+    <span class="spim-kicker">Shared capsule</span>
+    <h1 class="spim-h2" style="margin-top:10px"><span id="recCount2">—</span> notes, intact.</h1>
+    <p class="spim-body" style="margin-top:6px">Search across everything, without an account.</p>
+
+    <div class="spim-row" style="margin-top:20px;flex-wrap:nowrap">
+      <input id="search2" class="spim-input" placeholder="Search notes…" oninput="doSearch2()" autofocus>
+      <button id="clearSearch2" onclick="clearSearch2()" class="spim-btn spim-btn--sm hidden">Clear</button>
+    </div>
+    <div id="searchMeta2" class="spim-eyebrow" style="margin-top:10px"></div>
+    <div id="recContent2" class="spim-stack" style="margin-top:20px"></div>
+    <div id="recEmpty2" class="spim-note hidden" style="margin-top:20px">No matches.</div>
+  </div>
+
+  <!-- IMAGE VIEW -->
+  <div id="imageView" class="hidden">
+    <div class="spim-spread" style="margin-bottom:22px">
+      <a href="/" class="spim-link" style="font-size:13px">← Create</a>
+      <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Verified · image</span>
+    </div>
+    <span class="spim-kicker">Shared image</span>
+    <h1 class="spim-h2" style="margin-top:10px" id="imageTitle">Shared image</h1>
+    <p class="spim-body spim-mono" style="margin-top:6px;font-size:11px" id="imageMeta">—</p>
+    <div class="spim-card" style="margin-top:20px">
+      <img id="imageDisplay" class="w-full h-auto max-h-[70vh] object-contain" style="background:var(--spim-bg-soft)" alt="Shared image">
+      <div class="spim-card-foot spim-row" style="justify-content:center">
+        <button onclick="handleImageSave()" class="spim-btn spim-btn--primary">Save image</button>
+        <button onclick="handleImageView()" class="spim-btn">View full size</button>
+      </div>
+    </div>
+    <p class="spim-eyebrow spim-center" style="margin-top:14px" id="imageVerify">Verified · reconstructed, not generated.</p>
+  </div>
+
+</main>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <p>Notes and voice that arrive intact — over a link, a file, or a sound.</p>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Product</h4>
+      <a href="/#beam">Beam</a>
+      <a href="/#catch">Catch</a>
+      <a href="/receive">Open a capsule</a>
+      <a href="/images">Images</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/about">About</a>
+      <a href="/use-cases">Use cases</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Help</h4>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+      <a href="/login">Log in</a>
+      <a href="/account">Dock</a>
+    </div>
+  </div>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
+  </div>
+</footer>
+<!-- /chrome:footer -->
 <script>
 function b64d(b){ return decodeURIComponent(escape(atob(b))); }
 function b64dBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }

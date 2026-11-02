@@ -5,555 +5,234 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>SPIM — Share more than a link</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
 <script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],mono:['JetBrains Mono','ui-monospace','monospace']}}}}</script>
 <script type="module">
   import init, { WasmSpim, blake3_hex_static, format_delta_encode } from '/pkg/spim_wasm.js';
   window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static; window.format_delta_encode=format_delta_encode;
   window.wasmReady=false; window.wasmInitPromise=init().then(()=>{window.wasmReady=true; window.dispatchEvent(new Event('wasm-ready'));});
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],serif:['Instrument Serif','serif'],mono:['JetBrains Mono','ui-monospace','monospace']}}}}</script>
-<style>
-  :root{color-scheme:dark}
-  html{scroll-behavior:smooth}
-  :focus-visible{outline:2px solid #34d399; outline-offset:2px}
-  ::selection{background:#34d399; color:#08080a}
-  textarea{caret-color:#34d399}
-  @media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important; scroll-behavior:auto!important}}
-</style>
 </head>
-<body data-page="index" class="bg-[#08080a] text-zinc-100 antialiased">
-<div class="pointer-events-none fixed inset-0 -z-10" style="background:radial-gradient(55% 45% at 50% 0%, rgba(16,185,129,0.10), transparent 70%)"></div>
+<body class="spim-page" data-page="index">
+<div class="spim-aurora"></div>
 
-<!-- NAV -->
-<nav class="sticky top-0 z-30 border-b border-zinc-800/80 bg-[#08080a]/85 backdrop-blur-md">
-  <div class="max-w-[1200px] mx-auto px-5 h-16 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-6 min-w-0">
-      <a href="/" class="flex items-center gap-2.5 shrink-0">
-        <div class="w-8 h-8 rounded-md border border-zinc-700 bg-zinc-100 text-zinc-950 grid place-items-center font-bold text-[13px] font-mono">S</div>
-        <span class="font-semibold tracking-tight text-[15px]">SPIM</span>
-        <span class="hidden sm:inline font-mono text-[9px] tracking-[0.16em] text-zinc-500 border border-zinc-800 rounded px-1.5 py-0.5">STUDIO</span>
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/" data-nav="beam" aria-current="page">Beam</a>
+      <a href="/#catch" data-nav="catch">Catch</a>
+      <a href="/why" data-nav="why">Why SPIM</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <a class="spim-btn spim-btn--primary spim-btn--sm" href="/#beam">Create</a>
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/" data-nav="beam" aria-current="page">Beam</a>
+          <a href="/#catch" data-nav="catch">Catch</a>
+          <a href="/why" data-nav="why">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <a href="/receive">Open a capsule</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+<!-- /chrome:nav -->
+
+<main class="spim-shell spim-section--tight" style="padding-top:56px">
+  <div style="max-width:620px">
+    <span class="spim-kicker">Private by construction</span>
+    <h1 class="spim-h1">Share more<br>than a link.</h1>
+    <p class="spim-lede">A note, sealed in your browser. Send it as a link, a file, or a sound — it arrives exactly as written.</p>
+  </div>
+</main>
+
+<main class="spim-shell" style="padding-bottom:24px">
+
+  <!-- WORKSPACE -->
+  <section id="workspace" class="spim-card">
+    <div class="spim-card-head" style="padding:12px 14px">
+      <div class="spim-seg" role="tablist" aria-label="Workspace" style="flex:1;max-width:340px">
+        <button id="tabBeam" class="spim-seg-btn" role="tab" aria-selected="true" aria-controls="panelBeam">Beam</button>
+        <button id="tabCatch" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelCatch">Catch</button>
+      </div>
+      <span class="spim-pill" title="Everything is sealed in this tab">
+        <i id="wasmDot" class="spim-dot" style="background:var(--spim-warn)"></i>
+        <span id="wasmStatus">Preparing</span>
+      </span>
+    </div>
+
+    <!-- SEND / BEAM -->
+    <section id="panelBeam" role="tabpanel" aria-labelledby="tabBeam">
+      <div id="notes">
+        <div class="note spim-card-body" style="padding-bottom:12px">
+          <div class="spim-spread">
+            <span class="spim-label">Your note</span>
+            <button onclick="removeNote(this)" class="spim-hide spim-btn spim-btn--ghost spim-btn--sm">Remove</button>
+          </div>
+          <textarea id="noteText" aria-label="Your note" placeholder="What should they know?" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:150px" oninput="updateMeta()"></textarea>
+        </div>
+      </div>
+
+      <div class="spim-card-foot spim-spread">
+        <button onclick="addNote()" class="spim-btn spim-btn--ghost spim-btn--sm">+ Add note</button>
+        <div class="spim-row">
+          <button id="tryBtn" onclick="loadSamplePayload()" class="spim-btn spim-btn--ghost spim-btn--sm">Use an example</button>
+          <span id="meta" class="spim-eyebrow">0 words</span>
+        </div>
+      </div>
+
+      <div class="spim-card-body spim-stack spim-stack--lg">
+        <div class="spim-field">
+          <span class="spim-label">Delivery</span>
+          <div class="spim-modes" role="group" aria-label="Delivery mode" id="modes">
+            <button type="button" class="spim-mode" data-mode="link" aria-pressed="true"><strong>Link</strong><span>Send anywhere</span></button>
+            <button type="button" class="spim-mode" data-mode="qr" aria-pressed="false"><strong>QR</strong><span>In person</span></button>
+            <button type="button" class="spim-mode" data-mode="spim" aria-pressed="false"><strong>.spim</strong><span>Fully offline</span></button>
+            <button type="button" class="spim-mode" data-mode="beam" aria-pressed="false"><strong>Beam</strong><span>By sound</span></button>
+          </div>
+        </div>
+
+        <div>
+          <button id="createBtn" onclick="createCapsule()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg"><span id="createBtnText">Create link</span></button>
+          <p id="createHint" class="spim-center spim-eyebrow" style="margin-top:10px">Sealed in this tab. Nothing uploaded until you create.</p>
+          <div id="inlineError" class="spim-note spim-note--error spim-hide" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATCH / OPEN -->
+    <section id="panelCatch" role="tabpanel" aria-labelledby="tabCatch" class="spim-hide">
+      <div id="catch" class="spim-card-body spim-stack spim-stack--lg">
+
+        <div class="spim-field">
+          <label class="spim-label" for="openInput">Paste a capsule link</label>
+          <div class="spim-row" style="flex-wrap:nowrap">
+            <input id="openInput" class="spim-input spim-mono" style="font-size:12px" placeholder="www.spim.co.in/receive#c/…">
+            <button onclick="openCapsuleLink()" class="spim-btn">Open</button>
+          </div>
+          <p id="openMsg" class="spim-note spim-note--error spim-hide"></p>
+        </div>
+
+        <div class="spim-field">
+          <span class="spim-label">Or open a file</span>
+          <div id="spimDrop" class="spim-drop" role="button" tabindex="0" aria-label="Drop a .spim file or choose one">
+            Drop a <span class="spim-accent">.spim</span> file here, or <span class="spim-accent">choose one</span>
+            <input id="spimFile" type="file" accept=".spim,application/json" hidden>
+          </div>
+          <p id="fileMsg" class="spim-note spim-note--error spim-hide"></p>
+        </div>
+
+        <hr>
+
+        <div>
+          <div class="spim-orb-wrap">
+            <button id="listenBtn" class="spim-orb" aria-pressed="false" aria-label="Listen for a sound">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div class="spim-orb-label" id="catchLabel">Listen for sound</div>
+            <div class="spim-orb-hint"><span id="catchState">Idle</span> · <span id="catchCount">0 caught</span></div>
+            <div class="spim-meter"><i id="catchLevelBar"></i></div>
+          </div>
+
+          <div class="spim-row" style="justify-content:center;margin-top:16px">
+            <div class="spim-sound">
+              <select id="dropSoundSel" aria-label="Drop sound">
+                <option value="chime">Chime</option>
+                <option value="ding">Ding</option>
+                <option value="whoosh">Whoosh</option>
+              </select>
+              <label title="Use my own sound" aria-label="Use my own sound">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 6v4h2l3 2V4L5 6H3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <input id="customDrop" type="file" accept="audio/*">
+              </label>
+              <button id="resetDrop" class="spim-hide spim-btn spim-btn--ghost spim-btn--sm" style="height:24px;padding:0 6px;font-size:9px">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="caughtCard" class="spim-hide" style="border:1px solid rgba(16,185,129,0.28);background:var(--spim-verified-soft);border-radius:12px;padding:16px">
+          <div class="spim-row" style="justify-content:space-between">
+            <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Caught · verified</span>
+            <button id="copyCaughtBtn" class="spim-btn spim-btn--ghost spim-btn--sm">Copy</button>
+          </div>
+          <p id="caughtText" class="spim-body" style="margin-top:10px;color:var(--spim-text);word-break:break-word;white-space:pre-wrap"></p>
+          <a id="caughtOpen" href="#" class="spim-btn spim-btn--sm spim-hide" style="margin-top:12px">Open capsule →</a>
+        </div>
+
+      </div>
+    </section>
+  </section>
+
+  <!-- PROOF -->
+  <div class="spim-proof" style="margin-top:28px">
+    <span class="spim-proof-item">No account</span>
+    <span class="spim-proof-item">Sealed in your browser</span>
+    <span class="spim-proof-item">Byte-exact</span>
+    <a href="/why" class="spim-proof-item" style="color:var(--spim-accent)">Why SPIM →</a>
+  </div>
+</main>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
       </a>
-      <div class="hidden md:flex items-center gap-1 font-mono text-[11px]">
-        <a href="/" aria-current="page" class="px-3 py-1.5 rounded-md bg-zinc-900 text-zinc-100 border border-zinc-700">Create Text</a>
-        <a href="/images.html" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60 border border-transparent">Create Image</a>
-        <a href="/receive.html" class="px-3 py-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60 border border-transparent">Open / Verify .spim</a>
-      </div>
+      <p>Notes and voice that arrive intact — over a link, a file, or a sound.</p>
     </div>
-    <div class="flex items-center gap-3">
-      <div id="navPublic" class="flex items-center gap-5 text-[12px] text-zinc-400">
-        <a href="/use-cases.html" class="hidden lg:inline hover:text-zinc-100">Use Cases</a>
-        <a href="/why.html" class="hidden lg:inline hover:text-zinc-100">Why</a>
-        <a href="/about.html" class="hidden lg:inline hover:text-zinc-100">About</a>
-        <a href="/support.html" class="hidden sm:inline hover:text-zinc-100">Support</a>
-        <a href="/login.html" class="px-3.5 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Log in</a>
-      </div>
-      <div id="navAuthed" class="hidden items-center gap-5 text-[12px] font-medium text-zinc-300">
-        <a href="/" class="hover:text-zinc-100">Home</a>
-        <a href="/account.html" class="hover:text-zinc-100">Dock</a>
-        <a href="/account.html" class="hover:text-zinc-100">Connections</a>
-        <a href="/images.html" class="hover:text-zinc-100">Images</a>
-        <a href="/account.html" class="hover:text-zinc-100">API</a>
-        <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-950 grid place-items-center font-bold">A</button>
-        <div id="avatarMenu" class="hidden absolute right-5 top-[64px] w-[240px] rounded-lg bg-[#0c0c0f] border border-zinc-700 shadow-2xl p-2 text-[12px]">
-          <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-          <a href="/account.html" class="block px-3 py-2 rounded-md hover:bg-zinc-900">Account</a>
-          <button onclick="doSignOut()" class="w-full text-left px-3 py-2 rounded-md hover:bg-zinc-900">Sign out</button>
-        </div>
-      </div>
-      <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="md:hidden w-8 h-8 grid place-items-center text-zinc-400" aria-label="Menu">☰</button>
+
+    <div class="spim-footer-col">
+      <h4>Product</h4>
+      <a href="/#beam">Beam</a>
+      <a href="/#catch">Catch</a>
+      <a href="/receive">Open a capsule</a>
+      <a href="/images">Images</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/about">About</a>
+      <a href="/use-cases">Use cases</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Help</h4>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+      <a href="/login">Log in</a>
+      <a href="/account">Dock</a>
     </div>
   </div>
-</nav>
-<div id="mnav" class="hidden md:hidden border-b border-zinc-800 bg-[#0a0a0d] text-[13px]">
-  <div class="max-w-[1200px] mx-auto px-5 py-3 space-y-1">
-    <div id="mnavPublic">
-      <a href="/" class="block py-1.5 text-zinc-200">Create Text</a>
-      <a href="/images.html" class="block py-1.5 text-zinc-400">Create Image</a>
-      <a href="/receive.html" class="block py-1.5 text-zinc-400">Open / Verify .spim</a>
-      <a href="/use-cases.html" class="block py-1.5 text-zinc-400">Use Cases</a>
-      <a href="/why.html" class="block py-1.5 text-zinc-400">Why</a>
-      <a href="/about.html" class="block py-1.5 text-zinc-400">About</a>
-      <a href="/support.html" class="block py-1.5 text-zinc-400">Support</a>
-    </div>
-    <div id="mnavAuthed" class="hidden"><a href="/account.html" class="block py-1.5">Dock</a><a href="/account.html" class="block py-1.5">Connections</a></div>
-  </div>
-</div>
-<script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
-<script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='index.html'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a){document.getElementById('avatarBtn').textContent=session.user.email[0].toUpperCase(); document.getElementById('avatarEmail').textContent=session.user.email;}
-  if(a){
-    const composer=document.getElementById('composer');
-    if(composer && !document.getElementById('authedDock')){
-      const s=document.createElement('section'); s.id='authedDock'; s.className='max-w-[720px] mx-auto px-6 mt-6';
-      s.innerHTML=`<div class="rounded-xl bg-zinc-900 text-white p-5 flex items-center justify-between"><div><div class="font-semibold">Dock — ${JSON.parse(localStorage.getItem('spim_parcels_'+session.user.id)||'[]').filter(p=>p.status==='docked'||p.status==='available').length} waiting</div><div class="text-[13px] text-zinc-400">Capsules waiting at your boundary</div></div><a href="/account.html" class="px-4 py-2 rounded-full bg-white text-zinc-900 font-semibold text-[13px]">View Dock →</a></div>`;
-      composer.parentNode.insertBefore(s,composer.nextSibling);
-    }
-  }
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
-
-<!-- HERO -->
-<section class="max-w-[1200px] mx-auto px-5 pt-14 sm:pt-20 pb-12">
-  <div class="flex flex-col items-center text-center">
-    <div class="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-emerald-400/90">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-      LOSSLESS · PRIVATE · BYTE-EXACT
-    </div>
-    <h1 class="mt-6 text-[38px] sm:text-[54px] leading-[0.95] tracking-[-0.045em] font-semibold">
-      Share <span class="font-serif italic font-normal text-zinc-500">more</span> than a link.
-    </h1>
-    <p class="mt-6 max-w-[540px] text-[15px] leading-[1.75] text-zinc-400">
-      One private link carries every note you make. Your words are sealed in your browser and rebuilt byte-for-byte for the recipient.
-      No accounts. No servers in the loop. No AI. Just the original — returned exactly.
-    </p>
-    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-      <a href="#composer" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-zinc-100 text-zinc-950 font-semibold text-[13px] hover:bg-white transition">
-        <span class="font-mono text-[10px]">✎</span> Create a text link
-      </a>
-      <a href="/images.html" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-zinc-700 text-zinc-200 font-semibold text-[13px] hover:bg-zinc-900 transition">
-        <span class="font-mono text-[10px]">▣</span> Create an image link
-      </a>
-      <button onclick="loadSamplePayload()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-amber-300 text-zinc-950 font-semibold text-[12px] hover:bg-amber-200 transition">
-        <span class="font-mono text-[11px]">↳</span> Load Sample Payload
-      </button>
-      <a href="#open" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-zinc-700 text-zinc-200 font-semibold text-[13px] hover:bg-zinc-900 transition">OPEN A CAPSULE</a>
-    </div>
-  </div>
-</section>
-
-<!-- WORKBENCH -->
-<div class="max-w-[1200px] mx-auto px-5 pb-16">
-  <div class="flex flex-col lg:flex-row gap-6 items-start">
-    <div class="flex-1 min-w-0 w-full">
-
-      <!-- COMPOSER -->
-      <section id="composer" class="rounded-xl border border-zinc-800 bg-[#0b0b0e] overflow-hidden">
-        <div class="px-5 py-3 border-b border-zinc-800 bg-[#0e0e12] flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="font-mono text-[10px] tracking-[0.18em] text-zinc-300">CREATE CAPSULE</span>
-            <span class="font-mono text-[9px] tracking-[0.12em] text-zinc-600 border border-zinc-800 rounded px-1.5 py-0.5">TEXT</span>
-          </div>
-          <span class="flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 shrink-0">
-            <span id="wasmDot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span id="wasmStatus">Preparing search</span>
-          </span>
-        </div>
-        <div id="notes" class="divide-y divide-zinc-800">
-          <div class="note p-5 sm:p-6">
-            <div class="flex items-center justify-between">
-              <span class="font-mono text-[10px] tracking-[0.16em] text-zinc-500">NOTE 01</span>
-              <button onclick="removeNote(this)" class="hidden font-mono text-[10px] tracking-[0.1em] text-zinc-600 hover:text-zinc-200">REMOVE</button>
-            </div>
-            <textarea placeholder="Project decisions — what you decided, why, what you tried first…" class="mt-3 w-full min-h-[120px] resize-none bg-transparent text-[14px] leading-[1.7] text-zinc-100 placeholder:text-zinc-600 focus:outline-none" oninput="updateMeta()"></textarea>
-          </div>
-          <div id="ghost" class="p-5 sm:p-6 bg-zinc-900/30">
-            <div class="font-mono text-[10px] tracking-[0.16em] text-zinc-600">NOTE 02 — EXAMPLE (NOT SAVED)</div>
-            <div class="mt-2 text-[12px] leading-relaxed text-zinc-500">Shared context — gift ideas for our June anniversary. She pointed at the blue ceramic mug twice.</div>
-          </div>
-        </div>
-        <div class="px-5 sm:px-6 py-3 bg-[#0a0a0d] border-t border-zinc-800 flex items-center justify-between gap-3">
-          <button onclick="addNote()" class="font-mono text-[11px] text-zinc-400 hover:text-zinc-100 transition">+ Add another note</button>
-          <span class="hidden sm:inline font-mono text-[9px] tracking-[0.12em] text-zinc-600">EACH NOTE BECOMES SEARCHABLE</span>
-        </div>
-        <div class="px-5 sm:px-6 py-5 border-t border-zinc-800">
-          <div class="flex justify-between font-mono text-[10px] text-zinc-500"><span id="meta">1 note · 0 words</span><span id="metaStatus" class="hidden sm:inline">Searchable</span></div>
-          <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-            <span class="font-mono text-[9px] tracking-[0.14em] text-zinc-600">TRY</span>
-            <button onclick="insertTry('API')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-200 font-mono text-[10px] hover:border-zinc-500">API</button>
-            <button onclick="insertTry('deadline')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] hover:border-zinc-600 hover:text-zinc-200">deadline</button>
-            <button onclick="insertTry('project')" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] hover:border-zinc-600 hover:text-zinc-200">project</button>
-          </div>
-          <button id="createBtn" onclick="createCapsule()" class="mt-4 w-full py-3.5 rounded-lg bg-zinc-100 text-zinc-950 font-semibold text-[14px] hover:bg-white disabled:opacity-40 transition"><span id="createBtnText">Create capsule</span> →</button>
-          <div id="inlineError" class="hidden mt-2 text-center font-mono text-[11px] text-red-400"></div>
-          <p id="createHint" class="mt-2 text-center font-mono text-[10px] text-zinc-600">You’ll choose Public or Private next</p>
-        </div>
-      </section>
-      <div class="mt-3 text-right"><a href="#open" class="font-mono text-[10px] text-zinc-600 hover:text-zinc-300 underline underline-offset-4">Already have a link? Open it →</a></div>
-
-      <!-- OPEN -->
-      <section id="open" class="mt-4 scroll-mt-24">
-        <div class="flex gap-2 p-2 rounded-lg border border-zinc-800 bg-[#0b0b0e]">
-          <input id="openInput" placeholder="Paste capsule link: www.spim.co.in/receive#c/Ab3x9Q" class="flex-1 min-w-0 rounded-md bg-transparent px-3 py-2.5 text-[12px] font-mono text-zinc-200 placeholder:text-zinc-600 focus:outline-none">
-          <button onclick="openCapsuleLink()" class="px-4 py-2.5 rounded-md border border-zinc-700 text-zinc-200 font-mono text-[10px] tracking-[0.1em] hover:bg-zinc-900 transition">OPEN</button>
-        </div>
-        <p id="openMsg" class="hidden mt-2 font-mono text-[10px] text-red-400"></p>
-      </section>
-
-      <!-- CATCH BY SOUND -->
-      <section id="catch" class="mt-4 scroll-mt-24">
-        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] overflow-hidden">
-          <div class="px-5 py-3 border-b border-zinc-800 bg-[#0e0e12] flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="font-mono text-[10px] tracking-[0.18em] text-zinc-300">CATCH BY SOUND</span>
-              <span class="font-mono text-[9px] tracking-[0.12em] text-zinc-600 border border-zinc-800 rounded px-1.5 py-0.5">2-FSK</span>
-            </div>
-            <span class="flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 shrink-0">
-              <span id="catchDot" class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span>
-              <span id="catchState">Idle</span>
-            </span>
-          </div>
-          <div class="px-5 sm:px-6 py-5">
-            <p class="text-[12px] leading-relaxed text-zinc-500">Point this mic at a nearby chirp. Listening stays on after a catch, so the next drop needs no second tap. <a href="/app.html" class="text-zinc-300 underline underline-offset-4 hover:text-zinc-100">Send one from the chirp app →</a></p>
-            <button id="listenBtn" class="mt-4 w-full py-3.5 rounded-lg border border-zinc-700 text-zinc-100 font-semibold text-[13px] hover:bg-zinc-900 transition">Tap to listen</button>
-            <div class="mt-2 flex justify-between font-mono text-[10px] text-zinc-600">
-              <span id="catchLevelLabel">MIC</span>
-              <span id="catchCount">0 caught</span>
-            </div>
-            <div class="mt-1.5 h-1 rounded-full bg-zinc-900 overflow-hidden">
-              <div id="catchLevelBar" class="h-full bg-emerald-400 rounded-full transition-all duration-150" style="width:0%"></div>
-            </div>
-
-            <div id="caughtCard" class="hidden mt-4 rounded-lg border border-emerald-400/30 bg-emerald-400/[0.06] p-4">
-              <div class="font-mono text-[9px] tracking-[0.14em] text-emerald-300">CAUGHT — CRC VERIFIED</div>
-              <p id="caughtText" class="mt-2 text-[13px] leading-relaxed text-zinc-100 break-words whitespace-pre-wrap"></p>
-              <button id="copyCaughtBtn" class="mt-3 px-3 py-1.5 rounded-md border border-zinc-700 text-zinc-200 font-mono text-[10px] tracking-[0.1em] hover:bg-zinc-900 transition">COPY</button>
-            </div>
-
-            <div class="mt-5 pt-4 border-t border-zinc-800">
-              <div class="font-mono text-[9px] tracking-[0.14em] text-zinc-600">DROP SOUND · THIS DEVICE ONLY</div>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <select id="dropSoundSel" class="rounded-md border border-zinc-700 bg-[#0b0b0e] px-2.5 py-1.5 font-mono text-[10px] text-zinc-200 focus:outline-none">
-                  <option value="chime">Chime</option>
-                  <option value="ding">Ding</option>
-                  <option value="whoosh">Whoosh</option>
-                </select>
-                <label class="px-2.5 py-1.5 rounded-md border border-zinc-700 font-mono text-[10px] text-zinc-300 hover:bg-zinc-900 cursor-pointer">
-                  Use my sound
-                  <input id="customDrop" type="file" accept="audio/*" class="hidden">
-                </label>
-                <button id="resetDrop" class="hidden px-2.5 py-1.5 rounded-md border border-zinc-800 font-mono text-[10px] text-zinc-500 hover:text-zinc-200">Reset</button>
-              </div>
-              <p class="mt-2 font-mono text-[10px] text-zinc-600">Played locally when a drop lands. Nothing is uploaded.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <script src="/js/chirp-receive.js"></script>
-      <script>
-      (function () {
-        var btn = document.getElementById('listenBtn');
-        var stateEl = document.getElementById('catchState');
-        var dot = document.getElementById('catchDot');
-        var levelBar = document.getElementById('catchLevelBar');
-        var countEl = document.getElementById('catchCount');
-        var card = document.getElementById('caughtCard');
-        var textEl = document.getElementById('caughtText');
-        var copyBtn = document.getElementById('copyCaughtBtn');
-        var sel = document.getElementById('dropSoundSel');
-        var file = document.getElementById('customDrop');
-        var resetBtn = document.getElementById('resetDrop');
-
-        var catchCount = 0, lastKey = '', lastKeyAt = 0, customDropBuf = null;
-        var dropCtx = null;
-
-        // Browsers start an AudioContext suspended unless it was created in a
-        // user gesture, so reuse the one unlocked by the listen tap.
-        function audioCtx() {
-          var Ctx = window.AudioContext || window.webkitAudioContext;
-          if (!dropCtx) dropCtx = new Ctx();
-          if (dropCtx.state === 'suspended') dropCtx.resume();
-          return dropCtx;
-        }
-
-        function setState(label, colour) {
-          stateEl.textContent = label;
-          dot.className = 'w-1.5 h-1.5 rounded-full ' + colour;
-        }
-
-        function playDrop() {
-          try {
-            var ctx = audioCtx();
-            if (customDropBuf) {
-              var s = ctx.createBufferSource();
-              s.buffer = customDropBuf;
-              s.connect(ctx.destination);
-              s.start();
-              return;
-            }
-            var o = ctx.createOscillator(), g = ctx.createGain();
-            o.connect(g);
-            g.connect(ctx.destination);
-            if (sel.value === 'ding') {
-              o.type = 'sine';
-              o.frequency.value = 1046;
-              g.gain.setValueAtTime(0.0001, ctx.currentTime);
-              g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.01);
-              g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.6);
-              o.start(); o.stop(ctx.currentTime + 0.6);
-            } else if (sel.value === 'whoosh') {
-              o.type = 'sawtooth';
-              o.frequency.setValueAtTime(400, ctx.currentTime);
-              o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.18);
-              g.gain.setValueAtTime(0.0001, ctx.currentTime);
-              g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.05);
-              g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.28);
-              o.start(); o.stop(ctx.currentTime + 0.28);
-            } else {
-              o.type = 'triangle';
-              o.frequency.value = 880;
-              g.gain.setValueAtTime(0.0001, ctx.currentTime);
-              g.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.008);
-              g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.22);
-              o.start(); o.stop(ctx.currentTime + 0.22);
-            }
-          } catch (e) {}
-        }
-
-        var receiver = window.SpimChirp.createReceiver({
-          onLevel: function (level) {
-            levelBar.style.width = Math.min(100, Math.round(level * 600)) + '%';
-          },
-          onCatch: function (bytes) {
-            var txt = new TextDecoder().decode(bytes);
-            var now = performance.now();
-            // Ignore the same frame arriving twice (echo or replay within 2 s).
-            if (txt === lastKey && now - lastKeyAt < 2000) return;
-            lastKey = txt;
-            lastKeyAt = now;
-            catchCount++;
-            countEl.textContent = catchCount + ' caught';
-            textEl.textContent = txt;
-            card.classList.remove('hidden');
-            playDrop();
-            setState('Listening…', 'bg-emerald-400');
-          }
-        });
-
-        btn.onclick = function () {
-          if (receiver.isListening()) {
-            receiver.stop();
-            btn.textContent = 'Tap to listen';
-            setState('Idle', 'bg-zinc-600');
-            levelBar.style.width = '0%';
-            return;
-          }
-          // Unlock playback inside the user gesture that starts listening.
-          audioCtx();
-          receiver.start().then(function () {
-            btn.textContent = 'Listening — tap to stop';
-            setState('Listening…', 'bg-emerald-400');
-          }).catch(function () {
-            setState('Mic error', 'bg-red-400');
-          });
-        };
-
-        copyBtn.onclick = function () {
-          try {
-            navigator.clipboard.writeText(textEl.textContent || '');
-            copyBtn.textContent = 'COPIED';
-            setTimeout(function () { copyBtn.textContent = 'COPY'; }, 1200);
-          } catch (e) {}
-        };
-
-        sel.onchange = function () {
-          customDropBuf = null;
-          resetBtn.classList.add('hidden');
-        };
-
-        file.onchange = function (e) {
-          var f = e.target.files && e.target.files[0];
-          if (!f) return;
-          var Ctx = window.AudioContext || window.webkitAudioContext;
-          var ctx = new Ctx();
-          f.arrayBuffer().then(function (ab) {
-            return ctx.decodeAudioData(ab);
-          }).then(function (buf) {
-            customDropBuf = buf;
-            resetBtn.classList.remove('hidden');
-            resetBtn.textContent = 'Reset · ' + f.name.slice(0, 24);
-            ctx.close();
-          }).catch(function () { try { ctx.close(); } catch (e) {} });
-        };
-
-        resetBtn.onclick = function () {
-          customDropBuf = null;
-          file.value = '';
-          resetBtn.classList.add('hidden');
-          resetBtn.textContent = 'Reset';
-        };
-      })();
-      </script>
-
-      <!-- FLOW STRIP -->
-      <section class="mt-8 hidden">
-        <div class="rounded-lg border border-zinc-800 bg-[#0a0a0d] px-5 py-4 font-mono text-[10px] leading-[1.9] text-zinc-500">
-          <div><span class="text-zinc-600">ANONYMOUS</span> &nbsp;<span class="text-zinc-300">CREATE → SEARCH → SHARE</span></div>
-          <div><span class="text-zinc-600">WITH ACCOUNT</span> &nbsp;<span class="text-zinc-300">CREATE CAPSULE → SEND TO CONNECTION → DOCK → UNLOAD</span></div>
-        </div>
-        <div class="mt-4 flex flex-wrap justify-center gap-5 font-mono text-[10px] text-zinc-500">
-          <a href="/account.html" class="hover:text-zinc-200 underline underline-offset-4">View Dock</a>
-          <a href="/account.html" class="hover:text-zinc-200 underline underline-offset-4">Connections</a>
-          <a href="/images.html" class="hover:text-zinc-200 underline underline-offset-4">Images</a>
-        </div>
-      </section>
-
-      <!-- CAPABILITIES -->
-      <section class="mt-8 hidden">
-        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
-          <div class="font-mono text-[9px] tracking-[0.2em] text-zinc-500">SPIM CAPABILITIES</div>
-          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Text is free. Everything else waits at your Dock.</h2>
-          <div class="mt-5 grid sm:grid-cols-3 gap-3 text-[12px]">
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
-              <div class="font-semibold text-zinc-100">Text capsule</div>
-              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-emerald-400/80">FREE — NO ACCOUNT</div>
-              <div class="mt-2 text-zinc-400">One searchable link for many notes.</div>
-            </div>
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
-              <div class="font-semibold text-zinc-100">Image capsule</div>
-              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-zinc-500">16 FREE, THEN PAID</div>
-              <div class="mt-2 text-zinc-400">Exact bytes, preserved.</div>
-              <a href="/images.html" class="mt-2 inline-block font-mono text-[10px] text-amber-300 hover:text-amber-200 underline underline-offset-4">Hold an image →</a>
-            </div>
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 p-4 hover:border-zinc-700 transition">
-              <div class="font-semibold text-zinc-100">Dock</div>
-              <div class="mt-0.5 font-mono text-[9px] tracking-[0.1em] text-zinc-500">CAPSULES WAIT 24H</div>
-              <div class="mt-2 text-zinc-400">You decide to unload.</div>
-              <a href="/account.html" class="mt-2 inline-block font-mono text-[10px] text-amber-300 hover:text-amber-200 underline underline-offset-4">View Dock →</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DOCK -->
-      <section class="mt-4 hidden">
-        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
-          <span class="inline-flex px-2 py-0.5 rounded border border-amber-400/40 bg-amber-400/10 font-mono text-[9px] tracking-[0.16em] text-amber-300">DOCK</span>
-          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Something is waiting here.</h2>
-          <p class="mt-1 text-[12px] text-zinc-500">A capsule waits at the boundary. Nothing enters your workspace until you unload it.</p>
-          <div class="mt-5 max-w-[380px] mx-auto rounded-xl bg-[#0e0e12] border border-zinc-800 p-5">
-            <div class="flex justify-between items-start">
-              <div>
-                <div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">FROM</div>
-                <div class="font-semibold text-zinc-100">Frank's Agent</div>
-              </div>
-              <span class="px-2 py-0.5 rounded border border-amber-400/40 bg-amber-400/10 font-mono text-[9px] tracking-[0.1em] text-amber-300">DOCKED</span>
-            </div>
-            <div class="mt-2 font-mono text-[10px] text-zinc-500">Notes · 14 KB · Received 2m ago</div>
-            <div class="mt-1 flex items-center gap-1.5 font-mono text-[10px] text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Verified</div>
-            <div class="mt-4 grid grid-cols-2 gap-2">
-              <a href="/account.html" class="text-center py-2.5 rounded-md bg-zinc-100 text-zinc-950 font-semibold text-[12px] hover:bg-white">UNLOAD</a>
-              <a href="/account.html" class="text-center py-2.5 rounded-md border border-zinc-700 text-zinc-300 font-semibold text-[12px] hover:bg-zinc-900">REJECT</a>
-            </div>
-          </div>
-          <p class="mt-3 text-center font-mono text-[9px] tracking-[0.1em] text-zinc-600">DOCKED ≠ OPENED. YOU DECIDE WHETHER IT ENTERS.</p>
-          <p class="mt-1 text-center font-mono text-[9px] text-zinc-600">Capsules wait 24 hours at your Dock.</p>
-        </div>
-      </section>
-
-      <!-- CONNECTIONS -->
-      <section class="mt-4 hidden">
-        <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] p-6">
-          <span class="inline-flex px-2 py-0.5 rounded border border-violet-400/40 bg-violet-400/10 font-mono text-[9px] tracking-[0.16em] text-violet-300">CONNECTIONS</span>
-          <h2 class="mt-2 text-[18px] font-semibold tracking-tight text-zinc-100">Your destinations</h2>
-          <p class="mt-1 text-[12px] text-zinc-500">Not a social network. Where capsules go.</p>
-          <div class="mt-5 grid sm:grid-cols-2 gap-3 text-[12px]">
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-sky-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">PEOPLE</div><div class="mt-1 font-semibold text-zinc-100">Frank · Sarah</div><div class="text-zinc-500 text-[11px]">person · online</div></div>
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-amber-300 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">TEAMS</div><div class="mt-1 font-semibold text-zinc-100">Product Team · Research Team</div><div class="text-zinc-500 text-[11px]">8 members · SEND TO Team delivers to all</div></div>
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-violet-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">AGENTS</div><div class="mt-1 font-semibold text-zinc-100">Frank's Agent · Research Agent</div><div class="text-zinc-500 text-[11px]">automated connection · API key</div></div>
-            <div class="rounded-lg bg-[#0e0e12] border border-zinc-800 border-l-[3px] border-l-emerald-400 p-4"><div class="font-mono text-[9px] tracking-[0.16em] text-zinc-600">YOURSELF</div><div class="mt-1 font-semibold text-zinc-100">My Laptop · Myself</div><div class="text-zinc-500 text-[11px]">your device · always there</div></div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- TELEMETRY -->
-    <aside class="w-full lg:w-[360px] shrink-0 lg:sticky lg:top-20">
-      <div class="rounded-xl border border-zinc-800 bg-[#0b0b0e] overflow-hidden">
-        <div class="px-4 py-3 border-b border-zinc-800 bg-[#0e0e12] flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="font-mono text-[10px] tracking-[0.16em] text-zinc-300">ENGINE TELEMETRY</span>
-          </div>
-          <span id="telemetryStatus" class="font-mono text-[9px] tracking-[0.12em] text-zinc-500">BOOTING</span>
-        </div>
-        <div class="p-4 space-y-4">
-          <div>
-            <div class="flex items-center justify-between font-mono text-[9px] tracking-[0.12em] text-zinc-600">
-              <span>RAW → ENVELOPE</span>
-              <span id="telemetryRatio">—</span>
-            </div>
-            <div class="mt-3 space-y-3">
-              <div>
-                <div class="flex items-baseline justify-between gap-2">
-                  <span class="font-mono text-[10px] text-zinc-500">RAW <span class="text-zinc-700">UTF-8</span></span>
-                  <span id="telemetryRaw" class="font-mono text-[13px] text-zinc-200">—</span>
-                </div>
-                <div class="mt-1.5 h-1 rounded-full bg-zinc-900 overflow-hidden"><div id="telemetryBarRaw" class="h-full bg-zinc-500 rounded-full transition-all duration-200" style="width:0%"></div></div>
-              </div>
-              <div>
-                <div class="flex items-baseline justify-between gap-2">
-                  <span class="font-mono text-[10px] text-zinc-500">SPIM ENVELOPE</span>
-                  <span id="telemetryEnv" class="font-mono text-[13px] text-zinc-200">—</span>
-                </div>
-                <div class="mt-1.5 h-1 rounded-full bg-zinc-900 overflow-hidden"><div id="telemetryBarEnv" class="h-full bg-emerald-400 rounded-full transition-all duration-200" style="width:0%"></div></div>
-              </div>
-            </div>
-            <div class="mt-2 flex justify-between gap-2 font-mono text-[9px] text-zinc-600">
-              <span id="telemetrySpim">spim_b64 —</span>
-              <span id="telemetryFmt">fmt_b64 —</span>
-            </div>
-          </div>
-
-          <div class="rounded-lg border border-zinc-800 bg-[#0e0e12] p-3">
-            <div class="flex items-baseline justify-between gap-2">
-              <span class="font-mono text-[9px] tracking-[0.12em] text-zinc-600">DELTA</span>
-              <span id="telemetryDelta" class="font-mono text-[11px] text-zinc-500">—</span>
-            </div>
-            <p class="mt-1 text-[10px] leading-relaxed text-zinc-600">Envelope = spim_b64 + fmt_b64. Index overhead dominates short notes; savings compound with repetition.</p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 font-mono">
-            <div class="rounded-lg border border-zinc-800 p-3">
-              <div class="text-[9px] tracking-[0.12em] text-zinc-600">VOCAB</div>
-              <div class="mt-1 text-[13px] text-zinc-200"><span id="telemetryVocab">—</span> <span class="text-[9px] text-zinc-500">tokens</span></div>
-            </div>
-            <div class="rounded-lg border border-zinc-800 p-3">
-              <div class="text-[9px] tracking-[0.12em] text-zinc-600">NOTES</div>
-              <div class="mt-1 text-[13px] text-zinc-200"><span id="telemetryNotes">—</span> <span class="text-[9px] text-zinc-500">indexed</span></div>
-            </div>
-          </div>
-
-          <div class="rounded-lg border border-zinc-800 p-3">
-            <div class="flex items-center justify-between gap-2 font-mono text-[9px] tracking-[0.12em]">
-              <span class="text-zinc-600">BLAKE3</span>
-              <span class="text-zinc-700">PRIMARY NOTE</span>
-            </div>
-            <div id="telemetryHash" class="mt-1.5 font-mono text-[9px] leading-[1.7] break-all text-emerald-300/90">—</div>
-          </div>
-        </div>
-        <div class="px-4 py-3 border-t border-zinc-800 bg-[#0e0e12] flex items-center justify-between font-mono text-[9px] tracking-[0.1em] text-zinc-600">
-          <span>WASM · IN-TAB</span><span>NO UPLOAD</span>
-        </div>
-      </div>
-      <div class="mt-3 px-4 py-3 rounded-lg border border-zinc-800/60 bg-[#0a0a0d] font-mono text-[9px] leading-relaxed text-zinc-600">
-        TELEMETRY IS COMPUTED LOCALLY. NO NOTE TEXT LEAVES THIS TAB.
-      </div>
-    </aside>
-  </div>
-</div>
-
-<footer class="border-t border-zinc-800 mt-2">
-  <div class="max-w-[1200px] mx-auto px-5 py-8 flex flex-col sm:flex-row justify-between gap-4 font-mono text-[10px] text-zinc-500">
-    <div class="flex flex-wrap gap-5"><a href="/why.html" class="hover:text-zinc-200">Why</a><a href="/use-cases.html" class="hover:text-zinc-200">Use Cases</a><a href="/support.html" class="hover:text-zinc-200">Support</a></div>
-    <a href="mailto:apbuttar01@gmail.com" class="hover:text-zinc-200">apbuttar01@gmail.com</a>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
   </div>
 </footer>
+<!-- /chrome:footer -->
 
 <!-- RESULT -->
 <div id="result" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-4 overflow-auto">
@@ -562,7 +241,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
     <h3 class="mt-3 text-[19px] font-semibold tracking-tight">One link. All your notes inside.</h3>
     <div class="mt-4 flex gap-2">
       <input id="shareLink" readonly class="flex-1 min-w-0 rounded-md border border-zinc-700 bg-black/60 px-3 py-2.5 text-[11px] font-mono text-emerald-300 focus:outline-none">
-      <button onclick="copyLink()" class="px-4 rounded-md bg-amber-300 text-zinc-950 font-semibold text-[12px] hover:bg-amber-200">Copy</button>
+      <button onclick="copyLink(event)" class="px-4 rounded-md bg-[#38BDF8] text-[#04121B] font-semibold text-[12px]">Copy</button>
     </div>
     <div class="mt-3 flex flex-wrap gap-1.5 font-mono text-[9px]">
       <span class="px-2 py-1 rounded border border-zinc-700 text-zinc-300">SEARCHABLE</span>
@@ -586,18 +265,51 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 <!-- CHOICE -->
 <div id="choice" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-sm p-4 grid place-items-center">
   <div class="w-full max-w-[500px] rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6">
-    <div class="font-mono text-[9px] tracking-[0.18em] text-zinc-500">DELIVERY MODE</div>
-    <h4 class="mt-1 text-[18px] font-semibold tracking-tight">How should this capsule open?</h4>
-    <p class="text-[12px] text-zinc-500 mt-1">Choose who can open it. Single view burns after opening.</p>
+    <div class="font-mono text-[9px] tracking-[0.18em] text-zinc-500">WHO CAN OPEN IT</div>
+    <h4 class="mt-1 text-[18px] font-semibold tracking-tight">Public or private?</h4>
+    <p class="text-[12px] text-zinc-500 mt-1">Private keeps the key in the link. Single view burns after the first open.</p>
     <div class="mt-4 grid gap-3">
-      <button id="choicePublic" onclick="selectChoice('public')" class="text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] border-l-emerald-400 bg-[#111114]"><div class="flex gap-3"><span class="text-[16px]">🌐</span><div><div class="font-semibold text-[13px] text-zinc-100">Public</div><div class="text-[11px] text-zinc-500">Anyone with the link can open it.</div><div class="mt-1.5 font-mono text-[9px] text-zinc-400 bg-black/40 border border-zinc-800 px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q</div></div></div></button>
-      <button id="choicePrivate" onclick="selectChoice('private')" class="text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] border-l-zinc-800 bg-[#111114] opacity-60"><div class="flex gap-3"><span class="text-[16px]">🔒</span><div><div class="font-semibold text-[13px] text-zinc-100">Private</div><div class="text-[11px] text-zinc-500">The key stays in the URL fragment and is not sent to the server.</div><div class="mt-1.5 font-mono text-[9px] text-amber-300/90 bg-amber-400/[0.06] border border-amber-400/20 px-2 py-1 rounded">www.spim.co.in/receive#c/Ab3x9Q#key…</div></div></div></button>
-      <label class="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-amber-400/[0.06] cursor-pointer"><input type="checkbox" id="singleViewCheck" class="mt-0.5 accent-amber-300"><div><div class="font-semibold text-[12px] text-zinc-200">Single view — Burn after opening</div><div class="text-[10px] text-zinc-500">Can only be opened once.</div></div></label>
+      <button id="choicePublic" onclick="selectChoice('public')" class="text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] border-l-emerald-400 bg-[#111114]"><div class="flex gap-3"><span class="text-[16px]">🌐</span><div><div class="font-semibold text-[13px] text-zinc-100">Public</div><div class="text-[11px] text-zinc-500">Anyone with the link can open it.</div></div></div></button>
+      <button id="choicePrivate" onclick="selectChoice('private')" class="text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] border-l-zinc-800 bg-[#111114] opacity-60"><div class="flex gap-3"><span class="text-[16px]">🔒</span><div><div class="font-semibold text-[13px] text-zinc-100">Private</div><div class="text-[11px] text-zinc-500">The key stays in the URL and never reaches the server.</div></div></div></button>
+      <label class="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-amber-400/[0.06] cursor-pointer"><input type="checkbox" id="singleViewCheck" class="mt-0.5 accent-amber-300"><div><div class="font-semibold text-[12px] text-zinc-200">Single view — burn after opening</div><div class="text-[10px] text-zinc-500">Can only be opened once.</div></div></label>
     </div>
-    <div class="mt-5 flex gap-2"><button onclick="closeChoice()" class="flex-1 py-3 rounded-md border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900">Cancel</button><button onclick="confirmChoice()" class="flex-1 py-3 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Create →</button></div>
+    <div class="mt-5 flex gap-2"><button onclick="closeChoice()" class="flex-1 py-3 rounded-md border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900">Cancel</button><button onclick="confirmChoice()" class="flex-1 py-3 rounded-md bg-[#38BDF8] text-[#04121B] font-semibold">Create →</button></div>
   </div>
 </div>
-<div id="singleConfirm" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm grid place-items-center p-4"><div class="rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6 max-w-[380px]"><h4 class="font-semibold text-[16px]">Create single-view capsule?</h4><p class="text-[12px] text-zinc-500 mt-1">Can only be opened once. After first opening it is destroyed.</p><div class="mt-4 flex gap-2"><button onclick="closeSingleConfirm()" class="flex-1 py-2 rounded-md border border-zinc-700 text-zinc-300">Cancel</button><button onclick="confirmSingleCreate()" class="flex-1 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold">Create</button></div></div></div>
+<div id="singleConfirm" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm grid place-items-center p-4"><div class="rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6 max-w-[380px]"><h4 class="font-semibold text-[16px]">Create single-view capsule?</h4><p class="text-[12px] text-zinc-500 mt-1">It can only be opened once, then it is destroyed.</p><div class="mt-4 flex gap-2"><button onclick="closeSingleConfirm()" class="flex-1 py-2 rounded-md border border-zinc-700 text-zinc-300">Cancel</button><button onclick="confirmSingleCreate()" class="flex-1 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold">Create</button></div></div></div>
+
+<!-- BEAM OVERLAY -->
+<div id="beamOverlay" class="spim-hide fixed inset-0 z-50 bg-black/80 backdrop-blur-sm grid place-items-center p-4">
+  <div class="spim-card" style="width:100%;max-width:400px;padding:26px;text-align:center">
+    <span class="spim-kicker">Beaming by sound</span>
+    <p id="beamText" class="spim-body spim-mono" style="margin-top:14px;font-size:11px;color:var(--spim-text);word-break:break-all"></p>
+    <div class="spim-meter" style="max-width:none;margin-top:18px"><i id="beamBar"></i></div>
+    <p class="spim-eyebrow" style="margin-top:14px">Keep this tab open · Hold both devices close</p>
+    <button onclick="stopBeam()" class="spim-btn spim-btn--block" style="margin-top:18px">Stop</button>
+  </div>
+</div>
+
+<script src="/js/supabaseClient.js"></script>
+<script src="/js/entitlements.js"></script>
+<script src="/js/spim-codec.js"></script>
+<script>
+async function initAuth(){
+  try{
+    const {data:{session}}=await window.supabase.auth.getSession();
+    const a=!!session;
+    if(a && document.getElementById('avatarBtn')) document.getElementById('avatarBtn').textContent=session.user.email[0].toUpperCase();
+    if(a && document.getElementById('avatarEmail')) document.getElementById('avatarEmail').textContent=session.user.email;
+    const composer=document.getElementById('workspace');
+    if(a && composer && !document.getElementById('authedDock')){
+      const s=document.createElement('div'); s.id='authedDock'; s.className='spim-note';
+      s.style.marginBottom='16px';
+      s.innerHTML='<span>Signed in. Your capsules can wait at your Dock.</span><a class="spim-link" href="/account" style="margin-left:auto">View Dock →</a>';
+      composer.parentNode.insertBefore(s,composer);
+    }
+  }catch(e){}
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
+</script>
 
 <script>
 const SERVER=''; const CANONICAL_BASE=location.origin+'/receive';
@@ -607,147 +319,410 @@ function b64decodeBytes(b){const s=atob(b);const o=new Uint8Array(s.length);for(
 function b64encodeStr(s){return btoa(unescape(encodeURIComponent(s)))}
 function b64decodeStr(b){return decodeURIComponent(escape(atob(b)))}
 function b64urlEncode(b){let s=b64encodeBytes(b);return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64urlDecode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return b64decodeBytes(s)}
 function wasmBlake3Hex(s){if(window.wasmReady&&window.blake3_hex_static)try{return window.blake3_hex_static(s)}catch(e){}return 'pending'}
-let noteCount=1,selectedChoice='public',pendingNotes=null,lastEnvelopeJson=null,lastBlob=null,lastKeyB64=null,telemetryTimer=null;
 
-/* Sample payload — realistic structured logs, tests, and a results table.
-   Repetition is real (heartbeat logs, generated test cases, uniform rows), so
-   the live telemetry demonstrates savings. Nothing here is pre-computed. */
+let noteCount=1,selectedChoice='public',pendingNotes=null,lastEnvelopeJson=null,lastBlob=null,lastKeyB64=null;
+let deliveryMode='link';
+
+/* ---- tabs --------------------------------------------------------------- */
+function setTab(which){
+  const beam=which!=='catch';
+  const tb=document.getElementById('tabBeam'), tc=document.getElementById('tabCatch');
+  const pb=document.getElementById('panelBeam'), pc=document.getElementById('panelCatch');
+  tb.setAttribute('aria-selected',beam?'true':'false');
+  tc.setAttribute('aria-selected',beam?'false':'true');
+  pb.classList.toggle('spim-hide',!beam);
+  pc.classList.toggle('spim-hide',beam);
+  if(!beam) document.getElementById('panelCatch').scrollIntoView({block:'nearest'});
+}
+document.getElementById('tabBeam').onclick=()=>setTab('beam');
+document.getElementById('tabCatch').onclick=()=>setTab('catch');
+function syncTabFromHash(){
+  if(location.hash==='#catch') setTab('catch');
+  else if(location.hash==='#beam'||location.hash==='') setTab('beam');
+}
+window.addEventListener('hashchange',syncTabFromHash);
+
+/* ---- delivery mode ------------------------------------------------------ */
+document.querySelectorAll('#modes [data-mode]').forEach(btn=>{
+  btn.onclick=()=>{
+    deliveryMode=btn.dataset.mode;
+    document.querySelectorAll('#modes [data-mode]').forEach(b=>b.setAttribute('aria-pressed',b===btn?'true':'false'));
+    const label={link:'Create link',qr:'Create & show QR',spim:'Create & save .spim',beam:'Create & beam'}[deliveryMode];
+    document.getElementById('createBtnText').textContent=label;
+    document.getElementById('createHint').textContent={
+      link:'Sealed in this tab. Anyone with the link can open it.',
+      qr:'A code they can scan in the room.',
+      spim:'A file that opens with no network at all.',
+      beam:'Plays the link as sound. The other device listens in Catch.'
+    }[deliveryMode];
+  };
+});
+
+/* ---- notes -------------------------------------------------------------- */
 function buildSamplePayload(){
   const stamp=i=>`2026-10-27T09:${String(14+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}Z`;
-  const logs=Array.from({length:16},(_,i)=>`${stamp(i)} INFO capsule_id=Ab3x9Q reconstruction_status=verified envelope_status=sealed positional_index_status=ready verification_hash=blake3`).join('\n');
-  const tests=Array.from({length:6},(_,i)=>`test("reconstructEnvelope verifies reconstruction ${i}", () => {\n  const positionalIndex = buildPositionalIndex();\n  const reconstruction = reconstructEnvelope(positionalIndex);\n  const verification = verifyReconstruction(reconstruction);\n  expect(verification).toBe(true);\n});`).join('\n');
-  const row='| Ab3x9Q | verified | sealed | ready | blake3 |';
-  const table=[
-    '| capsule_id | reconstruction_status | envelope_status | positional_index_status | verification_hash |',
-    row,
-    ...Array.from({length:10},()=>row),
-  ].join('\n');
-  return [logs,tests,table];
+  const logs=Array.from({length:10},(_,i)=>`${stamp(i)} INFO capsule_id=Ab3x9Q reconstruction_status=verified envelope_status=sealed verification_hash=blake3`).join('\n');
+  return [logs];
 }
 function loadSamplePayload(){
-  while(document.querySelectorAll('.note textarea').length<3){ addNote(); }
-  const areas=[...document.querySelectorAll('.note textarea')];
-  buildSamplePayload().forEach((s,i)=>{ if(areas[i]) areas[i].value=s; });
-  const g=document.getElementById('ghost'); if(g) g.style.display='none';
-  renumber(); updateMeta();
-  if(areas[0]){ areas[0].focus(); areas[0].setSelectionRange(0,0); }
+  const a=document.querySelector('.note textarea');
+  if(a){ a.value=buildSamplePayload()[0]; }
+  updateMeta();
+  if(a){ a.focus(); a.setSelectionRange(0,0); }
 }
-function addNote(){noteCount++;const w=document.createElement('div');w.className='note p-5 sm:p-6';w.innerHTML=`<div class="flex items-center justify-between"><span class="font-mono text-[10px] tracking-[0.16em] text-zinc-500">NOTE ${String(noteCount).padStart(2,'0')}</span><button onclick="removeNote(this)" class="font-mono text-[10px] tracking-[0.1em] text-zinc-600 hover:text-zinc-200">REMOVE</button></div><textarea placeholder="Paste or type…" class="mt-3 w-full min-h-[110px] resize-none bg-transparent text-[14px] leading-[1.7] text-zinc-100 placeholder:text-zinc-600 focus:outline-none" oninput="updateMeta()"></textarea>`;document.getElementById('notes').appendChild(w);document.getElementById('ghost').style.display='none';renumber();updateMeta();w.querySelector('textarea').focus()}
-function removeNote(b){b.closest('.note').remove();noteCount=document.querySelectorAll('.note').length;document.getElementById('ghost').style.display=noteCount<2?'block':'none';renumber();updateMeta()}
-function renumber(){document.querySelectorAll('.note').forEach((el,i)=>el.querySelector('span').textContent=`NOTE ${String(i+1).padStart(2,'0')}`)}
-function insertTry(t){const f=document.querySelector('.note textarea');if(f){f.value=(f.value?f.value+' ':'')+t;f.focus();updateMeta()}}
+function addNote(){
+  noteCount++;
+  const w=document.createElement('div');
+  w.className='note spim-card-body';
+  w.style.borderTop='1px solid var(--spim-line)';
+  w.innerHTML='<div class="spim-spread"><span class="spim-label">Note</span><button onclick="removeNote(this)" class="spim-btn spim-btn--ghost spim-btn--sm">Remove</button></div>'
+    +'<textarea placeholder="Paste or type…" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:110px" oninput="updateMeta()"></textarea>';
+  document.getElementById('notes').appendChild(w);
+  renumber(); updateMeta(); w.querySelector('textarea').focus();
+}
+function removeNote(b){
+  const note=b.closest('.note');
+  if(document.querySelectorAll('.note').length<=1){ return; }
+  note.remove(); renumber(); updateMeta();
+}
+function renumber(){
+  document.querySelectorAll('.note').forEach((el,i)=>{
+    const label=el.querySelector('span.spim-label');
+    if(label) label.textContent='Note '+(i+1);
+    const rm=el.querySelector('button');
+    if(rm) rm.classList.toggle('spim-hide',document.querySelectorAll('.note').length<=1);
+  });
+}
 function updateMeta(){
   const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value);
-  const filled=notes.filter(v=>v.trim().length>0); const words=notes.join(' ').trim()?countWords(notes.join(' ')):0;
-  document.getElementById('meta').textContent=`${document.querySelectorAll('.note').length} notes · ${words} words`;
+  const filled=notes.filter(v=>v.trim().length>0);
+  const words=filled.length?countWords(filled.join(' ')):0;
+  document.getElementById('meta').textContent=words+(words===1?' word':' words');
   const s=document.getElementById('wasmStatus'),b=document.getElementById('createBtn'),h=document.getElementById('createHint');
-  if(!window.wasmReady){s.textContent='Preparing search';b.disabled=true;h.textContent='Preparing search…'} else {s.textContent='Searchable';b.disabled=filled.length===0;h.textContent=filled.length===0?'Add a note':'You’ll choose Public or Private next'}
-  const dot=document.getElementById('wasmDot'); if(dot) dot.className='w-1.5 h-1.5 rounded-full '+(window.wasmReady?'bg-emerald-400':'bg-amber-400');
-  document.getElementById('inlineError').classList.add('hidden');
-  scheduleTelemetry();
+  if(!window.wasmReady){ s.textContent='Preparing'; b.disabled=true; }
+  else { s.textContent='Ready'; b.disabled=filled.length===0; }
+  const dot=document.getElementById('wasmDot');
+  if(dot) dot.style.background=window.wasmReady?'var(--spim-verified)':'var(--spim-warn)';
+  document.getElementById('inlineError').classList.add('spim-hide');
 }
 window.addEventListener('wasm-ready',updateMeta);
-function makeEnvelope(notes){const w=new window.WasmSpim();const notes_blake3=[],fmt_b64=[];notes.forEach(s=>{w.remember(s);notes_blake3.push(wasmBlake3Hex(s));fmt_b64.push(window.format_delta_encode(s))});const b=w.encoded_bytes_b64();const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,fmt_b64,word_count:wc,blake3:""};env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));return env}
+
+/* ---- envelope ----------------------------------------------------------- */
+function makeEnvelope(notes){
+  const w=new window.WasmSpim();const notes_blake3=[],fmt_b64=[];
+  notes.forEach(s=>{w.remember(s);notes_blake3.push(wasmBlake3Hex(s));fmt_b64.push(window.format_delta_encode(s))});
+  const b=w.encoded_bytes_b64();
+  const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);
+  let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,fmt_b64,word_count:wc,blake3:""};
+  env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));
+  return env;
+}
 async function generateKey(){const b=new Uint8Array(32);crypto.getRandomValues(b);return b}
 async function encryptEnvelope(j,k){const iv=new Uint8Array(12);crypto.getRandomValues(iv);const key=await crypto.subtle.importKey('raw',k,{name:'AES-GCM'},false,['encrypt']);const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(j));const c=new Uint8Array(iv.length+enc.byteLength);c.set(iv,0);c.set(new Uint8Array(enc),iv.length);return b64encodeBytes(c)}
 async function postCapsule(b,d=false){const r=await fetch(SERVER+'/capsules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blob:b,destroyable:d})});if(!r.ok)throw new Error('POST '+r.status);return (await r.json()).id}
-function createCapsule(){const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value).filter(v=>v.trim());if(!notes.length){showErr('Add a note');return}if(!window.wasmReady){showErr('Search preparing — try again');return}pendingNotes=notes;selectedChoice='public';document.getElementById('singleViewCheck').checked=false;updateChoiceUI();document.getElementById('choice').classList.remove('hidden')}
-function showErr(m){const e=document.getElementById('inlineError');e.textContent=m;e.classList.remove('hidden')}
+
+function createCapsule(){
+  const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value).filter(v=>v.trim());
+  if(!notes.length){showErr('Add a note first');return}
+  if(!window.wasmReady){showErr('Still preparing — try again in a moment');return}
+  if(deliveryMode==='beam') ensureBeamCtx();
+  pendingNotes=notes; selectedChoice='public';
+  document.getElementById('singleViewCheck').checked=false; updateChoiceUI();
+  document.getElementById('choice').classList.remove('hidden');
+}
+function showErr(m){const e=document.getElementById('inlineError');e.textContent=m;e.classList.remove('spim-hide')}
 function closeChoice(){document.getElementById('choice').classList.add('hidden');pendingNotes=null}
 function selectChoice(c){selectedChoice=c;updateChoiceUI()}
 function updateChoiceUI(){const p=document.getElementById('choicePublic'),q=document.getElementById('choicePrivate');const on='text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] bg-[#111114]',off='text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] bg-[#111114] opacity-60';p.className=selectedChoice==='public'?on+' border-l-emerald-400':off+' border-l-zinc-800';q.className=selectedChoice==='private'?on+' border-l-sky-400':off+' border-l-zinc-800'}
 function confirmChoice(){if(document.getElementById('singleViewCheck').checked){document.getElementById('singleConfirm').classList.remove('hidden');return}doCreate(selectedChoice,false)}
 function closeSingleConfirm(){document.getElementById('singleConfirm').classList.add('hidden')}
 function confirmSingleCreate(){document.getElementById('singleConfirm').classList.add('hidden');doCreate(selectedChoice,true)}
+
 async function doCreate(choice,single){
-  document.getElementById('choice').classList.add('hidden');const notes=pendingNotes;if(!notes)return;
-  const isPrivate=choice==='private';document.getElementById('createBtnText').textContent='Creating…';document.getElementById('createBtn').disabled=true;
+  document.getElementById('choice').classList.add('hidden');
+  const notes=pendingNotes; if(!notes)return;
+  const isPrivate=choice==='private';
+  const btn=document.getElementById('createBtn');
+  document.getElementById('createBtnText').textContent='Creating…'; btn.disabled=true;
   try{
-    const env=makeEnvelope(notes);env.flags=single?1:0;env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));const j=JSON.stringify(env);lastEnvelopeJson=j;
-    let blob,keyB64=null;if(isPrivate){const kb=await generateKey();keyB64=b64urlEncode(kb);blob=await encryptEnvelope(j,kb)}else blob=b64encodeStr(j);
+    const env=makeEnvelope(notes); env.flags=single?1:0;
+    env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));
+    const j=JSON.stringify(env); lastEnvelopeJson=j;
+    let blob,keyB64=null;
+    if(isPrivate){const kb=await generateKey();keyB64=b64urlEncode(kb);blob=await encryptEnvelope(j,kb)}
+    else blob=b64encodeStr(j);
     lastBlob=blob;lastKeyB64=keyB64;
-    const id=await postCapsule(blob,single);const base=`${CANONICAL_BASE}#c/${id}`;const link=isPrivate?`${base}#${keyB64}`:base;
-    document.getElementById('shareLink').value=link;document.getElementById('shareLink').dataset.id=id;document.getElementById('shareLink').dataset.key=keyB64||'';
-    document.getElementById('qrText').textContent=link;const img=document.getElementById('qrImg');img.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(link);img.classList.remove('hidden');document.getElementById('qrBox').classList.add('hidden');
-    document.getElementById('resultVerifyBadge').textContent=`Verified · ${env.blake3.slice(0,8)}…`;document.getElementById('resultMeta').textContent=`${notes.length} notes · ${notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0)} words${single?' · single view':''}`;
+    const id=await postCapsule(blob,single);
+    const base=`${CANONICAL_BASE}#c/${id}`;
+    const link=isPrivate?`${base}#${keyB64}`:base;
+    document.getElementById('shareLink').value=link;
+    document.getElementById('shareLink').dataset.id=id;
+    document.getElementById('shareLink').dataset.key=keyB64||'';
+    document.getElementById('qrText').textContent=link;
+    const img=document.getElementById('qrImg');
+    img.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(link);
+    img.classList.remove('hidden'); document.getElementById('qrBox').classList.add('hidden');
+    document.getElementById('resultVerifyBadge').textContent='Verified · '+env.blake3.slice(0,8)+'…';
+    document.getElementById('resultMeta').textContent=notes.length+' '+(notes.length===1?'note':'notes')+' · '+env.word_count+' words'+(single?' · single view':'');
     document.getElementById('result').classList.remove('hidden');
-  }catch(e){showErr('Create failed: '+e.message)}finally{document.getElementById('createBtnText').textContent='Create capsule';updateMeta()}
+
+    if(deliveryMode==='qr'){ toggleQR(); }
+    else if(deliveryMode==='spim'){ downloadSpim(); }
+    else if(deliveryMode==='beam'){ closeResult(); startBeam(link); }
+  }catch(e){ showErr('Create failed: '+e.message) }
+  finally{ document.getElementById('createBtnText').textContent={link:'Create link',qr:'Create & show QR',spim:'Create & save .spim',beam:'Create & beam'}[deliveryMode]; updateMeta() }
 }
+
 function closeResult(){document.getElementById('result').classList.add('hidden')}
-function copyLink(){navigator.clipboard.writeText(document.getElementById('shareLink').value);event.target.textContent='Copied ✓';setTimeout(()=>event.target.textContent='Copy',1200)}
+function copyLink(ev){const t=ev&&ev.target?ev.target:null;navigator.clipboard.writeText(document.getElementById('shareLink').value);if(t){const old=t.textContent;t.textContent='Copied';setTimeout(()=>t.textContent=old,1200)}}
 function toggleQR(){const b=document.getElementById('qrBox');const i=document.getElementById('qrImg');if(b.classList.contains('hidden')&&i.src.includes('api.qrserver'))i.classList.remove('hidden');b.classList.toggle('hidden')}
 function downloadTxt(){if(!pendingNotes)return;const b=new Blob([pendingNotes.join('\n---\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.txt';a.click()}
 function downloadExact(){if(!lastEnvelopeJson)return;const b=new Blob([lastEnvelopeJson],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.json';a.click()}
 function downloadSpim(){if(!lastEnvelopeJson||!lastBlob)return;const id=document.getElementById('shareLink').dataset.id||'capsule';const spim={spim_file:1,version:1,locked:!!lastKeyB64,key_b64url:lastKeyB64||null,blob:lastBlob};const b=new Blob([JSON.stringify(spim)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.spim';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function openResult(){const id=document.getElementById('shareLink').dataset.id;const k=document.getElementById('shareLink').dataset.key;location.href=`${CANONICAL_BASE}#c/${id}`+(k?'#'+k:'')}
-function openCapsuleLink(){const v=document.getElementById('openInput').value.trim(),m=document.getElementById('openMsg');if(!v){m.textContent='Paste a capsule link';m.classList.remove('hidden');return}let id=(v.match(/c\/([A-Za-z0-9_-]{6,16})/)||[])[1];if(!id&&/^[A-Za-z0-9_-]{6,16}$/.test(v))id=v;if(!id){m.textContent='Invalid link — Example: www.spim.co.in/receive#c/Ab3x9Q';m.classList.remove('hidden');return}m.classList.add('hidden');let k=v.split('#').pop();const p=v.split('#');if(p.length>=3)k=p[p.length-1];else if(v.includes('#')&&!v.includes('/c/'))k=v.split('#')[1]||'';else if(k&&k.length<20)k='';location.href=`${CANONICAL_BASE}#c/${id}`+(k&&k.length>=20?'#'+k:'')}
-
-/* ---- Live engine telemetry (client-side only) ---------------------------- */
-function telemetrySetText(id,v){const el=document.getElementById(id);if(el)el.textContent=v}
-function telemetrySetBar(id,pct){const el=document.getElementById(id);if(el)el.style.width=Math.max(0,Math.min(100,pct))+'%'}
-function telemetryReset(status){
-  ['telemetryRaw','telemetryEnv','telemetryRatio','telemetrySpim','telemetryFmt','telemetryVocab','telemetryNotes'].forEach(id=>telemetrySetText(id,'—'));
-  const d=document.getElementById('telemetryDelta');if(d){d.textContent='—';d.className='font-mono text-[11px] text-zinc-500'}
-  const h=document.getElementById('telemetryHash');if(h){h.textContent='—';h.removeAttribute('title')}
-  telemetrySetBar('telemetryBarRaw',0);telemetrySetBar('telemetryBarEnv',0);
-  telemetrySetText('telemetryStatus',status);
+function openCapsuleLink(){
+  const v=document.getElementById('openInput').value.trim(),m=document.getElementById('openMsg');
+  if(!v){m.textContent='Paste a capsule link';m.classList.remove('hidden');return}
+  let id=(v.match(/c\/([A-Za-z0-9_-]{6,16})/)||[])[1];
+  if(!id&&/^[A-Za-z0-9_-]{6,16}$/.test(v))id=v;
+  if(!id){m.textContent='That does not look like a capsule link.';m.classList.remove('hidden');return}
+  m.classList.add('hidden');
+  let k=v.split('#').pop();const p=v.split('#');
+  if(p.length>=3)k=p[p.length-1];
+  else if(v.includes('#')&&!v.includes('/c/'))k=v.split('#')[1]||'';
+  else if(k&&k.length<20)k='';
+  location.href=`${CANONICAL_BASE}#c/${id}`+(k&&k.length>=20?'#'+k:'');
 }
-function scheduleTelemetry(){clearTimeout(telemetryTimer);telemetryTimer=setTimeout(updateTelemetry,200)}
-function updateTelemetry(){
-  const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value).filter(v=>v.trim().length>0);
-  if(!window.wasmReady||typeof window.WasmSpim!=='function'){telemetryReset('BOOTING');return}
-  if(!notes.length){telemetryReset('IDLE');return}
-  let engine=null;
+
+/* ---- sonic beam --------------------------------------------------------- */
+let beamCtx=null,beamSrc=null,beamTimer=null;
+function ensureBeamCtx(){
+  if(!beamCtx){const C=window.AudioContext||window.webkitAudioContext;beamCtx=new C();}
+  if(beamCtx.state==='suspended')beamCtx.resume();
+  return beamCtx;
+}
+function startBeam(text){
+  if(!window.SpimCodec){showErr('Sound is unavailable in this browser');return}
+  let bytes;try{bytes=new TextEncoder().encode(text)}catch(e){showErr('Could not prepare the beam');return}
+  if(bytes.length>window.SpimCodec.MAX_PAYLOAD){showErr('Too much data for a sound beam');return}
+  let samples;try{samples=window.SpimCodec.encode(bytes)}catch(e){showErr('Could not encode the beam');return}
+  const ctx=ensureBeamCtx();
+  const buf=ctx.createBuffer(1,samples.length,48000);
+  buf.copyToChannel(samples,0);
+  const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);
+  const secs=samples.length/48000;
+  const overlay=document.getElementById('beamOverlay');
+  document.getElementById('beamText').textContent=text;
+  const bar=document.getElementById('beamBar');
+  bar.style.transition='none';bar.style.width='0%';
+  overlay.classList.remove('spim-hide');
+  requestAnimationFrame(()=>{bar.style.transition='width '+secs+'s linear';bar.style.width='100%'});
+  src.start();beamSrc=src;
+  beamTimer=setTimeout(stopBeam,secs*1000+200);
+}
+function stopBeam(){
+  if(beamTimer){clearTimeout(beamTimer);beamTimer=null}
+  try{beamSrc&&beamSrc.stop()}catch(e){}
+  beamSrc=null;
+  document.getElementById('beamOverlay').classList.add('spim-hide');
+  const bar=document.getElementById('beamBar');bar.style.transition='none';bar.style.width='0%';
+}
+
+/* ---- catch: sound ------------------------------------------------------- */
+let micCtx=null,micStream=null,micNode=null,receiver=null,listening=false,caughtCount=0;
+let dropCtx=null,customDropBuf=null,lastCaught='',lastCaughtAt=0;
+
+function audioCtx(){
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!dropCtx)dropCtx=new C();
+  if(dropCtx.state==='suspended')dropCtx.resume();
+  return dropCtx;
+}
+function playDrop(){
   try{
-    engine=new window.WasmSpim();
-    const enc=new TextEncoder();
-    let raw=0,fmt=0;
-    notes.forEach(s=>{raw+=enc.encode(s).length;engine.remember(s);fmt+=window.format_delta_encode(s).length});
-    const spim=engine.encoded_bytes_b64().length;
-    const env=spim+fmt;
-    const vocab=engine.vocab_size(),mem=engine.num_memories();
-    const ratio=raw>0?env/raw:0;
-    const delta=raw>0?(env-raw)/raw*100:0;
-    telemetrySetText('telemetryRaw',raw.toLocaleString('en-US')+' B');
-    telemetrySetText('telemetryEnv',env.toLocaleString('en-US')+' B');
-    telemetrySetText('telemetryRatio',ratio.toFixed(2)+'×');
-    telemetrySetText('telemetrySpim','spim_b64 '+spim.toLocaleString('en-US'));
-    telemetrySetText('telemetryFmt','fmt_b64 '+fmt.toLocaleString('en-US'));
-    telemetrySetText('telemetryVocab',vocab.toLocaleString('en-US'));
-    telemetrySetText('telemetryNotes',mem.toLocaleString('en-US'));
-    const barMax=Math.max(raw,env,1);
-    telemetrySetBar('telemetryBarRaw',raw/barMax*100);
-    telemetrySetBar('telemetryBarEnv',env/barMax*100);
-    const saved=env<raw;
-    const d=document.getElementById('telemetryDelta');
-    if(d){
-      if(raw===0){d.textContent='EVEN';d.className='font-mono text-[11px] text-zinc-300'}
-      else if(saved){d.textContent='SAVED '+Math.abs(delta).toFixed(1)+'%';d.className='font-mono text-[11px] text-emerald-400'}
-      else{d.textContent='OVERHEAD +'+delta.toFixed(1)+'%';d.className='font-mono text-[11px] text-amber-300'}
-    }
-    const h=document.getElementById('telemetryHash');
-    if(h){
-      if(window.blake3_hex_static){const digest=window.blake3_hex_static(notes[0]);h.textContent=digest;h.title=digest}
-      else h.textContent='—';
-    }
-    telemetrySetText('telemetryStatus','READY');
+    const ctx=audioCtx();
+    if(customDropBuf){const s=ctx.createBufferSource();s.buffer=customDropBuf;s.connect(ctx.destination);s.start();return}
+    const sel=document.getElementById('dropSoundSel');
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    if(sel.value==='ding'){o.type='sine';o.frequency.value=1046;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.55);o.start();o.stop(ctx.currentTime+0.55)}
+    else if(sel.value==='whoosh'){o.type='sawtooth';o.frequency.setValueAtTime(420,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1250,ctx.currentTime+0.18);g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.14,ctx.currentTime+0.05);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.3);o.start();o.stop(ctx.currentTime+0.3)}
+    else{o.type='triangle';o.frequency.value=880;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.24,ctx.currentTime+0.008);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.24);o.start();o.stop(ctx.currentTime+0.24)}
+  }catch(e){}
+}
+
+function setListeningUI(on,note){
+  listening=on;
+  const orb=document.getElementById('listenBtn');
+  const label=document.getElementById('catchLabel');
+  orb.classList.toggle('is-listening',on);
+  orb.setAttribute('aria-pressed',on?'true':'false');
+  label.textContent=on?'Listening — tap to stop':'Listen for sound';
+  document.getElementById('catchState').textContent=note||(on?'Listening':'Idle');
+}
+
+function onCaught(payload){
+  const text=new TextDecoder().decode(payload);
+  const now=performance.now();
+  if(text===lastCaught&&now-lastCaughtAt<2500)return;
+  lastCaught=text;lastCaughtAt=now;
+  caughtCount++;
+  document.getElementById('catchCount').textContent=caughtCount+' caught';
+  document.getElementById('caughtText').textContent=text;
+  const open=document.getElementById('caughtOpen');
+  if(/^https?:\/\//i.test(text)||/\/receive#c\//.test(text)){open.href=text;open.classList.remove('spim-hide')}
+  else{open.classList.add('spim-hide')}
+  document.getElementById('caughtCard').classList.remove('spim-hide');
+  playDrop();
+}
+
+async function startListen(){
+  if(listening)return;
+  if(!window.SpimCodec){document.getElementById('catchState').textContent='Unsupported';return}
+  try{
+    audioCtx(); // unlock playback inside this gesture
+    const C=window.AudioContext||window.webkitAudioContext;
+    micCtx=new C({sampleRate:48000});
+    if(micCtx.state==='suspended')await micCtx.resume();
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+    const src=micCtx.createMediaStreamSource(micStream);
+    receiver=window.SpimCodec.createReceiver();
+    micNode=micCtx.createScriptProcessor(2048,1,1);
+    const zero=micCtx.createGain();zero.gain.value=0;
+    const level=document.getElementById('catchLevelBar');
+    micNode.onaudioprocess=(e)=>{
+      if(!listening)return;
+      const ch=e.inputBuffer.getChannelData(0);
+      let sum=0;for(let i=0;i<ch.length;i++)sum+=ch[i]*ch[i];
+      const rms=Math.sqrt(sum/ch.length);
+      level.style.width=Math.min(100,Math.round(rms*700))+'%';
+      const payload=receiver.push(new Float32Array(ch));
+      if(payload)onCaught(payload);
+    };
+    src.connect(micNode);micNode.connect(zero);zero.connect(micCtx.destination);
+    setListeningUI(true,micCtx.sampleRate===48000?'Listening':'Mic rate '+micCtx.sampleRate+' Hz');
   }catch(e){
-    telemetryReset('ERROR');
-    console.warn('telemetry unavailable',e);
-  }finally{
-    if(engine){try{engine.free()}catch(e){}}
+    stopListen();
+    document.getElementById('catchState').textContent=e&&e.name==='NotAllowedError'?'Mic blocked':'Mic unavailable';
   }
 }
 
-function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function stopListen(){
+  listening=false;
+  try{if(micNode)micNode.disconnect()}catch(e){}
+  try{if(micStream)micStream.getTracks().forEach(t=>t.stop())}catch(e){}
+  try{if(micCtx)micCtx.close()}catch(e){}
+  micNode=null;micStream=null;micCtx=null;receiver=null;
+  document.getElementById('catchLevelBar').style.width='0%';
+  setListeningUI(false,'Idle');
+}
+
+document.getElementById('listenBtn').onclick=()=>{ if(listening)stopListen(); else startListen(); };
+
+document.getElementById('dropSoundSel').onchange=()=>{
+  customDropBuf=null;document.getElementById('resetDrop').classList.add('spim-hide');
+};
+document.getElementById('customDrop').onchange=(e)=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const C=window.AudioContext||window.webkitAudioContext;
+  const ctx=new C();
+  f.arrayBuffer().then(ab=>ctx.decodeAudioData(ab)).then(buf=>{
+    customDropBuf=buf;
+    const r=document.getElementById('resetDrop');
+    r.classList.remove('spim-hide');r.textContent='Reset';
+    ctx.close();
+  }).catch(()=>{try{ctx.close()}catch(e){}});
+};
+document.getElementById('resetDrop').onclick=(e)=>{
+  customDropBuf=null;
+  document.getElementById('customDrop').value='';
+  e.target.classList.add('spim-hide');
+};
+document.getElementById('copyCaughtBtn').onclick=(e)=>{
+  navigator.clipboard.writeText(document.getElementById('caughtText').textContent||'');
+  const t=e.target;t.textContent='Copied';setTimeout(()=>t.textContent='Copy',1200);
+};
+
+/* ---- catch: local .spim ------------------------------------------------- */
+function resolveEnvelopeNotes(env){
+  if(env.notes&&env.notes.length)return env.notes.map(n=>({source:b64decodeStr(n.source_b64)}));
+  if(env.spim_b64){
+    const w=window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
+    const out=[];
+    try{
+      const n=w.num_memories();
+      for(let i=0;i<n;i++){
+        const norm=w.reconstruct(i);
+        if(norm==null)continue;
+        const fmt=(env.fmt_b64&&env.fmt_b64[i])||null;
+        out.push({source:fmt?window.format_delta_apply(norm,fmt):norm});
+      }
+    }finally{w.free()}
+    return out;
+  }
+  return [];
+}
+async function openSpimFile(file){
+  const msg=document.getElementById('fileMsg');
+  msg.classList.add('spim-hide');
+  if(!file)return;
+  if(!window.wasmReady)await window.wasmInitPromise;
+  try{
+    const text=await file.text();
+    let wrapper;
+    try{wrapper=JSON.parse(text)}catch(e){throw new Error('not a .spim file')}
+    let blob=wrapper.blob,key=wrapper.key_b64url;
+    if(!blob&&wrapper.magic==='CAP1'){ blob=null; }
+    let jsonStr;
+    if(blob&&key){
+      const kb=b64urlDecode(key);
+      const c=b64decodeBytes(blob);
+      const iv=c.slice(0,12);
+      const keyObj=await crypto.subtle.importKey('raw',kb,{name:'AES-GCM'},false,['decrypt']);
+      const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},keyObj,c.slice(12));
+      jsonStr=new TextDecoder().decode(plain);
+    }else if(blob){
+      jsonStr=b64decodeStr(blob);
+    }else{
+      jsonStr=text;
+    }
+    const env=JSON.parse(jsonStr);
+    if(env.magic!=='CAP1')throw new Error('not a capsule');
+    const notes=resolveEnvelopeNotes(env);
+    caughtCount++;
+    document.getElementById('catchCount').textContent=caughtCount+' caught';
+    document.getElementById('caughtText').textContent=notes.map(n=>n.source).join('\n\n———\n\n')||'(empty capsule)';
+    document.getElementById('caughtOpen').classList.add('spim-hide');
+    document.getElementById('caughtCard').classList.remove('spim-hide');
+    playDrop();
+  }catch(e){
+    msg.textContent=e.message==='not a .spim file'?'That file is not a .spim capsule.':'Could not open this file. Is it the original, unedited .spim?';
+    msg.classList.remove('spim-hide');
+  }
+}
+const drop=document.getElementById('spimDrop');
+const fileInput=document.getElementById('spimFile');
+drop.onclick=()=>fileInput.click();
+drop.onkeydown=(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click()}};
+fileInput.onchange=(e)=>{openSpimFile(e.target.files&&e.target.files[0]);e.target.value=''};
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('is-over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('is-over')}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];openSpimFile(f)});
+
+/* ---- boot --------------------------------------------------------------- */
 document.addEventListener('keydown',e=>{
-  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){const c=document.getElementById('composer');if(c&&isInViewport(c)){e.preventDefault();createCapsule()}}
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
+    if(!document.getElementById('panelBeam').classList.contains('spim-hide')){e.preventDefault();createCapsule()}
+  }
 });
-function isInViewport(el){const r=el.getBoundingClientRect();return r.top<window.innerHeight&&r.bottom>0}
-window.addEventListener('wasm-ready',updateMeta);
-window.addEventListener('load',()=>{updateMeta();if(location.hash.startsWith('#c/'))location.href='/receive'+location.hash});
-updateMeta();
+window.addEventListener('load',()=>{
+  updateMeta(); renumber();
+  if(location.hash.startsWith('#c/'))location.href='/receive'+location.hash;
+  syncTabFromHash();
+});
+updateMeta(); renumber();
 </script>
 </body>
 </html>
