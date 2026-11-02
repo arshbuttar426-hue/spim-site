@@ -133,7 +133,16 @@ beamBtn.onclick=async()=>{
 };
 
 const listenBtn=document.getElementById('listenBtn'),listenStatus=document.getElementById('listenStatus'),noteCard=document.getElementById('noteCard'),caughtText=document.getElementById('caughtText'),copyBtn=document.getElementById('copyBtn'),saveBtn=document.getElementById('saveBtn');
-let listening=false,ring=[],audioCtx=null,proc=null,src=null,stream=null,customDropBuf=null;
+let listening=false,audioCtx=null,proc=null,src=null,stream=null,customDropBuf=null;
+let ringBuf=null,ringPos=0,ringLen=0,lastDecodeAt=0,catchCount=0,lastKey='',lastKeyAt=0;
+
+// Continuous receiver tuning. The mic stays hot after a catch; only the
+// decode window is cleared, so the next drop needs no tap.
+const RING_SECONDS=12;
+const WINDOW_SECONDS=8;
+const DECODE_MIN_INTERVAL_MS=120;
+const RMS_GATE=0.010;
+
 document.getElementById('customDrop').onchange=async(e)=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{const Ctx=window.AudioContext||window.webkitAudioContext;const ctx=new Ctx();const ab=await f.arrayBuffer();customDropBuf=await ctx.decodeAudioData(ab);await ctx.close();}catch(err){}};
 function playDrop(){
   try{
@@ -146,18 +155,51 @@ function playDrop(){
     setTimeout(()=>{try{ctx.close();}catch(e){}},800);
   }catch(e){}
 }
+
+function clearRing(){ringPos=0;ringLen=0;lastDecodeAt=0;}
+function rmsOf(samples){let e=0;for(let i=0;i<samples.length;i++)e+=samples[i]*samples[i];return Math.sqrt(e/samples.length);}
+
+// Copy the newest `maxLen` samples out of the circular buffer, oldest first.
+function snapshotWindow(maxLen){
+  const len=Math.min(ringLen,maxLen);
+  const out=new Float32Array(len);
+  const n=ringBuf.length;
+  const start=((ringPos-len)%n+n)%n;
+  for(let i=0;i<len;i++) out[i]=ringBuf[(start+i)%n];
+  return out;
+}
+
+function handleCaught(bytes){
+  const txt=new TextDecoder().decode(bytes);
+  const now=performance.now();
+  // Ignore the same frame arriving twice (echo / replay within 2 s).
+  if(txt===lastKey && now-lastKeyAt<2000) return;
+  lastKey=txt; lastKeyAt=now;
+  catchCount++;
+  caughtText.textContent=txt;
+  noteCard.classList.remove('hidden');
+  listenStatus.textContent='Caught '+catchCount+' · still listening…';
+  playDrop();
+  // Consume the message and keep the mic armed for the next one.
+  clearRing();
+}
+
+async function stopListening(){
+  listening=false;
+  listenBtn.classList.add('breathe');
+  listenBtn.textContent='Tap to Listen';
+  try{if(proc)proc.disconnect();if(src)src.disconnect();}catch(e){}
+  try{if(stream){stream.getTracks().forEach(t=>t.stop());}}catch(e){}
+  try{if(audioCtx){await audioCtx.close();}}catch(e){}
+  proc=null;src=null;stream=null;audioCtx=null;
+  ringBuf=null;clearRing();
+}
+
 listenBtn.onclick=async()=>{
-  if(listening){
-    listening=false;
-    listenBtn.classList.add('breathe');
-    listenBtn.textContent='Tap to Listen';
-    listenStatus.textContent='Listening for nearby drops...';
-    try{if(proc)proc.disconnect();if(src)src.disconnect();}catch(e){}
-    try{if(stream){stream.getTracks().forEach(t=>t.stop());}}catch(e){}
-    try{if(audioCtx){await audioCtx.close();}}catch(e){}
-    ring=[];proc=null;src=null;stream=null;audioCtx=null;return;
-  }
-  listening=true;ring=[];
+  if(listening){ await stopListening(); return; }
+  listening=true;
+  catchCount=0;lastKey='';lastKeyAt=0;
+  ringBuf=new Float32Array(SAMPLE_RATE*RING_SECONDS);clearRing();
   listenBtn.classList.remove('breathe');
   listenBtn.textContent='Listening...';
   listenStatus.textContent='Listening for nearby drops...';
@@ -167,36 +209,31 @@ listenBtn.onclick=async()=>{
     audioCtx=new Ctx({sampleRate:SAMPLE_RATE});
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
     src=audioCtx.createMediaStreamSource(stream);
-    proc=audioCtx.createScriptProcessor(4096,1,1);
+    proc=audioCtx.createScriptProcessor(2048,1,1);
     const zero=audioCtx.createGain();zero.gain.value=0;
     proc.onaudioprocess=e=>{
       if(!listening)return;
       const ch=e.inputBuffer.getChannelData(0);
-      for(let i=0;i<ch.length;i++) ring.push(ch[i]);
-      if(ring.length>audioCtx.sampleRate*12) ring.splice(0,ring.length-audioCtx.sampleRate*12);
-      if(ring.length>SYMBOL_SAMPLES*(PREAMBLE_LEN+24)){
-        const res=decodeSamples(new Float32Array(ring));
-        if(res){
-          listening=false;
-          try{if(stream){stream.getTracks().forEach(t=>t.stop());}}catch(e){}
-          try{if(proc)proc.disconnect();if(src)src.disconnect();}catch(e){}
-          try{if(audioCtx){audioCtx.close();}}catch(e){}
-          listenBtn.classList.add('breathe');
-          listenBtn.textContent='Tap to Listen';
-          const txt=new TextDecoder().decode(res);
-          caughtText.textContent=txt;
-          noteCard.classList.remove('hidden');
-          listenStatus.textContent='Got it';
-          playDrop();
-          ring=[];proc=null;src=null;stream=null;audioCtx=null;
-        }
+      for(let i=0;i<ch.length;i++){
+        ringBuf[ringPos]=ch[i];
+        ringPos=(ringPos+1)%ringBuf.length;
+        if(ringLen<ringBuf.length) ringLen++;
       }
+      if(ringLen<SYMBOL_SAMPLES*(PREAMBLE_LEN+24)) return;
+
+      // Throttle + cheap gate: a decode over the window is expensive, and
+      // silence can never contain a preamble.
+      const now=performance.now();
+      if(now-lastDecodeAt<DECODE_MIN_INTERVAL_MS) return;
+      lastDecodeAt=now;
+      if(rmsOf(ch)<RMS_GATE) return;
+
+      const res=decodeSamples(snapshotWindow(SAMPLE_RATE*WINDOW_SECONDS));
+      if(res) handleCaught(res);
     };
     src.connect(proc);proc.connect(zero);zero.connect(audioCtx.destination);
   }catch(err){
-    listening=false;
-    listenBtn.classList.add('breathe');
-    listenBtn.textContent='Tap to Listen';
+    await stopListening();
     listenStatus.textContent='Mic error';
   }
 };
