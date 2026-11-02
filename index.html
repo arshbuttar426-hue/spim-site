@@ -9,8 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/spim-theme.css">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],mono:['JetBrains Mono','ui-monospace','monospace']}}}}</script>
 <script type="module">
   import init, { WasmSpim, blake3_hex_static, format_delta_encode } from '/pkg/spim_wasm.js';
   window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static; window.format_delta_encode=format_delta_encode;
@@ -232,52 +230,77 @@
 <!-- /chrome:footer -->
 
 <!-- RESULT -->
-<div id="result" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-4 overflow-auto">
-  <div class="max-w-[520px] mx-auto mt-12 rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6">
-    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md border border-emerald-400/40 bg-emerald-400/10 font-mono text-[9px] tracking-[0.14em] text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>YOUR CAPSULE IS READY</div>
-    <h3 class="mt-3 text-[19px] font-semibold tracking-tight">One link. All your notes inside.</h3>
-    <div class="mt-4 flex gap-2">
-      <input id="shareLink" readonly class="flex-1 min-w-0 rounded-md border border-zinc-700 bg-black/60 px-3 py-2.5 text-[11px] font-mono text-emerald-300 focus:outline-none">
-      <button onclick="copyLink(event)" class="px-4 rounded-md bg-[#38BDF8] text-[#04121B] font-semibold text-[12px]">Copy</button>
+<div id="result" class="spim-modal spim-hide">
+  <div class="spim-modal-card">
+    <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Your capsule is ready</span>
+    <h3 class="spim-h3" style="margin-top:12px">One link. All your notes inside.</h3>
+    <div class="spim-row" style="flex-wrap:nowrap;margin-top:16px">
+      <input id="shareLink" readonly class="spim-input spim-mono" style="font-size:11px;min-width:0">
+      <button onclick="copyLink(event)" class="spim-btn spim-btn--primary">Copy</button>
     </div>
-    <div class="mt-3 flex flex-wrap gap-1.5 font-mono text-[9px]">
-      <span class="px-2 py-1 rounded border border-zinc-700 text-zinc-300">SEARCHABLE</span>
-      <span id="resultVerifyBadge" class="px-2 py-1 rounded border border-zinc-700 text-zinc-400">Verified</span>
-      <span id="resultMeta" class="px-2 py-1 rounded border border-zinc-700 text-zinc-400">—</span>
+    <div class="spim-row" style="margin-top:12px;gap:6px">
+      <span class="spim-pill">Searchable</span>
+      <span id="resultVerifyBadge" class="spim-pill spim-pill--verified">Verified</span>
+      <span id="resultMeta" class="spim-pill">—</span>
     </div>
-    <div class="mt-5 grid grid-cols-3 gap-2 text-[12px]">
-      <button onclick="openResult()" class="py-2.5 rounded-md bg-zinc-100 text-zinc-950 font-semibold hover:bg-white">Open</button>
-      <button onclick="toggleQR()" class="py-2.5 rounded-md border border-zinc-700 text-zinc-200 hover:bg-zinc-900">QR</button>
-      <button onclick="closeResult()" class="py-2.5 rounded-md border border-zinc-800 text-zinc-500 hover:text-zinc-200">Close</button>
+    <div class="spim-modal-actions" style="margin-top:18px">
+      <button onclick="openResult()" class="spim-btn spim-btn--primary">Open</button>
+      <button onclick="toggleQR()" class="spim-btn">QR</button>
+      <button onclick="closeResult()" class="spim-btn spim-btn--ghost">Close</button>
     </div>
-    <div class="mt-2 grid grid-cols-3 gap-2 text-[9px] font-mono">
-      <button onclick="downloadTxt()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .txt</button>
-      <button onclick="downloadExact()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .json</button>
-      <button onclick="downloadSpim()" class="py-2 rounded-md border border-zinc-800 text-zinc-400 hover:text-zinc-100">Download .spim</button>
+    <div class="spim-modal-actions">
+      <button onclick="downloadTxt()" class="spim-btn spim-btn--quiet spim-btn--sm">.txt</button>
+      <button onclick="downloadExact()" class="spim-btn spim-btn--quiet spim-btn--sm">.json</button>
+      <button onclick="downloadSpim()" class="spim-btn spim-btn--quiet spim-btn--sm">.spim</button>
     </div>
-    <div id="qrBox" class="hidden mt-4 p-4 bg-[#0e0e12] border border-zinc-800 rounded-lg text-center"><img id="qrImg" class="w-40 h-40 mx-auto hidden rounded bg-white p-1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR"><div id="qrText" class="text-[9px] break-all mt-2 font-mono text-zinc-500"></div></div>
+    <div id="qrBox" class="spim-hide" style="margin-top:16px;padding:16px;border:1px solid var(--spim-line);border-radius:var(--spim-r-md);background:var(--spim-bg-soft);text-align:center">
+      <img id="qrImg" class="spim-hide" style="width:168px;height:168px;margin:0 auto;border-radius:6px;background:#fff;padding:6px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR code">
+      <div id="qrText" class="spim-mono" style="font-size:9px;word-break:break-all;margin-top:10px;color:var(--spim-dim)"></div>
+    </div>
   </div>
 </div>
 
 <!-- CHOICE -->
-<div id="choice" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-sm p-4 grid place-items-center">
-  <div class="w-full max-w-[500px] rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6">
-    <div class="font-mono text-[9px] tracking-[0.18em] text-zinc-500">WHO CAN OPEN IT</div>
-    <h4 class="mt-1 text-[18px] font-semibold tracking-tight">Public or private?</h4>
-    <p class="text-[12px] text-zinc-500 mt-1">Private keeps the key in the link. Single view burns after the first open.</p>
-    <div class="mt-4 grid gap-3">
-      <button id="choicePublic" onclick="selectChoice('public')" class="text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] border-l-emerald-400 bg-[#111114]"><div class="flex gap-3"><span class="text-[16px]">🌐</span><div><div class="font-semibold text-[13px] text-zinc-100">Public</div><div class="text-[11px] text-zinc-500">Anyone with the link can open it.</div></div></div></button>
-      <button id="choicePrivate" onclick="selectChoice('private')" class="text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] border-l-zinc-800 bg-[#111114] opacity-60"><div class="flex gap-3"><span class="text-[16px]">🔒</span><div><div class="font-semibold text-[13px] text-zinc-100">Private</div><div class="text-[11px] text-zinc-500">The key stays in the URL and never reaches the server.</div></div></div></button>
-      <label class="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-amber-400/[0.06] cursor-pointer"><input type="checkbox" id="singleViewCheck" class="mt-0.5 accent-amber-300"><div><div class="font-semibold text-[12px] text-zinc-200">Single view — burn after opening</div><div class="text-[10px] text-zinc-500">Can only be opened once.</div></div></label>
+<div id="choice" class="spim-modal spim-hide" style="z-index:60">
+  <div class="spim-modal-card">
+    <span class="spim-eyebrow">Who can open it</span>
+    <h4 class="spim-h3" style="margin-top:6px">Public or private?</h4>
+    <p class="spim-body" style="margin-top:6px;font-size:12.5px">Private keeps the key in the link. Single view burns after the first open.</p>
+    <div class="spim-stack" style="margin-top:16px">
+      <button id="choicePublic" onclick="selectChoice('public')" class="spim-choice" aria-pressed="true">
+        <span class="spim-choice-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.2 3.6 8.5S14.4 18.2 12 20.5c-2.4-2.3-3.6-5.2-3.6-8.5S9.6 5.8 12 3.5Z" stroke="currentColor" stroke-width="1.5"/></svg></span>
+        <span><strong>Public</strong><p>Anyone with the link can open it.</p></span>
+      </button>
+      <button id="choicePrivate" onclick="selectChoice('private')" class="spim-choice" aria-pressed="false">
+        <span class="spim-choice-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="9.5" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 15v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+        <span><strong>Private</strong><p>The key stays in the link and never reaches the server.</p></span>
+      </button>
+      <label class="spim-check">
+        <input type="checkbox" id="singleViewCheck">
+        <span><strong>Single view</strong><span>Burn after the first open.</span></span>
+      </label>
     </div>
-    <div class="mt-5 flex gap-2"><button onclick="closeChoice()" class="flex-1 py-3 rounded-md border border-zinc-700 text-zinc-300 font-medium hover:bg-zinc-900">Cancel</button><button onclick="confirmChoice()" class="flex-1 py-3 rounded-md bg-[#38BDF8] text-[#04121B] font-semibold">Create →</button></div>
+    <div class="spim-modal-actions spim-modal-actions--2">
+      <button onclick="closeChoice()" class="spim-btn">Cancel</button>
+      <button onclick="confirmChoice()" class="spim-btn spim-btn--primary">Create →</button>
+    </div>
   </div>
 </div>
-<div id="singleConfirm" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm grid place-items-center p-4"><div class="rounded-xl border border-zinc-700 bg-[#0c0c0f] shadow-2xl p-6 max-w-[380px]"><h4 class="font-semibold text-[16px]">Create single-view capsule?</h4><p class="text-[12px] text-zinc-500 mt-1">It can only be opened once, then it is destroyed.</p><div class="mt-4 flex gap-2"><button onclick="closeSingleConfirm()" class="flex-1 py-2 rounded-md border border-zinc-700 text-zinc-300">Cancel</button><button onclick="confirmSingleCreate()" class="flex-1 py-2 rounded-md bg-zinc-100 text-zinc-950 font-semibold">Create</button></div></div></div>
+
+<div id="singleConfirm" class="spim-modal spim-hide">
+  <div class="spim-modal-card spim-modal-card--sm">
+    <h4 class="spim-h3">Create single-view capsule?</h4>
+    <p class="spim-body" style="margin-top:6px;font-size:12.5px">It can only be opened once, then it is destroyed.</p>
+    <div class="spim-modal-actions spim-modal-actions--2">
+      <button onclick="closeSingleConfirm()" class="spim-btn">Cancel</button>
+      <button onclick="confirmSingleCreate()" class="spim-btn spim-btn--primary">Create</button>
+    </div>
+  </div>
+</div>
 
 <!-- BEAM OVERLAY -->
-<div id="beamOverlay" class="spim-hide fixed inset-0 z-50 bg-black/80 backdrop-blur-sm grid place-items-center p-4">
-  <div class="spim-card" style="width:100%;max-width:400px;padding:26px;text-align:center">
+<div id="beamOverlay" class="spim-modal spim-hide">
+  <div class="spim-modal-card spim-modal-card--sm" style="text-align:center">
     <span class="spim-kicker">Beaming by sound</span>
     <p id="beamText" class="spim-body spim-mono" style="margin-top:14px;font-size:11px;color:var(--spim-text);word-break:break-all"></p>
     <div class="spim-meter" style="max-width:none;margin-top:18px"><i id="beamBar"></i></div>
@@ -427,18 +450,22 @@ function createCapsule(){
   if(deliveryMode==='beam') ensureBeamCtx();
   pendingNotes=notes; selectedChoice='public';
   document.getElementById('singleViewCheck').checked=false; updateChoiceUI();
-  document.getElementById('choice').classList.remove('hidden');
+  document.getElementById('choice').classList.remove('spim-hide');
 }
 function showErr(m){const e=document.getElementById('inlineError');e.textContent=m;e.classList.remove('spim-hide')}
-function closeChoice(){document.getElementById('choice').classList.add('hidden');pendingNotes=null}
+function closeChoice(){document.getElementById('choice').classList.add('spim-hide');pendingNotes=null}
 function selectChoice(c){selectedChoice=c;updateChoiceUI()}
-function updateChoiceUI(){const p=document.getElementById('choicePublic'),q=document.getElementById('choicePrivate');const on='text-left p-4 rounded-lg border-2 border-zinc-600 border-l-[4px] bg-[#111114]',off='text-left p-4 rounded-lg border-2 border-zinc-800 border-l-[4px] bg-[#111114] opacity-60';p.className=selectedChoice==='public'?on+' border-l-emerald-400':off+' border-l-zinc-800';q.className=selectedChoice==='private'?on+' border-l-sky-400':off+' border-l-zinc-800'}
-function confirmChoice(){if(document.getElementById('singleViewCheck').checked){document.getElementById('singleConfirm').classList.remove('hidden');return}doCreate(selectedChoice,false)}
-function closeSingleConfirm(){document.getElementById('singleConfirm').classList.add('hidden')}
-function confirmSingleCreate(){document.getElementById('singleConfirm').classList.add('hidden');doCreate(selectedChoice,true)}
+function updateChoiceUI(){
+  const pub=document.getElementById('choicePublic'), priv=document.getElementById('choicePrivate');
+  pub.setAttribute('aria-pressed', selectedChoice==='public'?'true':'false');
+  priv.setAttribute('aria-pressed', selectedChoice==='private'?'true':'false');
+}
+function confirmChoice(){if(document.getElementById('singleViewCheck').checked){document.getElementById('singleConfirm').classList.remove('spim-hide');return}doCreate(selectedChoice,false)}
+function closeSingleConfirm(){document.getElementById('singleConfirm').classList.add('spim-hide')}
+function confirmSingleCreate(){document.getElementById('singleConfirm').classList.add('spim-hide');doCreate(selectedChoice,true)}
 
 async function doCreate(choice,single){
-  document.getElementById('choice').classList.add('hidden');
+  document.getElementById('choice').classList.add('spim-hide');
   const notes=pendingNotes; if(!notes)return;
   const isPrivate=choice==='private';
   const btn=document.getElementById('createBtn');
@@ -460,10 +487,10 @@ async function doCreate(choice,single){
     document.getElementById('qrText').textContent=link;
     const img=document.getElementById('qrImg');
     img.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(link);
-    img.classList.remove('hidden'); document.getElementById('qrBox').classList.add('hidden');
+    img.classList.remove('spim-hide'); document.getElementById('qrBox').classList.add('spim-hide');
     document.getElementById('resultVerifyBadge').textContent='Verified · '+env.blake3.slice(0,8)+'…';
     document.getElementById('resultMeta').textContent=notes.length+' '+(notes.length===1?'note':'notes')+' · '+env.word_count+' words'+(single?' · single view':'');
-    document.getElementById('result').classList.remove('hidden');
+    document.getElementById('result').classList.remove('spim-hide');
 
     if(deliveryMode==='qr'){ toggleQR(); }
     else if(deliveryMode==='spim'){ downloadSpim(); }
@@ -472,20 +499,20 @@ async function doCreate(choice,single){
   finally{ document.getElementById('createBtnText').textContent={link:'Create link',qr:'Create & show QR',spim:'Create & save .spim',beam:'Create & beam'}[deliveryMode]; updateMeta() }
 }
 
-function closeResult(){document.getElementById('result').classList.add('hidden')}
+function closeResult(){document.getElementById('result').classList.add('spim-hide')}
 function copyLink(ev){const t=ev&&ev.target?ev.target:null;navigator.clipboard.writeText(document.getElementById('shareLink').value);if(t){const old=t.textContent;t.textContent='Copied';setTimeout(()=>t.textContent=old,1200)}}
-function toggleQR(){const b=document.getElementById('qrBox');const i=document.getElementById('qrImg');if(b.classList.contains('hidden')&&i.src.includes('api.qrserver'))i.classList.remove('hidden');b.classList.toggle('hidden')}
+function toggleQR(){const b=document.getElementById('qrBox');const i=document.getElementById('qrImg');if(b.classList.contains('spim-hide')&&i.src.includes('api.qrserver'))i.classList.remove('spim-hide');b.classList.toggle('spim-hide')}
 function downloadTxt(){if(!pendingNotes)return;const b=new Blob([pendingNotes.join('\n---\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.txt';a.click()}
 function downloadExact(){if(!lastEnvelopeJson)return;const b=new Blob([lastEnvelopeJson],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.json';a.click()}
 function downloadSpim(){if(!lastEnvelopeJson||!lastBlob)return;const id=document.getElementById('shareLink').dataset.id||'capsule';const spim={spim_file:1,version:1,locked:!!lastKeyB64,key_b64url:lastKeyB64||null,blob:lastBlob};const b=new Blob([JSON.stringify(spim)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.spim';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function openResult(){const id=document.getElementById('shareLink').dataset.id;const k=document.getElementById('shareLink').dataset.key;location.href=`${CANONICAL_BASE}#c/${id}`+(k?'#'+k:'')}
 function openCapsuleLink(){
   const v=document.getElementById('openInput').value.trim(),m=document.getElementById('openMsg');
-  if(!v){m.textContent='Paste a capsule link';m.classList.remove('hidden');return}
+  if(!v){m.textContent='Paste a capsule link';m.classList.remove('spim-hide');return}
   let id=(v.match(/c\/([A-Za-z0-9_-]{6,16})/)||[])[1];
   if(!id&&/^[A-Za-z0-9_-]{6,16}$/.test(v))id=v;
-  if(!id){m.textContent='That does not look like a capsule link.';m.classList.remove('hidden');return}
-  m.classList.add('hidden');
+  if(!id){m.textContent='That does not look like a capsule link.';m.classList.remove('spim-hide');return}
+  m.classList.add('spim-hide');
   let k=v.split('#').pop();const p=v.split('#');
   if(p.length>=3)k=p[p.length-1];
   else if(v.includes('#')&&!v.includes('/c/'))k=v.split('#')[1]||'';

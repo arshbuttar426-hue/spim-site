@@ -728,6 +728,83 @@ body.spim-page {
   .spim-footer-base { padding: 14px 20px 24px; }
 }
 
+/* --- modal --------------------------------------------------------------- */
+
+.spim-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
+  background: rgba(3, 4, 6, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.spim-modal-card {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+  border: 1px solid var(--spim-line-strong);
+  border-radius: var(--spim-r-lg);
+  background: var(--spim-panel);
+  box-shadow: 0 40px 90px -36px rgba(0, 0, 0, 0.95);
+  padding: 24px;
+}
+.spim-modal-card--sm { max-width: 380px; }
+.spim-modal-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.spim-modal-actions--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; }
+
+.spim-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.spim-choice:hover { border-color: var(--spim-line-strong); }
+.spim-choice[aria-pressed='true'] { border-color: var(--spim-accent-line); background: var(--spim-accent-soft); }
+.spim-choice-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--spim-line);
+  color: var(--spim-muted);
+}
+.spim-choice[aria-pressed='true'] .spim-choice-icon { border-color: var(--spim-accent-line); color: var(--spim-accent); }
+.spim-choice strong { display: block; font-size: 13px; font-weight: 600; color: var(--spim-text); }
+.spim-choice p { margin-top: 2px; font-size: 11.5px; line-height: 1.5; color: var(--spim-dim); }
+
+.spim-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-md);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  font-size: 12px;
+}
+.spim-check input { margin: 2px 0 0; accent-color: var(--spim-accent); }
+.spim-check strong { display: block; font-size: 12px; font-weight: 600; }
+.spim-check span { display: block; margin-top: 2px; font-size: 11px; color: var(--spim-dim); }
+
 /* --- empty / status notes ------------------------------------------------ */
 
 .spim-note {
@@ -744,6 +821,67 @@ body.spim-page {
 }
 .spim-note--error { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.07); color: #FCA5A5; }
 .spim-note--ok { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #6EE7B7; }
+
+/* --- capsule reader notes ------------------------------------------------ */
+
+.spim-reader-note {
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-md);
+  background: var(--spim-panel);
+  padding: 18px;
+}
+.spim-reader-note-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.spim-reader-note-body {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--spim-text);
+  word-break: break-word;
+}
+.spim-reader-note-body mark {
+  background: var(--spim-accent-soft);
+  color: var(--spim-accent);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.spim-reader-note-orig { margin-top: 12px; }
+.spim-reader-note-orig summary {
+  display: inline-flex;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--spim-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--spim-dim);
+}
+.spim-reader-note-orig summary::-webkit-details-marker { display: none; }
+.spim-reader-note-orig summary:hover { color: var(--spim-muted); }
+.spim-reader-note-orig summary::before { content: '⌄'; margin-right: 6px; }
+.spim-reader-note-orig[open] summary::before { content: '⌃'; }
+.spim-reader-note-orig pre {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-sm);
+  background: var(--spim-bg-soft);
+  font-family: var(--spim-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--spim-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.spim-reader-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  background: var(--spim-bg-soft);
+}
 
 /* --- misc ---------------------------------------------------------------- */
 
