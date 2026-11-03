@@ -70,6 +70,7 @@ body.spim-page {
 .spim-page button { font: inherit; color: inherit; }
 .spim-page img, .spim-page svg { display: block; max-width: 100%; }
 .spim-page hr { border: 0; border-top: 1px solid var(--spim-line); margin: 0; }
+.spim-page [hidden] { display: none !important; }
 
 .spim-aurora {
   position: fixed;
@@ -905,3 +906,215 @@ body.spim-page {
     scroll-behavior: auto !important;
   }
 }
+
+/* --- account menu -------------------------------------------------------- */
+
+.spim-nav-auth { display: flex; align-items: center; gap: 8px; }
+.spim-nav-open {
+  margin-left: 2px;
+  font-family: var(--spim-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--spim-dim);
+}
+.spim-nav-open:hover { color: var(--spim-text); }
+
+.spim-account { position: relative; }
+.spim-account summary { list-style: none; cursor: pointer; }
+.spim-account summary::-webkit-details-marker { display: none; }
+.spim-account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px 0 4px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-pill);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--spim-muted);
+  font-size: 12px;
+}
+.spim-account-btn:hover { border-color: var(--spim-line-strong); color: var(--spim-text); }
+.spim-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, rgba(56, 189, 248, 0.3), rgba(56, 189, 248, 0.08));
+  border: 1px solid var(--spim-accent-line);
+  color: var(--spim-text);
+  font-family: var(--spim-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.spim-account-email {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spim-account-menu {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  width: 214px;
+  padding: 8px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--spim-line-strong);
+  border-radius: var(--spim-r-md);
+  background: var(--spim-panel);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.95);
+  z-index: 80;
+}
+.spim-account-menu a,
+.spim-account-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--spim-r-sm);
+  background: transparent;
+  color: var(--spim-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.spim-account-menu a:hover,
+.spim-account-menu button:hover { color: var(--spim-text); background: var(--spim-raise); }
+.spim-account-menu hr { margin: 6px 0; }
+.spim-mobile-auth { display: grid; gap: 2px; }
+.spim-mobile-auth a,
+.spim-mobile-auth button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--spim-r-sm);
+  background: transparent;
+  text-align: left;
+  color: var(--spim-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+.spim-mobile-auth a:hover,
+.spim-mobile-auth button:hover { color: var(--spim-text); background: var(--spim-raise); }
+
+/* --- studio -------------------------------------------------------------- */
+
+.spim-seg--4 .spim-seg-btn { padding: 0 14px; }
+.spim-seg-icon { width: 15px; height: 15px; flex-shrink: 0; }
+.spim-studio-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.spim-studio-title { font-size: 13px; font-weight: 600; }
+.spim-modes--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 720px) {
+  .spim-modes--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.spim-image-drop {
+  border: 1px dashed var(--spim-line-strong);
+  border-radius: var(--spim-r-md);
+  padding: 28px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.spim-image-drop:hover,
+.spim-image-drop.is-over { border-color: var(--spim-accent-line); background: var(--spim-accent-soft); }
+.spim-image-preview { display: flex; gap: 14px; align-items: flex-start; }
+.spim-image-thumb {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--spim-r-sm);
+  border: 1px solid var(--spim-line-strong);
+  background: var(--spim-bg-soft);
+}
+.spim-image-meta { margin-top: 3px; font-family: var(--spim-mono); font-size: 10.5px; color: var(--spim-dim); }
+
+.spim-beam-stage { text-align: center; padding: 16px 0 8px; }
+.spim-beam-visual {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 1px solid var(--spim-accent-line);
+  background: radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.05) 58%, transparent 72%);
+  color: var(--spim-accent);
+  display: grid;
+  place-items: center;
+}
+.spim-beam-visual.is-playing { border-color: var(--spim-verified); color: var(--spim-verified); }
+
+.spim-share-dock {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--spim-line);
+  display: grid;
+  gap: 8px;
+}
+
+/* --- auth pages ---------------------------------------------------------- */
+
+.spim-auth-wrap {
+  min-height: calc(100vh - var(--spim-nav-h));
+  display: grid;
+  place-items: center;
+  padding: 48px 24px 72px;
+}
+.spim-auth-card {
+  width: 100%;
+  max-width: 424px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-lg);
+  background: var(--spim-panel);
+  box-shadow: var(--spim-shadow);
+  padding: 28px;
+}
+.spim-auth-card h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.spim-auth-alt { margin-top: 18px; font-size: 13px; color: var(--spim-dim); text-align: center; }
+.spim-form-err { margin-top: 12px; }
+
+/* --- account ------------------------------------------------------------- */
+
+.spim-account-shell { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 24px; }
+@media (max-width: 820px) { .spim-account-shell { grid-template-columns: 1fr; } }
+.spim-account-tabs { display: grid; gap: 4px; align-content: start; }
+@media (min-width: 821px) { .spim-account-tabs { position: sticky; top: 84px; } }
+.spim-account-tab {
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--spim-r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--spim-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.spim-account-tab:hover { background: var(--spim-raise); color: var(--spim-text); }
+.spim-account-tab.is-active { background: var(--spim-panel); border-color: var(--spim-line); color: var(--spim-text); }
+.spim-account-panel {
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-lg);
+  background: var(--spim-panel);
+  padding: 24px;
+}
+.spim-account-panel h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.spim-data-list { display: grid; gap: 8px; }
+.spim-data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--spim-line);
+  border-radius: var(--spim-r-sm);
+  background: var(--spim-bg-soft);
+  font-size: 13px;
+}
+.spim-data-row .spim-mono { font-size: 11px; color: var(--spim-dim); }
+.spim-kv { display: grid; gap: 6px; font-size: 13px; }
+.spim-kv div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--spim-line); }
+.spim-kv div:last-child { border-bottom: 0; }
+.spim-kv span:first-child { color: var(--spim-dim); }
+.spim-kv span:last-child { font-family: var(--spim-mono); font-size: 12px; text-align: right; word-break: break-all; }

@@ -35,10 +35,15 @@ function mustNot(rel) {
 /* --- required surface ---------------------------------------------------- */
 for (const f of [
   'index.html', 'app.html', 'receive.html', 'why.html', 'support.html',
-  'css/spim-theme.css', 'js/spim-codec.js',
+  'login.html', 'create-account.html', 'account.html', 'images.html',
+  'css/spim-theme.css', 'js/spim-codec.js', 'js/supabaseClient.js', 'js/session-nav.js',
   'pkg/spim_wasm.js', 'favicon.svg',
   'functions/capsules.js',
-  '404.html', '_headers'
+  'functions/api/_lib.js', 'functions/api/auth/register.js', 'functions/api/auth/login.js',
+  'functions/api/auth/logout.js', 'functions/api/auth/me.js',
+  'functions/api/keys.js', 'functions/api/connections.js', 'functions/api/dock.js',
+  'functions/api/images.js',
+  '404.html', '_headers', '_redirects'
 ]) must(f);
 
 /* --- nothing experimental ------------------------------------------------ */
@@ -54,11 +59,16 @@ const index = fs.existsSync(path.join(root, 'index.html'))
   : '';
 
 for (const [needle, why] of [
+  ['id="panelText"', 'Text panel'],
+  ['id="panelImage"', 'Image panel'],
   ['id="panelBeam"', 'Beam panel'],
   ['id="panelCatch"', 'Catch panel'],
   ['WasmSpim', 'WASM capsule engine'],
   ["/capsules", 'capsule API call'],
-  ['createCapsule', 'create flow'],
+  ['createText', 'text create flow'],
+  ['createImage', 'image create flow'],
+  ['data-share="dock"', 'Dock share action'],
+  ['data-share="beam"', 'Beam share action'],
   ['SpimCodec', 'shared sound codec'],
   ['spim-nav', 'shared navigation'],
   ['spim-footer', 'shared footer']
@@ -67,7 +77,7 @@ for (const [needle, why] of [
 }
 
 /* --- no jargon in anything a person can read ----------------------------- */
-const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html'];
+const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
 const jargon = /2-FSK|8-FSK|symbol rate|preamble|baud/i;
 for (const page of PAGES) {
   const full = path.join(root, page);
@@ -98,6 +108,7 @@ for (const page of PAGES) {
   for (const m of html.matchAll(/(?:href|src)\s*=\s*"([^"]+)"/g)) {
     const ref = m[1];
     if (SKIP.test(ref)) continue;
+    if (/['<>`]|\$\{| \+ /.test(ref)) continue;
     linkCount++;
     const target = ref.startsWith('/') ? ref : '/' + path.posix.join(path.posix.dirname('/' + page), ref);
     if (!resolves(target)) problems.push(page + ' -> dead link ' + ref);

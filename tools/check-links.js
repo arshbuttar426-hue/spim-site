@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html'];
+const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html', 'about.html', 'use-cases.html', 'contact.html', 'feedback.html'];
 const SKIP = /^(https?:|mailto:|tel:|data:|javascript:|#)/i;
 
 function existsAsRoute(urlPath) {
@@ -39,6 +39,8 @@ for (const page of PAGES) {
 
   for (const ref of refs) {
     if (SKIP.test(ref)) continue;
+    // Skip refs assembled at runtime from template fragments.
+    if (/['<>`]|\$\{| \+ /.test(ref)) continue;
     checked++;
     // An absolute path is a site route; a relative one resolves from the page.
     const target = ref.startsWith('/') ? ref : '/' + path.posix.join(path.posix.dirname('/' + page), ref);

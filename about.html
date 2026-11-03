@@ -1,64 +1,25 @@
-<!DOCTYPE html><html lang="en" data-page="about"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"><title>About</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"><script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script></head><body data-page="about" class="bg-[#fdfaf6] text-zinc-900 antialiased">
-  <nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
-  <a href="/" class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
-    <span class="font-bold tracking-tight">SPIM</span>
-  </a>
-  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
-    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
-    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
-    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
-    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
-    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Why SPIM — SPIM</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://www.spim.co.in/why">
+<meta http-equiv="refresh" content="0; url=/why">
+<link rel="stylesheet" href="/css/spim-theme.css">
+<script>location.replace('/why');</script>
+</head>
+<body class="spim-page">
+<div class="spim-aurora"></div>
+<main class="spim-shell" style="min-height:70vh;display:grid;place-items:center;text-align:center">
+  <div>
+    <span class="spim-kicker">SPIM</span>
+    <h1 class="spim-h2" style="margin-top:16px">Why SPIM is part of the workspace now.</h1>
+    <p class="spim-body" style="margin-top:10px">Taking you there…</p>
+    <a class="spim-btn spim-btn--primary" style="margin-top:24px" href="/why">Continue</a>
   </div>
-  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
-    <a href="/" class="hover:underline">Home</a>
-    <a href="/account.html" class="hover:underline">Dock</a>
-    <a href="/account.html" class="hover:underline">Connections</a>
-    <a href="/images.html" class="hover:underline">Images</a>
-    <a href="/account.html" class="hover:underline">API</a>
-    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
-    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
-      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
-      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
-    </div>
-  </div>
-  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
-</nav>
-<main class="max-w-[760px] mx-auto px-6 py-10">
-<div class="inline-flex px-3 py-1 rounded-full bg-[#A78BFA] border-2 border-zinc-900 font-mono text-[11px] font-bold">BUILT BY ARSH</div>
-<h1 class="mt-3 text-[36px] font-black">About</h1>
-<p class="mt-3 text-[15px] leading-[1.6] text-zinc-600">Share is a small, playful internet product built by <b>Arsh</b>. The idea is simple: information should be easy to package, share, and find again.</p>
-<p class="mt-3 text-[14px] leading-[1.6] text-zinc-600">Underneath is a boring, reliable engine — single file, offline-capable, verifiable. On the surface it should feel fun and modern, like something you discovered and immediately want to play with. No pitch decks, no dashboards, no AI summaries. Just notes → one link → search.</p>
-<p class="mt-3 text-[14px] leading-[1.6] text-zinc-600">V1 does one thing well: <b>One link instead of a pile of messages.</b></p>
-<p class="mt-6 font-mono text-[11px] text-zinc-500">Built with SPIM — WORD→MEMORY→POSITION, reconstructed not generated. · Contact: <a href="mailto:apbuttar01@gmail.com" class="underline">apbuttar01@gmail.com</a></p>
 </main>
-  <footer class="max-w-[1120px] mx-auto px-6 py-8 border-t-2 border-zinc-900 mt-12">
-    <div class="flex flex-wrap gap-4 justify-between font-mono text-[11px]">
-      <div class="flex gap-4"><a href="/why.html">Why</a><a href="/use-cases.html">Use Cases</a><a href="/about.html">About</a><a href="/support.html">Support</a><a href="/feedback.html">Feedback</a><a href="/contact.html">Contact</a></div>
-      <div><a href="/support.html" class="px-3 py-1 rounded-full bg-amber-400 border-2 border-zinc-900 font-bold">Support</a> <a href="mailto:apbuttar01@gmail.com" class="ml-2 underline">apbuttar01@gmail.com</a></div>
-    </div>
-    <div class="mt-3 font-mono text-[10px] text-zinc-400">© 2026 Share — One link instead of a pile of messages. · Built by Arsh · Reconstructed, not generated.</div>
-  </footer>
-<script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
-<script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
-  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
-</body></html>
+</body>
+</html>

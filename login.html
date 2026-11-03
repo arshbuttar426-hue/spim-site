@@ -4,89 +4,206 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>Log in — Share</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],mono:['JetBrains Mono','monospace']}}}}</script>
+<title>Log in — SPIM</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
 </head>
-<body data-page="login" class="bg-[#fdfaf6] text-zinc-900 antialiased">
-<nav class="max-w-[720px] mx-auto px-6 h-[64px] flex items-center justify-between">
-  <a href="/" class="flex items-center gap-2">
-    <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white grid place-items-center font-bold text-[13px]">S</div>
-    <span class="font-bold tracking-tight">SPIM</span>
-  </a>
-  <div id="navPublic" class="flex items-center gap-5 text-[13px]">
-    <a href="/use-cases.html" class="hidden sm:inline hover:underline underline-offset-4">Use Cases</a>
-    <a href="/why.html" class="hidden sm:inline hover:underline underline-offset-4">Why</a>
-    <a href="/about.html" class="hidden sm:inline hover:underline underline-offset-4">About</a>
-    <a href="/support.html" class="hover:underline underline-offset-4">Support</a>
-    <a href="/login.html" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-semibold hover:bg-black">Log in</a>
-  </div>
-  <div id="navAuthed" class="hidden items-center gap-5 text-[13px] font-medium">
-    <a href="/" class="hover:underline">Home</a>
-    <a href="/account.html" class="hover:underline">Dock</a>
-    <a href="/account.html" class="hover:underline">Connections</a>
-    <a href="/images.html" class="hover:underline">Images</a>
-    <a href="/account.html" class="hover:underline">API</a>
-    <button id="avatarBtn" onclick="toggleAvatarMenu()" class="w-8 h-8 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">A</button>
-    <div id="avatarMenu" class="hidden absolute right-6 top-[64px] w-[240px] rounded-xl bg-white border border-zinc-200 shadow-lg p-2 text-[13px]">
-      <div id="avatarEmail" class="px-3 py-2 text-zinc-500 truncate">—</div>
-      <a href="/account.html" class="block px-3 py-2 hover:bg-zinc-50 rounded-lg">Account</a>
-      <button onclick="doSignOut()" class="w-full text-left px-3 py-2 hover:bg-zinc-50 rounded-lg">Sign out</button>
+<body class="spim-page" data-page="login">
+<div class="spim-aurora"></div>
+
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/#text" data-nav="text">Text</a>
+      <a href="/#image" data-nav="image">Image</a>
+      <a href="/#beam" data-nav="beam">Beam</a>
+      <a href="/#catch" data-nav="catch">Catch</a>
+      <a href="/why" data-nav="why">Why</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <span class="spim-nav-auth" data-auth="out">
+        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+      </span>
+
+      <details class="spim-account" data-auth="in" hidden>
+        <summary class="spim-account-btn" aria-label="Account menu">
+          <span class="spim-avatar" data-auth-initial aria-hidden="true">A</span>
+          <span class="spim-account-email" data-auth-email>Account</span>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="spim-account-menu">
+          <a href="/account#dock">Dock</a>
+          <a href="/account#connections">Connections</a>
+          <a href="/images">Images</a>
+          <a href="/account#api">API</a>
+          <a href="/account">Account</a>
+          <hr>
+          <button type="button" data-auth-signout>Sign out</button>
+        </div>
+      </details>
+
+      <a class="spim-nav-open" href="/#open">Open .spim</a>
+
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/#text" data-nav="text">Create Text</a>
+          <a href="/#image" data-nav="image">Create Image</a>
+          <a href="/#beam" data-nav="beam">Beam by Sound</a>
+          <a href="/#catch" data-nav="catch">Catch / Open</a>
+          <a href="/#open">Open .spim</a>
+          <a href="/why" data-nav="why">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <hr>
+          <span data-auth="out" class="spim-mobile-auth">
+            <a href="/login">Log in</a>
+            <a href="/create-account">Create account</a>
+          </span>
+          <span data-auth="in" class="spim-mobile-auth" hidden>
+            <a href="/account#dock">Dock</a>
+            <a href="/account#connections">Connections</a>
+            <a href="/images">Images</a>
+            <a href="/account#api">API</a>
+            <a href="/account">Account</a>
+            <button type="button" data-auth-signout>Sign out</button>
+          </span>
+        </nav>
+      </details>
     </div>
   </div>
-  <button onclick="document.getElementById('mnav').classList.toggle('hidden')" class="sm:hidden w-8 h-8 grid place-items-center" aria-label="Menu">☰</button>
-</nav>
-<div id="mnav" class="hidden max-w-[720px] mx-auto px-6 py-3 border-t border-zinc-100 text-[14px] space-y-2">
-  <div id="mnavPublic"><a href="/use-cases.html" class="block py-1">Use Cases</a><a href="/why.html" class="block py-1">Why</a><a href="/about.html" class="block py-1">About</a><a href="/support.html" class="block py-1">Support</a></div>
-  <div id="mnavAuthed" class="hidden"><a href="/account.html" class="block py-1">Dock</a><a href="/account.html" class="block py-1">Connections</a></div>
-</div>
-<div class="max-w-[480px] mx-auto px-6 py-12">
-  <h1 class="text-[32px] font-black">Log in</h1>
-  <p class="font-mono text-[13px] text-zinc-500 mt-2">Welcome back.</p>
-  <form id="form" class="mt-8 space-y-4">
-    <div>
-      <label class="font-mono text-[11px] font-bold">Email</label>
-      <input id="email" type="email" required autocomplete="email" class="mt-1 w-full rounded-full border-2 border-zinc-900 px-4 py-3 font-mono text-[13px]">
+</header>
+<!-- /chrome:nav -->
+
+<main class="spim-auth-wrap">
+  <div class="spim-auth-card">
+    <span class="spim-kicker">Welcome back</span>
+    <h1 style="margin-top:12px">Log in to SPIM</h1>
+    <p class="spim-body" style="margin-top:8px">Your Dock, connections, image quota, and API keys are waiting.</p>
+
+    <form id="form" style="margin-top:24px" novalidate>
+      <div class="spim-stack">
+        <label class="spim-field">
+          <span class="spim-label">Email</span>
+          <input id="email" type="email" required autocomplete="email" class="spim-input" placeholder="you@company.com">
+        </label>
+        <label class="spim-field">
+          <span class="spim-label">Password</span>
+          <input id="password" type="password" required autocomplete="current-password" class="spim-input" placeholder="Your password">
+        </label>
+        <div id="err" class="spim-note spim-note--error spim-form-err" hidden></div>
+        <button id="submitBtn" type="submit" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Log in →</button>
+      </div>
+    </form>
+
+    <p class="spim-auth-alt">No account? <a class="spim-link" href="/create-account">Create one</a></p>
+  </div>
+</main>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
     </div>
-    <div>
-      <label class="font-mono text-[11px] font-bold">Password</label>
-      <input id="password" type="password" required autocomplete="current-password" class="mt-1 w-full rounded-full border-2 border-zinc-900 px-4 py-3 font-mono text-[13px]">
+
+    <div class="spim-footer-col">
+      <h4>Studio</h4>
+      <a href="/#text">Create text</a>
+      <a href="/#image">Create image</a>
+      <a href="/#beam">Beam by sound</a>
+      <a href="/#catch">Catch / Open</a>
     </div>
-    <button type="submit" class="w-full py-4 rounded-full bg-zinc-900 text-white font-black text-[15px]">Log in →</button>
-    <p id="err" class="hidden font-mono text-[11px] text-red-600"></p>
-  </form>
-  <p class="mt-6 font-mono text-[11px] text-zinc-500">No account? <a href="/create-account.html" class="underline font-bold">Create one</a></p>
-</div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Account</h4>
+      <a href="/login">Log in</a>
+      <a href="/create-account">Create account</a>
+      <a href="/account#dock">Dock</a>
+      <a href="/account">Account</a>
+    </div>
+  </div>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+
 <script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
+<script src="/js/session-nav.js" defer></script>
 <script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
-  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
-<script>
-const _form=document.getElementById('form'); if(_form) _form.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email=document.getElementById('email').value;
-  const password=document.getElementById('password').value;
-  const err=document.getElementById('err');
-  err.classList.add('hidden');
-  const { data, error } = await window.supabase.auth.signInWithPassword({email, password});
-  if(error){ err.textContent=error.message; err.classList.remove('hidden'); } else { location.href='/account.html'; }
-});
+(function(){
+  var form = document.getElementById('form');
+  var err = document.getElementById('err');
+  var btn = document.getElementById('submitBtn');
+
+  function showError(message){
+    err.textContent = message;
+    err.hidden = false;
+  }
+
+  async function alreadySignedIn(){
+    try {
+      var res = await fetch('/api/auth/me', {credentials:'include'});
+      if(res.ok){
+        var body = await res.json();
+        if(body && body.user){ location.replace('/account'); return true; }
+      }
+    } catch(e){}
+    return false;
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    err.hidden = true;
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    if(!email || !password){ showError('Enter your email and password.'); return; }
+
+    btn.disabled = true;
+    var old = btn.textContent;
+    btn.textContent = 'Logging in…';
+    try {
+      var out = await window.supabase.auth.signInWithPassword({email:email, password:password});
+      if(out.error){ showError(out.error.message); return; }
+      location.href = '/account';
+    } catch(ex){
+      showError('Could not log in. Check your connection.');
+    } finally {
+      btn.textContent = old;
+      btn.disabled = false;
+    }
+  });
+
+  alreadySignedIn();
+})();
 </script>
 </body>
 </html>

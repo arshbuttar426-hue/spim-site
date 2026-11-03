@@ -4,15 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>SPIM — Share more than a link</title>
+<title>SPIM — One workspace for text, images, sound, and links</title>
+<meta name="description" content="Send text and images as capsules. Share by link, QR, .spim file, Dock, or ultrasonic beam — and catch them on any device.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/spim-theme.css">
 <script type="module">
-  import init, { WasmSpim, blake3_hex_static, format_delta_encode } from '/pkg/spim_wasm.js';
-  window.WasmSpim=WasmSpim; window.blake3_hex_static=blake3_hex_static; window.format_delta_encode=format_delta_encode;
-  window.wasmReady=false; window.wasmInitPromise=init().then(()=>{window.wasmReady=true; window.dispatchEvent(new Event('wasm-ready'));});
+  import init, { WasmSpim, blake3_hex_static, format_delta_encode, format_delta_apply } from '/pkg/spim_wasm.js';
+  window.WasmSpim = WasmSpim;
+  window.blake3_hex_static = blake3_hex_static;
+  window.format_delta_encode = format_delta_encode;
+  window.format_delta_apply = format_delta_apply;
+  window.wasmReady = false;
+  window.wasmInitPromise = init().then(() => {
+    window.wasmReady = true;
+    window.dispatchEvent(new Event('wasm-ready'));
+  });
 </script>
 </head>
 <body class="spim-page" data-page="index">
@@ -27,14 +35,39 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/" data-nav="beam" aria-current="page">Beam</a>
+      <a href="/#text" data-nav="text" aria-current="page">Text</a>
+      <a href="/#image" data-nav="image">Image</a>
+      <a href="/#beam" data-nav="beam">Beam</a>
       <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/why" data-nav="why">Why SPIM</a>
+      <a href="/why" data-nav="why">Why</a>
       <a href="/support" data-nav="support">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
-      <a class="spim-btn spim-btn--primary spim-btn--sm" href="/#beam">Create</a>
+      <span class="spim-nav-auth" data-auth="out">
+        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+      </span>
+
+      <details class="spim-account" data-auth="in" hidden>
+        <summary class="spim-account-btn" aria-label="Account menu">
+          <span class="spim-avatar" data-auth-initial aria-hidden="true">A</span>
+          <span class="spim-account-email" data-auth-email>Account</span>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="spim-account-menu">
+          <a href="/account#dock">Dock</a>
+          <a href="/account#connections">Connections</a>
+          <a href="/images">Images</a>
+          <a href="/account#api">API</a>
+          <a href="/account">Account</a>
+          <hr>
+          <button type="button" data-auth-signout>Sign out</button>
+        </div>
+      </details>
+
+      <a class="spim-nav-open" href="/#open">Open .spim</a>
+
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -42,11 +75,26 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/" data-nav="beam" aria-current="page">Beam</a>
-          <a href="/#catch" data-nav="catch">Catch</a>
+          <a href="/#text" data-nav="text" aria-current="page">Create Text</a>
+          <a href="/#image" data-nav="image">Create Image</a>
+          <a href="/#beam" data-nav="beam">Beam by Sound</a>
+          <a href="/#catch" data-nav="catch">Catch / Open</a>
+          <a href="/#open">Open .spim</a>
           <a href="/why" data-nav="why">Why SPIM</a>
           <a href="/support" data-nav="support">Support</a>
-          <a href="/receive">Open a capsule</a>
+          <hr>
+          <span data-auth="out" class="spim-mobile-auth">
+            <a href="/login">Log in</a>
+            <a href="/create-account">Create account</a>
+          </span>
+          <span data-auth="in" class="spim-mobile-auth" hidden>
+            <a href="/account#dock">Dock</a>
+            <a href="/account#connections">Connections</a>
+            <a href="/images">Images</a>
+            <a href="/account#api">API</a>
+            <a href="/account">Account</a>
+            <button type="button" data-auth-signout>Sign out</button>
+          </span>
         </nav>
       </details>
     </div>
@@ -54,22 +102,36 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell spim-section--tight" style="padding-top:56px">
-  <div style="max-width:620px">
+<main class="spim-shell spim-section--tight" style="padding-top:52px">
+  <div style="max-width:680px">
     <span class="spim-kicker">Private by construction</span>
-    <h1 class="spim-h1">Share more<br>than a link.</h1>
-    <p class="spim-lede">A note, sealed in your browser. Send it as a link, a file, or a sound — it arrives exactly as written.</p>
+    <h1 class="spim-h1">One workspace.<br>Every kind of message.</h1>
+    <p class="spim-lede">Write a note, send an image, beam it by sound, or catch what someone sends you. One capsule, five ways to deliver it — link, QR, .spim file, Dock, or ultrasonic beam.</p>
   </div>
 </main>
 
 <main class="spim-shell" style="padding-bottom:24px">
 
-  <!-- WORKSPACE -->
-  <section id="workspace" class="spim-card">
+  <!-- UNIFIED STUDIO -->
+  <section id="workspace" class="spim-card" aria-label="SPIM studio">
     <div class="spim-card-head" style="padding:12px 14px">
-      <div class="spim-seg" role="tablist" aria-label="Workspace" style="flex:1;max-width:340px">
-        <button id="tabBeam" class="spim-seg-btn" role="tab" aria-selected="true" aria-controls="panelBeam">Beam</button>
-        <button id="tabCatch" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelCatch">Catch</button>
+      <div class="spim-seg spim-seg--4" role="tablist" aria-label="Studio mode" style="flex:1;max-width:560px">
+        <button id="tabText" class="spim-seg-btn" role="tab" aria-selected="true" aria-controls="panelText">
+          <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 2.5h10M8 2.5v11M5.5 13.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Send Text
+        </button>
+        <button id="tabImage" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelImage">
+          <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><path d="m3.5 12 3.2-3.2 2.1 2.1 1.9-1.9 1.8 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Send Image
+        </button>
+        <button id="tabBeam" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelBeam">
+          <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 6v4h2.2L8 12.5v-9L4.7 6H2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10.5 5.4a3.6 3.6 0 0 1 0 5.2M12.6 3.4a6.4 6.4 0 0 1 0 9.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Beam (Sound)
+        </button>
+        <button id="tabCatch" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelCatch">
+          <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="1.8" width="5" height="8.2" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M3.2 7.6a4.8 4.8 0 0 0 9.6 0M8 12.4v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Catch / Open
+        </button>
       </div>
       <span class="spim-pill" title="Everything is sealed in this tab">
         <i id="wasmDot" class="spim-dot" style="background:var(--spim-warn)"></i>
@@ -77,8 +139,8 @@
       </span>
     </div>
 
-    <!-- SEND / BEAM -->
-    <section id="panelBeam" role="tabpanel" aria-labelledby="tabBeam">
+    <!-- SEND TEXT -->
+    <section id="panelText" role="tabpanel" aria-labelledby="tabText">
       <div id="notes">
         <div class="note spim-card-body" style="padding-bottom:12px">
           <div class="spim-spread">
@@ -92,32 +154,70 @@
       <div class="spim-card-foot spim-spread">
         <button onclick="addNote()" class="spim-btn spim-btn--ghost spim-btn--sm">+ Add note</button>
         <div class="spim-row">
-          <button id="tryBtn" onclick="loadSamplePayload()" class="spim-btn spim-btn--ghost spim-btn--sm">Use an example</button>
+          <button onclick="loadSamplePayload()" class="spim-btn spim-btn--ghost spim-btn--sm">Use an example</button>
           <span id="meta" class="spim-eyebrow">0 words</span>
         </div>
       </div>
 
+      <div class="spim-card-body spim-stack">
+        <button id="createBtn" onclick="createText()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Create text capsule</button>
+        <p class="spim-center spim-eyebrow">Sealed in this tab. Nothing uploaded until you create. Then share it five ways.</p>
+        <div id="inlineError" class="spim-note spim-note--error spim-hide"></div>
+      </div>
+    </section>
+
+    <!-- SEND IMAGE -->
+    <section id="panelImage" role="tabpanel" aria-labelledby="tabImage" hidden>
       <div class="spim-card-body spim-stack spim-stack--lg">
-        <div class="spim-field">
-          <span class="spim-label">Delivery</span>
-          <div class="spim-modes" role="group" aria-label="Delivery mode" id="modes">
-            <button type="button" class="spim-mode" data-mode="link" aria-pressed="true"><strong>Link</strong><span>Send anywhere</span></button>
-            <button type="button" class="spim-mode" data-mode="qr" aria-pressed="false"><strong>QR</strong><span>In person</span></button>
-            <button type="button" class="spim-mode" data-mode="spim" aria-pressed="false"><strong>.spim</strong><span>Fully offline</span></button>
-            <button type="button" class="spim-mode" data-mode="beam" aria-pressed="false"><strong>Beam</strong><span>By sound</span></button>
+        <div id="imageEmpty" class="spim-image-drop" role="button" tabindex="0" aria-label="Choose an image">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="margin:0 auto 10px;color:var(--spim-accent)"><rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="9.5" r="1.6" fill="currentColor"/><path d="m4.5 18 5-5 3.2 3.2 2.8-2.8L20 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <strong style="display:block;font-size:13px;color:var(--spim-text)">Drop an image, or choose one</strong>
+          <span class="spim-eyebrow" style="display:block;margin-top:6px">PNG · JPEG · WebP · up to 1 MB</span>
+          <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        </div>
+
+        <div id="imagePreview" class="spim-image-preview" hidden>
+          <img id="imageThumb" class="spim-image-thumb" alt="Selected image preview">
+          <div style="min-width:0;flex:1">
+            <div id="imageName" style="font-size:13px;font-weight:600;word-break:break-word"></div>
+            <div id="imageMeta" class="spim-image-meta"></div>
+            <div id="imageDims" class="spim-image-meta"></div>
+            <button onclick="clearImage()" class="spim-btn spim-btn--ghost spim-btn--sm" style="margin-top:10px">Remove</button>
           </div>
         </div>
 
-        <div>
-          <button id="createBtn" onclick="createCapsule()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg"><span id="createBtnText">Create link</span></button>
-          <p id="createHint" class="spim-center spim-eyebrow" style="margin-top:10px">Sealed in this tab. Nothing uploaded until you create.</p>
-          <div id="inlineError" class="spim-note spim-note--error spim-hide" style="margin-top:12px"></div>
+        <p id="imageError" class="spim-note spim-note--error" hidden></p>
+        <p id="imageQuota" class="spim-eyebrow spim-center"></p>
+
+        <button id="createImageBtn" onclick="createImage()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg" disabled>Create image capsule</button>
+        <p class="spim-center spim-eyebrow">The image is stored byte-exact inside the capsule.</p>
+      </div>
+    </section>
+
+    <!-- BEAM -->
+    <section id="panelBeam" role="tabpanel" aria-labelledby="tabBeam" hidden>
+      <div class="spim-card-body spim-stack spim-stack--lg">
+        <div class="spim-beam-stage">
+          <div id="beamVisual" class="spim-beam-visual" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 9v6h3l4 3V6L6 9H3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 8.5a5 5 0 0 1 0 7M17.5 5.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <p class="spim-h3" style="margin-top:14px">Beam a capsule by sound</p>
+          <p class="spim-body" style="margin-top:6px;max-width:44ch;margin-left:auto;margin-right:auto">Create a text or image capsule, then play its link as an ultrasonic tone. On the other device open <a class="spim-link" href="/#catch">Catch</a> and tap <strong>Listen for sound</strong>.</p>
         </div>
+
+        <div class="spim-field">
+          <label class="spim-label" for="beamInput">Capsule link</label>
+          <input id="beamInput" class="spim-input spim-mono" style="font-size:11.5px" placeholder="https://www.spim.co.in/receive#c/…" autocomplete="off">
+        </div>
+
+        <button id="beamBtn" onclick="beamFromInput()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Play sound</button>
+        <div id="beamError" class="spim-note spim-note--error spim-hide"></div>
+        <p class="spim-center spim-eyebrow">Keep both devices close · 48 kHz acoustic channel</p>
       </div>
     </section>
 
     <!-- CATCH / OPEN -->
-    <section id="panelCatch" role="tabpanel" aria-labelledby="tabCatch" class="spim-hide">
+    <section id="panelCatch" role="tabpanel" aria-labelledby="tabCatch" hidden>
       <div id="catch" class="spim-card-body spim-stack spim-stack--lg">
 
         <div class="spim-field">
@@ -130,7 +230,7 @@
         </div>
 
         <div class="spim-field">
-          <span class="spim-label">Or open a file</span>
+          <span class="spim-label">Or open a .spim file</span>
           <div id="spimDrop" class="spim-drop" role="button" tabindex="0" aria-label="Drop a .spim file or choose one">
             Drop a <span class="spim-accent">.spim</span> file here, or <span class="spim-accent">choose one</span>
             <input id="spimFile" type="file" accept=".spim,application/json" hidden>
@@ -182,9 +282,8 @@
     </section>
   </section>
 
-  <!-- PROOF -->
   <div class="spim-proof" style="margin-top:28px">
-    <span class="spim-proof-item">No account</span>
+    <span class="spim-proof-item">Text + images</span>
     <span class="spim-proof-item">Sealed in your browser</span>
     <span class="spim-proof-item">Byte-exact</span>
     <a href="/why" class="spim-proof-item" style="color:var(--spim-accent)">Why SPIM →</a>
@@ -199,14 +298,15 @@
         <span class="spim-mark" aria-hidden="true">S</span>
         <span class="spim-wordmark">SPIM</span>
       </a>
-      <p>Notes and voice that arrive intact — over a link, a file, or a sound.</p>
+      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
     </div>
 
     <div class="spim-footer-col">
-      <h4>Product</h4>
-      <a href="/#beam">Beam</a>
-      <a href="/#catch">Catch</a>
-      <a href="/receive">Open a capsule</a>
+      <h4>Studio</h4>
+      <a href="/#text">Create text</a>
+      <a href="/#image">Create image</a>
+      <a href="/#beam">Beam by sound</a>
+      <a href="/#catch">Catch / Open</a>
     </div>
 
     <div class="spim-footer-col">
@@ -219,7 +319,9 @@
     <div class="spim-footer-col">
       <h4>Account</h4>
       <a href="/login">Log in</a>
-      <a href="/account">Dock</a>
+      <a href="/create-account">Create account</a>
+      <a href="/account#dock">Dock</a>
+      <a href="/account">Account</a>
     </div>
   </div>
   <div class="spim-footer-base">
@@ -229,38 +331,43 @@
 </footer>
 <!-- /chrome:footer -->
 
-<!-- RESULT -->
+<!-- CAPSULE READY / SHARE -->
 <div id="result" class="spim-modal spim-hide">
   <div class="spim-modal-card">
     <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Your capsule is ready</span>
-    <h3 class="spim-h3" style="margin-top:12px">One link. All your notes inside.</h3>
+    <h3 class="spim-h3" style="margin-top:12px">Share it any way.</h3>
     <div class="spim-row" style="flex-wrap:nowrap;margin-top:16px">
       <input id="shareLink" readonly class="spim-input spim-mono" style="font-size:11px;min-width:0">
       <button onclick="copyLink(event)" class="spim-btn spim-btn--primary">Copy</button>
     </div>
     <div class="spim-row" style="margin-top:12px;gap:6px">
-      <span class="spim-pill">Searchable</span>
       <span id="resultVerifyBadge" class="spim-pill spim-pill--verified">Verified</span>
       <span id="resultMeta" class="spim-pill">—</span>
     </div>
-    <div class="spim-modal-actions" style="margin-top:18px">
-      <button onclick="openResult()" class="spim-btn spim-btn--primary">Open</button>
-      <button onclick="toggleQR()" class="spim-btn">QR</button>
-      <button onclick="closeResult()" class="spim-btn spim-btn--ghost">Close</button>
+
+    <div class="spim-modes spim-modes--5" role="group" aria-label="Share method" style="margin-top:16px">
+      <button type="button" class="spim-mode" data-share="link" aria-pressed="false"><strong>Link</strong><span>Copy</span></button>
+      <button type="button" class="spim-mode" data-share="qr" aria-pressed="false"><strong>QR</strong><span>Scan</span></button>
+      <button type="button" class="spim-mode" data-share="spim" aria-pressed="false"><strong>.spim</strong><span>Download</span></button>
+      <button type="button" class="spim-mode" data-share="dock" aria-pressed="false"><strong>Dock</strong><span>Save</span></button>
+      <button type="button" class="spim-mode" data-share="beam" aria-pressed="false"><strong>Beam</strong><span>By sound</span></button>
     </div>
-    <div class="spim-modal-actions">
-      <button onclick="downloadTxt()" class="spim-btn spim-btn--quiet spim-btn--sm">.txt</button>
-      <button onclick="downloadExact()" class="spim-btn spim-btn--quiet spim-btn--sm">.json</button>
-      <button onclick="downloadSpim()" class="spim-btn spim-btn--quiet spim-btn--sm">.spim</button>
-    </div>
+
+    <p id="shareMsg" class="spim-note spim-note--ok spim-hide" style="margin-top:12px"></p>
+
     <div id="qrBox" class="spim-hide" style="margin-top:16px;padding:16px;border:1px solid var(--spim-line);border-radius:var(--spim-r-md);background:var(--spim-bg-soft);text-align:center">
       <img id="qrImg" class="spim-hide" style="width:168px;height:168px;margin:0 auto;border-radius:6px;background:#fff;padding:6px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR code">
       <div id="qrText" class="spim-mono" style="font-size:9px;word-break:break-all;margin-top:10px;color:var(--spim-dim)"></div>
     </div>
+
+    <div class="spim-modal-actions" style="margin-top:18px">
+      <button onclick="openResult()" class="spim-btn">Open capsule</button>
+      <button onclick="closeResult()" class="spim-btn spim-btn--ghost">Close</button>
+    </div>
   </div>
 </div>
 
-<!-- CHOICE -->
+<!-- PUBLIC / PRIVATE -->
 <div id="choice" class="spim-modal spim-hide" style="z-index:60">
   <div class="spim-modal-card">
     <span class="spim-eyebrow">Who can open it</span>
@@ -310,441 +417,739 @@
 </div>
 
 <script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
 <script src="/js/spim-codec.js"></script>
+<script src="/js/session-nav.js" defer></script>
 <script>
-async function initAuth(){
-  try{
-    const {data:{session}}=await window.supabase.auth.getSession();
-    const a=!!session;
-    if(a && document.getElementById('avatarBtn')) document.getElementById('avatarBtn').textContent=session.user.email[0].toUpperCase();
-    if(a && document.getElementById('avatarEmail')) document.getElementById('avatarEmail').textContent=session.user.email;
-    const composer=document.getElementById('workspace');
-    if(a && composer && !document.getElementById('authedDock')){
-      const s=document.createElement('div'); s.id='authedDock'; s.className='spim-note';
-      s.style.marginBottom='16px';
-      s.innerHTML='<span>Signed in. Your capsules can wait at your Dock.</span><a class="spim-link" href="/account" style="margin-left:auto">View Dock →</a>';
-      composer.parentNode.insertBefore(s,composer);
+const SERVER = '';
+const CANONICAL_BASE = location.origin + '/receive';
+const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
+const MAX_DIM = 8192;
+const MAX_PIXELS = 25 * 1024 * 1024;
+
+function countWords(s){ return s.trim() ? s.trim().split(/\s+/).filter(Boolean).length : 0; }
+function b64encodeBytes(b){ let s=''; b.forEach(v=>s+=String.fromCharCode(v)); return btoa(s); }
+function b64decodeBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
+function b64encodeStr(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64decodeStr(b){ return decodeURIComponent(escape(atob(b))); }
+function b64urlEncode(b){ let s=b64encodeBytes(b); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64urlDecode(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return b64decodeBytes(s); }
+function wasmBlake3Hex(s){ if(window.wasmReady && window.blake3_hex_static) try { return window.blake3_hex_static(s); } catch(e){} return 'pending'; }
+function wasmBlake3BytesHex(b64){
+  try {
+    if(window.wasmReady && window.WasmSpim){
+      const w = new window.WasmSpim();
+      const h = w.blake3_bytes_hex(b64);
+      w.free();
+      return h;
     }
-  }catch(e){}
+  } catch(e){}
+  return wasmBlake3Hex(b64);
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
+function formatBytes(n){ if(n<1024) return n+' B'; if(n<1024*1024) return (n/1024).toFixed(1)+' KB'; return (n/1024/1024).toFixed(2)+' MB'; }
 
-<script>
-const SERVER=''; const CANONICAL_BASE=location.origin+'/receive';
-function countWords(s){return s.trim()?s.trim().split(/\s+/).filter(Boolean).length:0}
-function b64encodeBytes(b){let s='';b.forEach(v=>s+=String.fromCharCode(v));return btoa(s)}
-function b64decodeBytes(b){const s=atob(b);const o=new Uint8Array(s.length);for(let i=0;i<s.length;i++)o[i]=s.charCodeAt(i);return o}
-function b64encodeStr(s){return btoa(unescape(encodeURIComponent(s)))}
-function b64decodeStr(b){return decodeURIComponent(escape(atob(b)))}
-function b64urlEncode(b){let s=b64encodeBytes(b);return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function b64urlDecode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return b64decodeBytes(s)}
-function wasmBlake3Hex(s){if(window.wasmReady&&window.blake3_hex_static)try{return window.blake3_hex_static(s)}catch(e){}return 'pending'}
-
-let noteCount=1,selectedChoice='public',pendingNotes=null,lastEnvelopeJson=null,lastBlob=null,lastKeyB64=null;
-let deliveryMode='link';
+let noteCount = 1;
+let selectedChoice = 'public';
+let pendingNotes = null;
+let pendingKind = 'text';
+let lastCapsule = null;
 
 /* ---- tabs --------------------------------------------------------------- */
+const TAB_HASH = { text: '#text', image: '#image', beam: '#beam', catch: '#catch' };
 function setTab(which){
-  const beam=which!=='catch';
-  const tb=document.getElementById('tabBeam'), tc=document.getElementById('tabCatch');
-  const pb=document.getElementById('panelBeam'), pc=document.getElementById('panelCatch');
-  tb.setAttribute('aria-selected',beam?'true':'false');
-  tc.setAttribute('aria-selected',beam?'false':'true');
-  pb.classList.toggle('spim-hide',!beam);
-  pc.classList.toggle('spim-hide',beam);
-  if(!beam) document.getElementById('panelCatch').scrollIntoView({block:'nearest'});
+  if(!TAB_HASH[which]) which = 'text';
+  ['Text','Image','Beam','Catch'].forEach(function(name){
+    const key = name.toLowerCase();
+    const tab = document.getElementById('tab' + name);
+    const panel = document.getElementById('panel' + name);
+    const on = key === which;
+    if(tab) tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    if(panel) panel.hidden = !on;
+  });
+  if(which === 'image') refreshImageQuota();
+  window.dispatchEvent(new CustomEvent('spim:tab', { detail: { tab: which } }));
 }
-document.getElementById('tabBeam').onclick=()=>setTab('beam');
-document.getElementById('tabCatch').onclick=()=>setTab('catch');
 function syncTabFromHash(){
-  if(location.hash==='#catch') setTab('catch');
-  else if(location.hash==='#beam'||location.hash==='') setTab('beam');
+  const h = (location.hash || '').replace('#','');
+  if(h === 'open'){ setTab('catch'); const d = document.getElementById('spimDrop'); if(d) setTimeout(function(){ d.focus(); }, 80); return; }
+  if(h === 'c' || h.indexOf('c/') === 0){ location.replace('/receive' + location.hash); return; }
+  if(TAB_HASH[h]) setTab(h);
+  else setTab('text');
 }
-window.addEventListener('hashchange',syncTabFromHash);
-
-/* ---- delivery mode ------------------------------------------------------ */
-document.querySelectorAll('#modes [data-mode]').forEach(btn=>{
-  btn.onclick=()=>{
-    deliveryMode=btn.dataset.mode;
-    document.querySelectorAll('#modes [data-mode]').forEach(b=>b.setAttribute('aria-pressed',b===btn?'true':'false'));
-    const label={link:'Create link',qr:'Create & show QR',spim:'Create & save .spim',beam:'Create & beam'}[deliveryMode];
-    document.getElementById('createBtnText').textContent=label;
-    document.getElementById('createHint').textContent={
-      link:'Sealed in this tab. Anyone with the link can open it.',
-      qr:'A code they can scan in the room.',
-      spim:'A file that opens with no network at all.',
-      beam:'Plays the link as sound. The other device listens in Catch.'
-    }[deliveryMode];
-  };
+document.getElementById('tabText').onclick = function(){ setTab('text'); };
+document.getElementById('tabImage').onclick = function(){ setTab('image'); };
+document.getElementById('tabBeam').onclick = function(){ setTab('beam'); };
+document.getElementById('tabCatch').onclick = function(){ setTab('catch'); };
+window.addEventListener('hashchange', syncTabFromHash);
+/* make the tab clicks update the hash without adding history noise */
+document.querySelectorAll('[role="tab"]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const id = btn.id.replace('tab','').toLowerCase();
+    if(history.replaceState) history.replaceState(null, '', TAB_HASH[id]);
+  });
 });
 
 /* ---- notes -------------------------------------------------------------- */
 function buildSamplePayload(){
-  const stamp=i=>`2026-10-27T09:${String(14+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}Z`;
-  const logs=Array.from({length:10},(_,i)=>`${stamp(i)} INFO capsule_id=Ab3x9Q reconstruction_status=verified envelope_status=sealed verification_hash=blake3`).join('\n');
-  return [logs];
+  const stamp = function(i){ return `2026-10-27T09:${String(14+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}Z`; };
+  return [Array.from({length:10}, function(_,i){
+    return `${stamp(i)} INFO capsule_id=Ab3x9Q reconstruction_status=verified envelope_status=sealed verification_hash=blake3`;
+  }).join('\n')];
 }
 function loadSamplePayload(){
-  const a=document.querySelector('.note textarea');
-  if(a){ a.value=buildSamplePayload()[0]; }
+  const a = document.querySelector('.note textarea');
+  if(a){ a.value = buildSamplePayload()[0]; }
   updateMeta();
   if(a){ a.focus(); a.setSelectionRange(0,0); }
 }
 function addNote(){
   noteCount++;
-  const w=document.createElement('div');
-  w.className='note spim-card-body';
-  w.style.borderTop='1px solid var(--spim-line)';
-  w.innerHTML='<div class="spim-spread"><span class="spim-label">Note</span><button onclick="removeNote(this)" class="spim-btn spim-btn--ghost spim-btn--sm">Remove</button></div>'
-    +'<textarea placeholder="Paste or type…" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:110px" oninput="updateMeta()"></textarea>';
+  const w = document.createElement('div');
+  w.className = 'note spim-card-body';
+  w.style.borderTop = '1px solid var(--spim-line)';
+  w.innerHTML = '<div class="spim-spread"><span class="spim-label">Note</span><button onclick="removeNote(this)" class="spim-btn spim-btn--ghost spim-btn--sm">Remove</button></div>'
+    + '<textarea placeholder="Paste or type…" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:110px" oninput="updateMeta()"></textarea>';
   document.getElementById('notes').appendChild(w);
   renumber(); updateMeta(); w.querySelector('textarea').focus();
 }
 function removeNote(b){
-  const note=b.closest('.note');
-  if(document.querySelectorAll('.note').length<=1){ return; }
+  const note = b.closest('.note');
+  if(document.querySelectorAll('.note').length <= 1) return;
   note.remove(); renumber(); updateMeta();
 }
 function renumber(){
-  document.querySelectorAll('.note').forEach((el,i)=>{
-    const label=el.querySelector('span.spim-label');
-    if(label) label.textContent='Note '+(i+1);
-    const rm=el.querySelector('button');
-    if(rm) rm.classList.toggle('spim-hide',document.querySelectorAll('.note').length<=1);
+  document.querySelectorAll('.note').forEach(function(el,i){
+    const label = el.querySelector('span.spim-label');
+    if(label) label.textContent = 'Note ' + (i+1);
+    const rm = el.querySelector('button');
+    if(rm) rm.classList.toggle('spim-hide', document.querySelectorAll('.note').length <= 1);
   });
 }
 function updateMeta(){
-  const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value);
-  const filled=notes.filter(v=>v.trim().length>0);
-  const words=filled.length?countWords(filled.join(' ')):0;
-  document.getElementById('meta').textContent=words+(words===1?' word':' words');
-  const s=document.getElementById('wasmStatus'),b=document.getElementById('createBtn'),h=document.getElementById('createHint');
-  if(!window.wasmReady){ s.textContent='Preparing'; b.disabled=true; }
-  else { s.textContent='Ready'; b.disabled=filled.length===0; }
-  const dot=document.getElementById('wasmDot');
-  if(dot) dot.style.background=window.wasmReady?'var(--spim-verified)':'var(--spim-warn)';
-  document.getElementById('inlineError').classList.add('spim-hide');
+  const notes = Array.prototype.slice.call(document.querySelectorAll('.note textarea')).map(function(t){ return t.value; });
+  const filled = notes.filter(function(v){ return v.trim().length > 0; });
+  const words = filled.length ? countWords(filled.join(' ')) : 0;
+  const meta = document.getElementById('meta');
+  if(meta) meta.textContent = words + (words === 1 ? ' word' : ' words');
+  const s = document.getElementById('wasmStatus');
+  const b = document.getElementById('createBtn');
+  if(!window.wasmReady){ if(s) s.textContent = 'Preparing'; if(b) b.disabled = true; }
+  else { if(s) s.textContent = 'Ready'; if(b) b.disabled = filled.length === 0; }
+  const dot = document.getElementById('wasmDot');
+  if(dot) dot.style.background = window.wasmReady ? 'var(--spim-verified)' : 'var(--spim-warn)';
+  const err = document.getElementById('inlineError');
+  if(err) err.classList.add('spim-hide');
 }
-window.addEventListener('wasm-ready',updateMeta);
+window.addEventListener('wasm-ready', updateMeta);
 
 /* ---- envelope ----------------------------------------------------------- */
-function makeEnvelope(notes){
-  const w=new window.WasmSpim();const notes_blake3=[],fmt_b64=[];
-  notes.forEach(s=>{w.remember(s);notes_blake3.push(wasmBlake3Hex(s));fmt_b64.push(window.format_delta_encode(s))});
-  const b=w.encoded_bytes_b64();
-  const wc=notes.reduce((a,s)=>a+s.split(/\s+/).filter(Boolean).length,0);
-  let env={magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3,fmt_b64,word_count:wc,blake3:""};
-  env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));
+function makeTextEnvelope(notes){
+  const w = new window.WasmSpim(), notes_blake3 = [], fmt_b64 = [];
+  notes.forEach(function(s){
+    w.remember(s);
+    notes_blake3.push(wasmBlake3Hex(s));
+    fmt_b64.push(window.format_delta_encode(s));
+  });
+  const b = w.encoded_bytes_b64();
+  const wc = notes.reduce(function(a,s){ return a + s.split(/\s+/).filter(Boolean).length; }, 0);
+  const env = {magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3:notes_blake3,fmt_b64:fmt_b64,word_count:wc,blake3:""};
+  env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
   return env;
 }
-async function generateKey(){const b=new Uint8Array(32);crypto.getRandomValues(b);return b}
-async function encryptEnvelope(j,k){const iv=new Uint8Array(12);crypto.getRandomValues(iv);const key=await crypto.subtle.importKey('raw',k,{name:'AES-GCM'},false,['encrypt']);const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(j));const c=new Uint8Array(iv.length+enc.byteLength);c.set(iv,0);c.set(new Uint8Array(enc),iv.length);return b64encodeBytes(c)}
-async function postCapsule(b,d=false){const r=await fetch(SERVER+'/capsules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blob:b,destroyable:d})});if(!r.ok)throw new Error('POST '+r.status);return (await r.json()).id}
+function makeImageEnvelope(){
+  if(!selectedBytes) throw new Error('Choose an image first.');
+  if(!window.wasmReady) throw new Error('Engine is still loading.');
+  const b64 = b64encodeBytes(selectedBytes);
+  const blake = wasmBlake3BytesHex(b64);
+  const imageEntry = {kind:"image", source_bytes_b64:b64, mime:selectedMime, filename:selectedName, source_blake3:blake};
+  const w = new window.WasmSpim();
+  const spim_b64 = w.encoded_bytes_b64();
+  w.free();
+  const env = {magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),notes:[],images:[imageEntry],spim_b64:spim_b64,word_count:0,blake3:""};
+  env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
+  return env;
+}
+async function generateKey(){ const b = new Uint8Array(32); crypto.getRandomValues(b); return b; }
+async function encryptEnvelope(j,k){
+  const iv = new Uint8Array(12); crypto.getRandomValues(iv);
+  const key = await crypto.subtle.importKey('raw', k, {name:'AES-GCM'}, false, ['encrypt']);
+  const enc = await crypto.subtle.encrypt({name:'AES-GCM',iv:iv}, key, new TextEncoder().encode(j));
+  const c = new Uint8Array(iv.length + enc.byteLength);
+  c.set(iv,0); c.set(new Uint8Array(enc), iv.length);
+  return b64encodeBytes(c);
+}
+async function postCapsule(blob, destroyable){
+  const r = await fetch(SERVER + '/capsules', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({blob:blob, destroyable:!!destroyable})});
+  if(!r.ok) throw new Error('POST ' + r.status);
+  return (await r.json()).id;
+}
 
-function createCapsule(){
-  const notes=[...document.querySelectorAll('.note textarea')].map(t=>t.value).filter(v=>v.trim());
-  if(!notes.length){showErr('Add a note first');return}
-  if(!window.wasmReady){showErr('Still preparing — try again in a moment');return}
-  if(deliveryMode==='beam') ensureBeamCtx();
-  pendingNotes=notes; selectedChoice='public';
-  document.getElementById('singleViewCheck').checked=false; updateChoiceUI();
+/* ---- create flow -------------------------------------------------------- */
+function createText(){
+  const notes = Array.prototype.slice.call(document.querySelectorAll('.note textarea')).map(function(t){ return t.value; }).filter(function(v){ return v.trim(); });
+  if(!notes.length){ showErr('Add a note first.'); return; }
+  if(!window.wasmReady){ showErr('Still preparing — try again in a moment.'); return; }
+  pendingNotes = notes; pendingKind = 'text'; selectedChoice = 'public';
+  document.getElementById('singleViewCheck').checked = false;
+  updateChoiceUI();
   document.getElementById('choice').classList.remove('spim-hide');
 }
-function showErr(m){const e=document.getElementById('inlineError');e.textContent=m;e.classList.remove('spim-hide')}
-function closeChoice(){document.getElementById('choice').classList.add('spim-hide');pendingNotes=null}
-function selectChoice(c){selectedChoice=c;updateChoiceUI()}
+function showErr(m){
+  const e = document.getElementById('inlineError');
+  if(!e) return;
+  e.textContent = m; e.classList.remove('spim-hide');
+}
+function closeChoice(){ document.getElementById('choice').classList.add('spim-hide'); pendingNotes = null; }
+function selectChoice(c){ selectedChoice = c; updateChoiceUI(); }
 function updateChoiceUI(){
-  const pub=document.getElementById('choicePublic'), priv=document.getElementById('choicePrivate');
-  pub.setAttribute('aria-pressed', selectedChoice==='public'?'true':'false');
-  priv.setAttribute('aria-pressed', selectedChoice==='private'?'true':'false');
+  const pub = document.getElementById('choicePublic'), priv = document.getElementById('choicePrivate');
+  if(pub) pub.setAttribute('aria-pressed', selectedChoice === 'public' ? 'true' : 'false');
+  if(priv) priv.setAttribute('aria-pressed', selectedChoice === 'private' ? 'true' : 'false');
 }
-function confirmChoice(){if(document.getElementById('singleViewCheck').checked){document.getElementById('singleConfirm').classList.remove('spim-hide');return}doCreate(selectedChoice,false)}
-function closeSingleConfirm(){document.getElementById('singleConfirm').classList.add('spim-hide')}
-function confirmSingleCreate(){document.getElementById('singleConfirm').classList.add('spim-hide');doCreate(selectedChoice,true)}
+function confirmChoice(){
+  if(document.getElementById('singleViewCheck').checked){ document.getElementById('singleConfirm').classList.remove('spim-hide'); return; }
+  doCreate(selectedChoice, false);
+}
+function closeSingleConfirm(){ document.getElementById('singleConfirm').classList.add('spim-hide'); }
+function confirmSingleCreate(){ document.getElementById('singleConfirm').classList.add('spim-hide'); doCreate(selectedChoice, true); }
 
-async function doCreate(choice,single){
-  document.getElementById('choice').classList.add('spim-hide');
-  const notes=pendingNotes; if(!notes)return;
-  const isPrivate=choice==='private';
-  const btn=document.getElementById('createBtn');
-  document.getElementById('createBtnText').textContent='Creating…'; btn.disabled=true;
-  try{
-    const env=makeEnvelope(notes); env.flags=single?1:0;
-    env.blake3=wasmBlake3Hex(JSON.stringify({...env,blake3:""}));
-    const j=JSON.stringify(env); lastEnvelopeJson=j;
-    let blob,keyB64=null;
-    if(isPrivate){const kb=await generateKey();keyB64=b64urlEncode(kb);blob=await encryptEnvelope(j,kb)}
-    else blob=b64encodeStr(j);
-    lastBlob=blob;lastKeyB64=keyB64;
-    const id=await postCapsule(blob,single);
-    const base=`${CANONICAL_BASE}#c/${id}`;
-    const link=isPrivate?`${base}#${keyB64}`:base;
-    document.getElementById('shareLink').value=link;
-    document.getElementById('shareLink').dataset.id=id;
-    document.getElementById('shareLink').dataset.key=keyB64||'';
-    document.getElementById('qrText').textContent=link;
-    const img=document.getElementById('qrImg');
-    img.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(link);
-    img.classList.remove('spim-hide'); document.getElementById('qrBox').classList.add('spim-hide');
-    document.getElementById('resultVerifyBadge').textContent='Verified · '+env.blake3.slice(0,8)+'…';
-    document.getElementById('resultMeta').textContent=notes.length+' '+(notes.length===1?'note':'notes')+' · '+env.word_count+' words'+(single?' · single view':'');
-    document.getElementById('result').classList.remove('spim-hide');
-
-    if(deliveryMode==='qr'){ toggleQR(); }
-    else if(deliveryMode==='spim'){ downloadSpim(); }
-    else if(deliveryMode==='beam'){ closeResult(); startBeam(link); }
-  }catch(e){ showErr('Create failed: '+e.message) }
-  finally{ document.getElementById('createBtnText').textContent={link:'Create link',qr:'Create & show QR',spim:'Create & save .spim',beam:'Create & beam'}[deliveryMode]; updateMeta() }
-}
-
-function closeResult(){document.getElementById('result').classList.add('spim-hide')}
-function copyLink(ev){const t=ev&&ev.target?ev.target:null;navigator.clipboard.writeText(document.getElementById('shareLink').value);if(t){const old=t.textContent;t.textContent='Copied';setTimeout(()=>t.textContent=old,1200)}}
-function toggleQR(){const b=document.getElementById('qrBox');const i=document.getElementById('qrImg');if(b.classList.contains('spim-hide')&&i.src.includes('api.qrserver'))i.classList.remove('spim-hide');b.classList.toggle('spim-hide')}
-function downloadTxt(){if(!pendingNotes)return;const b=new Blob([pendingNotes.join('\n---\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.txt';a.click()}
-function downloadExact(){if(!lastEnvelopeJson)return;const b=new Blob([lastEnvelopeJson],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='capsule.json';a.click()}
-function downloadSpim(){if(!lastEnvelopeJson||!lastBlob)return;const id=document.getElementById('shareLink').dataset.id||'capsule';const spim={spim_file:1,version:1,locked:!!lastKeyB64,key_b64url:lastKeyB64||null,blob:lastBlob};const b=new Blob([JSON.stringify(spim)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.spim';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function openResult(){const id=document.getElementById('shareLink').dataset.id;const k=document.getElementById('shareLink').dataset.key;location.href=`${CANONICAL_BASE}#c/${id}`+(k?'#'+k:'')}
-function openCapsuleLink(){
-  const v=document.getElementById('openInput').value.trim(),m=document.getElementById('openMsg');
-  if(!v){m.textContent='Paste a capsule link';m.classList.remove('spim-hide');return}
-  let id=(v.match(/c\/([A-Za-z0-9_-]{6,16})/)||[])[1];
-  if(!id&&/^[A-Za-z0-9_-]{6,16}$/.test(v))id=v;
-  if(!id){m.textContent='That does not look like a capsule link.';m.classList.remove('spim-hide');return}
-  m.classList.add('spim-hide');
-  let k=v.split('#').pop();const p=v.split('#');
-  if(p.length>=3)k=p[p.length-1];
-  else if(v.includes('#')&&!v.includes('/c/'))k=v.split('#')[1]||'';
-  else if(k&&k.length<20)k='';
-  location.href=`${CANONICAL_BASE}#c/${id}`+(k&&k.length>=20?'#'+k:'');
-}
-
-/* ---- sonic beam --------------------------------------------------------- */
-let beamCtx=null,beamSrc=null,beamTimer=null;
-function ensureBeamCtx(){
-  if(!beamCtx){const C=window.AudioContext||window.webkitAudioContext;beamCtx=new C();}
-  if(beamCtx.state==='suspended')beamCtx.resume();
-  return beamCtx;
-}
-function startBeam(text){
-  if(!window.SpimCodec){showErr('Sound is unavailable in this browser');return}
-  let bytes;try{bytes=new TextEncoder().encode(text)}catch(e){showErr('Could not prepare the beam');return}
-  if(bytes.length>window.SpimCodec.MAX_PAYLOAD){showErr('Too much data for a sound beam');return}
-  let samples;try{samples=window.SpimCodec.encode(bytes)}catch(e){showErr('Could not encode the beam');return}
-  const ctx=ensureBeamCtx();
-  const buf=ctx.createBuffer(1,samples.length,48000);
-  buf.copyToChannel(samples,0);
-  const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);
-  const secs=samples.length/48000;
-  const overlay=document.getElementById('beamOverlay');
-  document.getElementById('beamText').textContent=text;
-  const bar=document.getElementById('beamBar');
-  bar.style.transition='none';bar.style.width='0%';
-  overlay.classList.remove('spim-hide');
-  requestAnimationFrame(()=>{bar.style.transition='width '+secs+'s linear';bar.style.width='100%'});
-  src.start();beamSrc=src;
-  beamTimer=setTimeout(stopBeam,secs*1000+200);
-}
-function stopBeam(){
-  if(beamTimer){clearTimeout(beamTimer);beamTimer=null}
-  try{beamSrc&&beamSrc.stop()}catch(e){}
-  beamSrc=null;
-  document.getElementById('beamOverlay').classList.add('spim-hide');
-  const bar=document.getElementById('beamBar');bar.style.transition='none';bar.style.width='0%';
-}
-
-/* ---- catch: sound ------------------------------------------------------- */
-let micCtx=null,micStream=null,micNode=null,receiver=null,listening=false,caughtCount=0;
-let dropCtx=null,customDropBuf=null,lastCaught='',lastCaughtAt=0;
-
-function audioCtx(){
-  const C=window.AudioContext||window.webkitAudioContext;
-  if(!dropCtx)dropCtx=new C();
-  if(dropCtx.state==='suspended')dropCtx.resume();
-  return dropCtx;
-}
-function playDrop(){
-  try{
-    const ctx=audioCtx();
-    if(customDropBuf){const s=ctx.createBufferSource();s.buffer=customDropBuf;s.connect(ctx.destination);s.start();return}
-    const sel=document.getElementById('dropSoundSel');
-    const o=ctx.createOscillator(),g=ctx.createGain();
-    o.connect(g);g.connect(ctx.destination);
-    if(sel.value==='ding'){o.type='sine';o.frequency.value=1046;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.55);o.start();o.stop(ctx.currentTime+0.55)}
-    else if(sel.value==='whoosh'){o.type='sawtooth';o.frequency.setValueAtTime(420,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(1250,ctx.currentTime+0.18);g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.14,ctx.currentTime+0.05);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.3);o.start();o.stop(ctx.currentTime+0.3)}
-    else{o.type='triangle';o.frequency.value=880;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.24,ctx.currentTime+0.008);g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.24);o.start();o.stop(ctx.currentTime+0.24)}
-  }catch(e){}
-}
-
-function setListeningUI(on,note){
-  listening=on;
-  const orb=document.getElementById('listenBtn');
-  const label=document.getElementById('catchLabel');
-  orb.classList.toggle('is-listening',on);
-  orb.setAttribute('aria-pressed',on?'true':'false');
-  label.textContent=on?'Listening — tap to stop':'Listen for sound';
-  document.getElementById('catchState').textContent=note||(on?'Listening':'Idle');
-}
-
-function onCaught(payload){
-  const text=new TextDecoder().decode(payload);
-  const now=performance.now();
-  if(text===lastCaught&&now-lastCaughtAt<2500)return;
-  lastCaught=text;lastCaughtAt=now;
-  caughtCount++;
-  document.getElementById('catchCount').textContent=caughtCount+' caught';
-  document.getElementById('caughtText').textContent=text;
-  const open=document.getElementById('caughtOpen');
-  if(/^https?:\/\//i.test(text)||/\/receive#c\//.test(text)){open.href=text;open.classList.remove('spim-hide')}
-  else{open.classList.add('spim-hide')}
-  document.getElementById('caughtCard').classList.remove('spim-hide');
-  playDrop();
-}
-
-async function startListen(){
-  if(listening)return;
-  if(!window.SpimCodec){document.getElementById('catchState').textContent='Unsupported';return}
-  try{
-    audioCtx(); // unlock playback inside this gesture
-    const C=window.AudioContext||window.webkitAudioContext;
-    micCtx=new C({sampleRate:48000});
-    if(micCtx.state==='suspended')await micCtx.resume();
-    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-    const src=micCtx.createMediaStreamSource(micStream);
-    receiver=window.SpimCodec.createReceiver();
-    micNode=micCtx.createScriptProcessor(2048,1,1);
-    const zero=micCtx.createGain();zero.gain.value=0;
-    const level=document.getElementById('catchLevelBar');
-    micNode.onaudioprocess=(e)=>{
-      if(!listening)return;
-      const ch=e.inputBuffer.getChannelData(0);
-      let sum=0;for(let i=0;i<ch.length;i++)sum+=ch[i]*ch[i];
-      const rms=Math.sqrt(sum/ch.length);
-      level.style.width=Math.min(100,Math.round(rms*700))+'%';
-      const payload=receiver.push(new Float32Array(ch));
-      if(payload)onCaught(payload);
-    };
-    src.connect(micNode);micNode.connect(zero);zero.connect(micCtx.destination);
-    setListeningUI(true,micCtx.sampleRate===48000?'Listening':'Mic rate '+micCtx.sampleRate+' Hz');
-  }catch(e){
-    stopListen();
-    document.getElementById('catchState').textContent=e&&e.name==='NotAllowedError'?'Mic blocked':'Mic unavailable';
+async function consumeImageQuota(){
+  try {
+    const me = await fetch('/api/auth/me', {credentials:'include'});
+    if(!me.ok) return { ok: true, anonymous: true };
+    const r = await fetch('/api/images', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'use'})
+    });
+    const body = await r.json().catch(function(){ return {}; });
+    if(r.status === 402) return { ok:false, error:body.error || 'You have used your 16 free images.' };
+    if(!r.ok) return { ok:false, error:body.error || 'Could not check image quota.' };
+    return { ok:true, quota:body };
+  } catch(e){
+    return { ok:false, error:'Could not reach the image quota service.' };
   }
 }
 
-function stopListen(){
-  listening=false;
-  try{if(micNode)micNode.disconnect()}catch(e){}
-  try{if(micStream)micStream.getTracks().forEach(t=>t.stop())}catch(e){}
-  try{if(micCtx)micCtx.close()}catch(e){}
-  micNode=null;micStream=null;micCtx=null;receiver=null;
-  document.getElementById('catchLevelBar').style.width='0%';
-  setListeningUI(false,'Idle');
+async function doCreate(choice, single){
+  document.getElementById('choice').classList.add('spim-hide');
+  document.getElementById('singleConfirm').classList.add('spim-hide');
+  const kind = pendingKind;
+  const notes = pendingNotes;
+  if(kind === 'text' && !notes) return;
+
+  const btn = kind === 'image' ? document.getElementById('createImageBtn') : document.getElementById('createBtn');
+  const btnText = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Creating…'; }
+
+  try {
+    let env;
+    if(kind === 'image'){
+      const quota = await consumeImageQuota();
+      if(!quota.ok){ showImageError(quota.error); return; }
+      env = makeImageEnvelope();
+    } else {
+      env = makeTextEnvelope(notes);
+    }
+    env.flags = single ? 1 : 0;
+    env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
+
+    const json = JSON.stringify(env);
+    const isPrivate = choice === 'private';
+    let blob, keyB64 = null;
+    if(isPrivate){
+      const kb = await generateKey();
+      keyB64 = b64urlEncode(kb);
+      blob = await encryptEnvelope(json, kb);
+    } else {
+      blob = b64encodeStr(json);
+    }
+
+    const id = await postCapsule(blob, single);
+    const base = CANONICAL_BASE + '#c/' + id;
+    const link = isPrivate ? base + '#' + keyB64 : base;
+
+    lastCapsule = {
+      id: id,
+      link: link,
+      keyB64: keyB64 || '',
+      blob: blob,
+      envelopeJson: json,
+      blake3: env.blake3,
+      single: !!single,
+      kind: kind,
+      name: kind === 'image' ? selectedName : null
+    };
+
+    showResult(lastCapsule, kind === 'image'
+      ? (selectedName + ' · ' + formatBytes(selectedBytes.length))
+      : (notes.length + ' ' + (notes.length === 1 ? 'note' : 'notes') + ' · ' + env.word_count + ' words'));
+
+    if(kind === 'image'){ refreshImageQuota(); }
+  } catch(e){
+    if(kind === 'image') showImageError('Create failed: ' + e.message);
+    else showErr('Create failed: ' + e.message);
+  } finally {
+    if(btn){ btn.textContent = btnText; btn.disabled = kind === 'image' ? !selectedBytes : false; }
+    updateMeta();
+  }
 }
 
-document.getElementById('listenBtn').onclick=()=>{ if(listening)stopListen(); else startListen(); };
+/* ---- result / sharing --------------------------------------------------- */
+function showResult(capsule, meta){
+  document.getElementById('shareLink').value = capsule.link;
+  document.getElementById('shareLink').dataset.id = capsule.id;
+  document.getElementById('shareLink').dataset.key = capsule.keyB64;
+  document.getElementById('qrText').textContent = capsule.link;
+  const img = document.getElementById('qrImg');
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(capsule.link);
+  img.classList.add('spim-hide');
+  document.getElementById('qrBox').classList.add('spim-hide');
+  document.getElementById('resultVerifyBadge').textContent = 'Verified · ' + String(capsule.blake3).slice(0,8) + '…';
+  document.getElementById('resultMeta').textContent = meta + (capsule.single ? ' · single view' : '');
+  document.getElementById('shareMsg').classList.add('spim-hide');
+  document.querySelectorAll('#result [data-share]').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+  document.getElementById('result').classList.remove('spim-hide');
+  document.getElementById('beamInput').value = capsule.link;
+}
+function closeResult(){ document.getElementById('result').classList.add('spim-hide'); }
+function copyLink(ev){
+  const t = ev && ev.target ? ev.target : null;
+  navigator.clipboard.writeText(document.getElementById('shareLink').value);
+  if(t){ const old = t.textContent; t.textContent = 'Copied'; setTimeout(function(){ t.textContent = old; }, 1200); }
+}
+function toggleQR(){
+  const b = document.getElementById('qrBox');
+  const i = document.getElementById('qrImg');
+  if(b.classList.contains('spim-hide') && i.src.indexOf('api.qrserver') >= 0) i.classList.remove('spim-hide');
+  b.classList.toggle('spim-hide');
+}
+function downloadSpim(){
+  if(!lastCapsule || !lastCapsule.blob) return;
+  const spim = {spim_file:1, version:1, locked:!!lastCapsule.keyB64, key_b64url:lastCapsule.keyB64 || null, blob:lastCapsule.blob};
+  const b = new Blob([JSON.stringify(spim)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = lastCapsule.id + '.spim';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  shareNote('.spim file downloaded.', true);
+}
+function shareNote(msg, ok){
+  const el = document.getElementById('shareMsg');
+  el.textContent = msg;
+  el.classList.toggle('spim-note--ok', !!ok);
+  el.classList.toggle('spim-note--error', !ok);
+  el.classList.remove('spim-hide');
+}
+async function dockCapsule(){
+  if(!lastCapsule){ return; }
+  try {
+    const me = await fetch('/api/auth/me', {credentials:'include'});
+    if(!me.ok){
+      shareNote('Log in to save this capsule to your Dock. Open /login, then share again.', false);
+      return;
+    }
+    const r = await fetch('/api/dock', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({capsule_id:lastCapsule.id, link:lastCapsule.link})
+    });
+    const body = await r.json().catch(function(){ return {}; });
+    if(!r.ok){ shareNote(body.error || 'Could not save to Dock.', false); return; }
+    shareNote('Saved to your Dock. Open Account → Dock to unload it.', true);
+  } catch(e){
+    shareNote('Could not reach the Dock service.', false);
+  }
+}
+function beamCapsule(){
+  if(!lastCapsule){ return; }
+  document.getElementById('result').classList.add('spim-hide');
+  document.getElementById('beamInput').value = lastCapsule.link;
+  setTab('beam');
+  setTimeout(function(){ startBeam(lastCapsule.link); }, 120);
+}
+function openResult(){
+  if(!lastCapsule) return;
+  location.href = lastCapsule.link;
+}
+document.querySelectorAll('#result [data-share]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const mode = btn.getAttribute('data-share');
+    document.querySelectorAll('#result [data-share]').forEach(function(b){ b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+    if(mode === 'link'){ copyLink(); shareNote('Link copied.', true); }
+    else if(mode === 'qr'){ toggleQR(); }
+    else if(mode === 'spim'){ downloadSpim(); }
+    else if(mode === 'dock'){ dockCapsule(); }
+    else if(mode === 'beam'){ beamCapsule(); }
+  });
+});
 
-document.getElementById('dropSoundSel').onchange=()=>{
-  customDropBuf=null;document.getElementById('resetDrop').classList.add('spim-hide');
-};
-document.getElementById('customDrop').onchange=(e)=>{
-  const f=e.target.files&&e.target.files[0];if(!f)return;
-  const C=window.AudioContext||window.webkitAudioContext;
-  const ctx=new C();
-  f.arrayBuffer().then(ab=>ctx.decodeAudioData(ab)).then(buf=>{
-    customDropBuf=buf;
-    const r=document.getElementById('resetDrop');
-    r.classList.remove('spim-hide');r.textContent='Reset';
+/* ---- image -------------------------------------------------------------- */
+let selectedFile = null, selectedBytes = null, selectedMime = null, selectedName = null, selectedDims = null;
+let thumbUrl = null;
+const imageEmpty = document.getElementById('imageEmpty');
+const imageInput = document.getElementById('imageFile');
+
+function showImageError(msg){
+  const el = document.getElementById('imageError');
+  el.textContent = msg; el.hidden = false;
+}
+function clearImageError(){ const el = document.getElementById('imageError'); el.textContent = ''; el.hidden = true; }
+function clearImage(){
+  selectedFile = null; selectedBytes = null; selectedMime = null; selectedName = null; selectedDims = null;
+  if(thumbUrl){ URL.revokeObjectURL(thumbUrl); thumbUrl = null; }
+  document.getElementById('imagePreview').hidden = true;
+  document.getElementById('imageEmpty').hidden = false;
+  imageInput.value = '';
+  document.getElementById('createImageBtn').disabled = true;
+  clearImageError();
+}
+async function handleImage(file){
+  clearImageError();
+  if(!file) return;
+  const allowed = ['image/jpeg','image/png','image/webp'];
+  if(allowed.indexOf(file.type) < 0){ showImageError('Unsupported image type. Use JPEG, PNG, or WebP.'); return; }
+  if(file.size > MAX_IMAGE_BYTES){ showImageError('This image is too large. Maximum size is 1 MB.'); return; }
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8;
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+  const isRiff = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
+  if(file.type === 'image/jpeg' && !isJpeg){ showImageError('That file does not appear to be a JPEG.'); return; }
+  if(file.type === 'image/png' && !isPng){ showImageError('That file does not appear to be a PNG.'); return; }
+  if(file.type === 'image/webp' && !isRiff){ showImageError('That file does not appear to be a WebP.'); return; }
+  let dims = null;
+  try {
+    dims = await getImageDimensions(bytes, file.type);
+    if(dims && (dims.w > MAX_DIM || dims.h > MAX_DIM || dims.w * dims.h > MAX_PIXELS)){
+      showImageError('Image dimensions are too large (' + dims.w + '×' + dims.h + ').');
+      return;
+    }
+  } catch(e){ showImageError('Could not read this image.'); return; }
+
+  selectedFile = file; selectedBytes = bytes; selectedMime = file.type; selectedName = file.name; selectedDims = dims;
+  if(thumbUrl) URL.revokeObjectURL(thumbUrl);
+  thumbUrl = URL.createObjectURL(new Blob([bytes], {type:file.type}));
+  document.getElementById('imageThumb').src = thumbUrl;
+  document.getElementById('imageName').textContent = file.name;
+  document.getElementById('imageMeta').textContent = formatBytes(file.size) + ' · ' + file.type;
+  document.getElementById('imageDims').textContent = dims ? (dims.w + '×' + dims.h) : '';
+  document.getElementById('imageEmpty').hidden = true;
+  document.getElementById('imagePreview').hidden = false;
+  document.getElementById('createImageBtn').disabled = false;
+  refreshImageQuota();
+}
+function getImageDimensions(bytes, mime){
+  return new Promise(function(resolve,reject){
+    const blob = new Blob([bytes], {type:mime});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function(){ const d = {w:img.naturalWidth,h:img.naturalHeight}; URL.revokeObjectURL(url); resolve(d); };
+    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('load failed')); };
+    img.src = url;
+  });
+}
+async function refreshImageQuota(){
+  const el = document.getElementById('imageQuota');
+  if(!el) return;
+  try {
+    const r = await fetch('/api/images', {credentials:'include'});
+    if(!r.ok){ el.textContent = 'Sign in to track your 16 free image capsules.'; return; }
+    const q = await r.json();
+    el.textContent = q.paid ? (q.used + ' images used · paid plan') : (q.remaining + ' of ' + q.limit + ' free image capsules remaining');
+  } catch(e){
+    el.textContent = '';
+  }
+}
+imageEmpty.addEventListener('click', function(){ imageInput.click(); });
+imageEmpty.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); imageInput.click(); } });
+imageInput.addEventListener('change', function(e){ handleImage(e.target.files && e.target.files[0]); e.target.value = ''; });
+['dragenter','dragover'].forEach(function(ev){ imageEmpty.addEventListener(ev, function(e){ e.preventDefault(); imageEmpty.classList.add('is-over'); }); });
+['dragleave','drop'].forEach(function(ev){ imageEmpty.addEventListener(ev, function(e){ e.preventDefault(); imageEmpty.classList.remove('is-over'); }); });
+imageEmpty.addEventListener('drop', function(e){ handleImage(e.dataTransfer.files && e.dataTransfer.files[0]); });
+function createImage(){
+  clearImageError();
+  if(!selectedBytes){ showImageError('Choose an image first.'); return; }
+  if(!window.wasmReady){ showImageError('Engine is still loading — try again.'); return; }
+  pendingKind = 'image'; pendingNotes = null; selectedChoice = 'public';
+  document.getElementById('singleViewCheck').checked = false;
+  updateChoiceUI();
+  document.getElementById('choice').classList.remove('spim-hide');
+}
+
+/* ---- beam --------------------------------------------------------------- */
+let beamCtx = null, beamSrc = null, beamTimer = null;
+function ensureBeamCtx(){
+  if(!beamCtx){ const C = window.AudioContext || window.webkitAudioContext; beamCtx = new C(); }
+  if(beamCtx.state === 'suspended') beamCtx.resume();
+  return beamCtx;
+}
+function beamFromInput(){
+  const el = document.getElementById('beamInput');
+  const err = document.getElementById('beamError');
+  const value = (el.value || '').trim();
+  err.classList.add('spim-hide');
+  if(!value){ err.textContent = 'Create a capsule or paste its link first.'; err.classList.remove('spim-hide'); return; }
+  if(!/\/receive#c\//.test(value) && !/^https?:\/\//i.test(value)){
+    err.textContent = 'That does not look like a capsule link.'; err.classList.remove('spim-hide'); return;
+  }
+  startBeam(value);
+}
+function startBeam(text){
+  const err = document.getElementById('beamError');
+  if(!window.SpimCodec){ if(err){ err.textContent = 'Sound is unavailable in this browser.'; err.classList.remove('spim-hide'); } return; }
+  let bytes;
+  try { bytes = new TextEncoder().encode(text); } catch(e){ if(err){ err.textContent = 'Could not prepare the beam.'; err.classList.remove('spim-hide'); } return; }
+  if(bytes.length > window.SpimCodec.MAX_PAYLOAD){
+    if(err){ err.textContent = 'Too much data for a sound beam.'; err.classList.remove('spim-hide'); }
+    return;
+  }
+  let samples;
+  try { samples = window.SpimCodec.encode(bytes); } catch(e){ if(err){ err.textContent = 'Could not encode the beam.'; err.classList.remove('spim-hide'); } return; }
+  const ctx = ensureBeamCtx();
+  const buf = ctx.createBuffer(1, samples.length, 48000);
+  buf.copyToChannel(samples, 0);
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.connect(ctx.destination);
+  const secs = samples.length / 48000;
+  const overlay = document.getElementById('beamOverlay');
+  document.getElementById('beamText').textContent = text;
+  const bar = document.getElementById('beamBar');
+  bar.style.transition = 'none'; bar.style.width = '0%';
+  document.getElementById('beamVisual').classList.add('is-playing');
+  overlay.classList.remove('spim-hide');
+  requestAnimationFrame(function(){ bar.style.transition = 'width ' + secs + 's linear'; bar.style.width = '100%'; });
+  src.start(); beamSrc = src;
+  beamTimer = setTimeout(stopBeam, secs * 1000 + 200);
+}
+function stopBeam(){
+  if(beamTimer){ clearTimeout(beamTimer); beamTimer = null; }
+  try { if(beamSrc) beamSrc.stop(); } catch(e){}
+  beamSrc = null;
+  document.getElementById('beamOverlay').classList.add('spim-hide');
+  const v = document.getElementById('beamVisual');
+  if(v) v.classList.remove('is-playing');
+  const bar = document.getElementById('beamBar');
+  bar.style.transition = 'none'; bar.style.width = '0%';
+}
+
+/* ---- catch: sound ------------------------------------------------------- */
+let micCtx = null, micStream = null, micNode = null, receiver = null, listening = false, caughtCount = 0;
+let dropCtx = null, customDropBuf = null, lastCaught = '', lastCaughtAt = 0;
+
+function audioCtx(){
+  const C = window.AudioContext || window.webkitAudioContext;
+  if(!dropCtx) dropCtx = new C();
+  if(dropCtx.state === 'suspended') dropCtx.resume();
+  return dropCtx;
+}
+function playDrop(){
+  try {
+    const ctx = audioCtx();
+    if(customDropBuf){ const s = ctx.createBufferSource(); s.buffer = customDropBuf; s.connect(ctx.destination); s.start(); return; }
+    const sel = document.getElementById('dropSoundSel');
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    if(sel.value === 'ding'){
+      o.type = 'sine'; o.frequency.value = 1046;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.55);
+      o.start(); o.stop(ctx.currentTime + 0.55);
+    } else if(sel.value === 'whoosh'){
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(420, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(1250, ctx.currentTime + 0.18);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+      o.start(); o.stop(ctx.currentTime + 0.3);
+    } else {
+      o.type = 'triangle'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.24, ctx.currentTime + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.24);
+      o.start(); o.stop(ctx.currentTime + 0.24);
+    }
+  } catch(e){}
+}
+function setListeningUI(on,note){
+  listening = on;
+  const orb = document.getElementById('listenBtn');
+  const label = document.getElementById('catchLabel');
+  orb.classList.toggle('is-listening', on);
+  orb.setAttribute('aria-pressed', on ? 'true' : 'false');
+  label.textContent = on ? 'Listening — tap to stop' : 'Listen for sound';
+  document.getElementById('catchState').textContent = note || (on ? 'Listening' : 'Idle');
+}
+function onCaught(payload){
+  const text = new TextDecoder().decode(payload);
+  const now = performance.now();
+  if(text === lastCaught && now - lastCaughtAt < 2500) return;
+  lastCaught = text; lastCaughtAt = now;
+  caughtCount++;
+  document.getElementById('catchCount').textContent = caughtCount + ' caught';
+  document.getElementById('caughtText').textContent = text;
+  const open = document.getElementById('caughtOpen');
+  if(/^https?:\/\//i.test(text) || /\/receive#c\//.test(text)){ open.href = text; open.classList.remove('spim-hide'); }
+  else { open.classList.add('spim-hide'); }
+  document.getElementById('caughtCard').classList.remove('spim-hide');
+  playDrop();
+}
+async function startListen(){
+  if(listening) return;
+  if(!window.SpimCodec){ document.getElementById('catchState').textContent = 'Unsupported'; return; }
+  try {
+    audioCtx();
+    const C = window.AudioContext || window.webkitAudioContext;
+    micCtx = new C({sampleRate:48000});
+    if(micCtx.state === 'suspended') await micCtx.resume();
+    micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+    const src = micCtx.createMediaStreamSource(micStream);
+    receiver = window.SpimCodec.createReceiver();
+    micNode = micCtx.createScriptProcessor(2048,1,1);
+    const zero = micCtx.createGain(); zero.gain.value = 0;
+    const level = document.getElementById('catchLevelBar');
+    micNode.onaudioprocess = function(e){
+      if(!listening) return;
+      const ch = e.inputBuffer.getChannelData(0);
+      let sum = 0;
+      for(let i=0;i<ch.length;i++) sum += ch[i]*ch[i];
+      const rms = Math.sqrt(sum/ch.length);
+      level.style.width = Math.min(100, Math.round(rms*700)) + '%';
+      const payload = receiver.push(new Float32Array(ch));
+      if(payload) onCaught(payload);
+    };
+    src.connect(micNode); micNode.connect(zero); zero.connect(micCtx.destination);
+    setListeningUI(true, micCtx.sampleRate === 48000 ? 'Listening' : 'Mic rate ' + micCtx.sampleRate + ' Hz');
+  } catch(e){
+    stopListen();
+    document.getElementById('catchState').textContent = e && e.name === 'NotAllowedError' ? 'Mic blocked' : 'Mic unavailable';
+  }
+}
+function stopListen(){
+  listening = false;
+  try { if(micNode) micNode.disconnect(); } catch(e){}
+  try { if(micStream) micStream.getTracks().forEach(function(t){ t.stop(); }); } catch(e){}
+  try { if(micCtx) micCtx.close(); } catch(e){}
+  micNode = null; micStream = null; micCtx = null; receiver = null;
+  document.getElementById('catchLevelBar').style.width = '0%';
+  setListeningUI(false, 'Idle');
+}
+document.getElementById('listenBtn').onclick = function(){ if(listening) stopListen(); else startListen(); };
+document.getElementById('dropSoundSel').onchange = function(){ customDropBuf = null; document.getElementById('resetDrop').classList.add('spim-hide'); };
+document.getElementById('customDrop').onchange = function(e){
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const C = window.AudioContext || window.webkitAudioContext;
+  const ctx = new C();
+  f.arrayBuffer().then(function(ab){ return ctx.decodeAudioData(ab); }).then(function(buf){
+    customDropBuf = buf;
+    const r = document.getElementById('resetDrop');
+    r.classList.remove('spim-hide'); r.textContent = 'Reset';
     ctx.close();
-  }).catch(()=>{try{ctx.close()}catch(e){}});
+  }).catch(function(){ try { ctx.close(); } catch(e){} });
 };
-document.getElementById('resetDrop').onclick=(e)=>{
-  customDropBuf=null;
-  document.getElementById('customDrop').value='';
+document.getElementById('resetDrop').onclick = function(e){
+  customDropBuf = null;
+  document.getElementById('customDrop').value = '';
   e.target.classList.add('spim-hide');
 };
-document.getElementById('copyCaughtBtn').onclick=(e)=>{
-  navigator.clipboard.writeText(document.getElementById('caughtText').textContent||'');
-  const t=e.target;t.textContent='Copied';setTimeout(()=>t.textContent='Copy',1200);
+document.getElementById('copyCaughtBtn').onclick = function(e){
+  navigator.clipboard.writeText(document.getElementById('caughtText').textContent || '');
+  const t = e.target; t.textContent = 'Copied'; setTimeout(function(){ t.textContent = 'Copy'; }, 1200);
 };
 
 /* ---- catch: local .spim ------------------------------------------------- */
 function resolveEnvelopeNotes(env){
-  if(env.notes&&env.notes.length)return env.notes.map(n=>({source:b64decodeStr(n.source_b64)}));
+  if(env.notes && env.notes.length) return env.notes.map(function(n){ return {source:b64decodeStr(n.source_b64)}; });
   if(env.spim_b64){
-    const w=window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
-    const out=[];
-    try{
-      const n=w.num_memories();
+    const w = window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
+    const out = [];
+    try {
+      const n = w.num_memories();
       for(let i=0;i<n;i++){
-        const norm=w.reconstruct(i);
-        if(norm==null)continue;
-        const fmt=(env.fmt_b64&&env.fmt_b64[i])||null;
-        out.push({source:fmt?window.format_delta_apply(norm,fmt):norm});
+        const norm = w.reconstruct(i);
+        if(norm == null) continue;
+        const fmt = (env.fmt_b64 && env.fmt_b64[i]) || null;
+        out.push({source: fmt ? window.format_delta_apply(norm, fmt) : norm});
       }
-    }finally{w.free()}
+    } finally { w.free(); }
     return out;
   }
   return [];
 }
 async function openSpimFile(file){
-  const msg=document.getElementById('fileMsg');
+  const msg = document.getElementById('fileMsg');
   msg.classList.add('spim-hide');
-  if(!file)return;
-  if(!window.wasmReady)await window.wasmInitPromise;
-  try{
-    const text=await file.text();
+  if(!file) return;
+  if(!window.wasmReady) await window.wasmInitPromise;
+  try {
+    const text = await file.text();
     let wrapper;
-    try{wrapper=JSON.parse(text)}catch(e){throw new Error('not a .spim file')}
-    let blob=wrapper.blob,key=wrapper.key_b64url;
-    if(!blob&&wrapper.magic==='CAP1'){ blob=null; }
+    try { wrapper = JSON.parse(text); } catch(e){ throw new Error('not a .spim file'); }
+    let blob = wrapper.blob, key = wrapper.key_b64url;
     let jsonStr;
-    if(blob&&key){
-      const kb=b64urlDecode(key);
-      const c=b64decodeBytes(blob);
-      const iv=c.slice(0,12);
-      const keyObj=await crypto.subtle.importKey('raw',kb,{name:'AES-GCM'},false,['decrypt']);
-      const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},keyObj,c.slice(12));
-      jsonStr=new TextDecoder().decode(plain);
-    }else if(blob){
-      jsonStr=b64decodeStr(blob);
-    }else{
-      jsonStr=text;
+    if(blob && key){
+      const kb = b64urlDecode(key);
+      const c = b64decodeBytes(blob);
+      const iv = c.slice(0,12);
+      const keyObj = await crypto.subtle.importKey('raw', kb, {name:'AES-GCM'}, false, ['decrypt']);
+      const plain = await crypto.subtle.decrypt({name:'AES-GCM',iv:iv}, keyObj, c.slice(12));
+      jsonStr = new TextDecoder().decode(plain);
+    } else if(blob){
+      jsonStr = b64decodeStr(blob);
+    } else {
+      jsonStr = text;
     }
-    const env=JSON.parse(jsonStr);
-    if(env.magic!=='CAP1')throw new Error('not a capsule');
-    const notes=resolveEnvelopeNotes(env);
+    const env = JSON.parse(jsonStr);
+    if(env.magic !== 'CAP1') throw new Error('not a capsule');
+    const notes = resolveEnvelopeNotes(env);
+    const images = env.images || [];
     caughtCount++;
-    document.getElementById('catchCount').textContent=caughtCount+' caught';
-    document.getElementById('caughtText').textContent=notes.map(n=>n.source).join('\n\n———\n\n')||'(empty capsule)';
+    document.getElementById('catchCount').textContent = caughtCount + ' caught';
+    let display = notes.map(function(n){ return n.source; }).join('\n\n———\n\n');
+    if(images.length) display = (display ? display + '\n\n' : '') + images.map(function(im){ return '[image] ' + (im.filename || 'image') + ' · ' + (im.mime || ''); }).join('\n');
+    document.getElementById('caughtText').textContent = display || '(empty capsule)';
     document.getElementById('caughtOpen').classList.add('spim-hide');
     document.getElementById('caughtCard').classList.remove('spim-hide');
     playDrop();
-  }catch(e){
-    msg.textContent=e.message==='not a .spim file'?'That file is not a .spim capsule.':'Could not open this file. Is it the original, unedited .spim?';
+  } catch(e){
+    msg.textContent = e.message === 'not a .spim file' ? 'That file is not a .spim capsule.' : 'Could not open this file. Is it the original, unedited .spim?';
     msg.classList.remove('spim-hide');
   }
 }
-const drop=document.getElementById('spimDrop');
-const fileInput=document.getElementById('spimFile');
-drop.onclick=()=>fileInput.click();
-drop.onkeydown=(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click()}};
-fileInput.onchange=(e)=>{openSpimFile(e.target.files&&e.target.files[0]);e.target.value=''};
-['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('is-over')}));
-['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('is-over')}));
-drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];openSpimFile(f)});
+const drop = document.getElementById('spimDrop');
+const fileInput = document.getElementById('spimFile');
+drop.onclick = function(){ fileInput.click(); };
+drop.onkeydown = function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } };
+fileInput.onchange = function(e){ openSpimFile(e.target.files && e.target.files[0]); e.target.value = ''; };
+['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('is-over'); }); });
+['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('is-over'); }); });
+drop.addEventListener('drop', function(e){ openSpimFile(e.dataTransfer.files && e.dataTransfer.files[0]); });
+
+function openCapsuleLink(){
+  const v = document.getElementById('openInput').value.trim(), m = document.getElementById('openMsg');
+  if(!v){ m.textContent = 'Paste a capsule link.'; m.classList.remove('spim-hide'); return; }
+  let id = (v.match(/c\/([A-Za-z0-9_-]{6,16})/) || [])[1];
+  if(!id && /^[A-Za-z0-9_-]{6,16}$/.test(v)) id = v;
+  if(!id){ m.textContent = 'That does not look like a capsule link.'; m.classList.remove('spim-hide'); return; }
+  m.classList.add('spim-hide');
+  let k = v.split('#').pop(); const p = v.split('#');
+  if(p.length >= 3) k = p[p.length-1];
+  else if(v.indexOf('#') >= 0 && v.indexOf('/c/') < 0) k = v.split('#')[1] || '';
+  else if(k && k.length < 20) k = '';
+  location.href = CANONICAL_BASE + '#c/' + id + (k && k.length >= 20 ? '#' + k : '');
+}
 
 /* ---- boot --------------------------------------------------------------- */
-document.addEventListener('keydown',e=>{
-  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
-    if(!document.getElementById('panelBeam').classList.contains('spim-hide')){e.preventDefault();createCapsule()}
+document.addEventListener('keydown', function(e){
+  if((e.metaKey || e.ctrlKey) && e.key === 'Enter'){
+    if(!document.getElementById('panelText').hidden){ e.preventDefault(); createText(); }
   }
 });
-window.addEventListener('load',()=>{
-  updateMeta(); renumber();
-  if(location.hash.startsWith('#c/'))location.href='/receive'+location.hash;
-  syncTabFromHash();
+window.addEventListener('load', function(){
+  updateMeta(); renumber(); syncTabFromHash();
+  if(location.hash.indexOf('#c/') === 0) location.replace('/receive' + location.hash);
 });
 updateMeta(); renumber();
 </script>

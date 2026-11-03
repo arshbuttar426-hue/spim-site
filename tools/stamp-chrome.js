@@ -20,10 +20,13 @@ const footer = fs.readFileSync(path.join(__dirname, 'chrome', 'footer.html'), 'u
 
 // page file -> which nav item is the current page
 const PAGES = {
-  'index.html': 'beam',
+  'index.html': 'text',
   'receive.html': 'catch',
   'why.html': 'why',
-  'support.html': 'support'
+  'support.html': 'support',
+  'login.html': '',
+  'create-account.html': '',
+  'account.html': ''
 };
 
 function markCurrent(html, current) {

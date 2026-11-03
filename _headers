@@ -21,3 +21,32 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), geolocation=(), payment=()
+
+# Studio and auth pages must always reflect the latest deploy.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/login
+  Cache-Control: public, max-age=0, must-revalidate
+
+/create-account
+  Cache-Control: public, max-age=0, must-revalidate
+
+/account
+  Cache-Control: public, max-age=0, must-revalidate
+
+/receive
+  Cache-Control: public, max-age=0, must-revalidate
+
+/why
+  Cache-Control: public, max-age=0, must-revalidate
+
+/support
+  Cache-Control: public, max-age=0, must-revalidate
+
+/images
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+

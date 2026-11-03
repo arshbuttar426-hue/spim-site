@@ -6,14 +6,39 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/" data-nav="beam">Beam</a>
+      <a href="/#text" data-nav="text">Text</a>
+      <a href="/#image" data-nav="image">Image</a>
+      <a href="/#beam" data-nav="beam">Beam</a>
       <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/why" data-nav="why">Why SPIM</a>
+      <a href="/why" data-nav="why">Why</a>
       <a href="/support" data-nav="support">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
-      <a class="spim-btn spim-btn--primary spim-btn--sm" href="/#beam">Create</a>
+      <span class="spim-nav-auth" data-auth="out">
+        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+      </span>
+
+      <details class="spim-account" data-auth="in" hidden>
+        <summary class="spim-account-btn" aria-label="Account menu">
+          <span class="spim-avatar" data-auth-initial aria-hidden="true">A</span>
+          <span class="spim-account-email" data-auth-email>Account</span>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="spim-account-menu">
+          <a href="/account#dock">Dock</a>
+          <a href="/account#connections">Connections</a>
+          <a href="/images">Images</a>
+          <a href="/account#api">API</a>
+          <a href="/account">Account</a>
+          <hr>
+          <button type="button" data-auth-signout>Sign out</button>
+        </div>
+      </details>
+
+      <a class="spim-nav-open" href="/#open">Open .spim</a>
+
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -21,11 +46,26 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/" data-nav="beam">Beam</a>
-          <a href="/#catch" data-nav="catch">Catch</a>
+          <a href="/#text" data-nav="text">Create Text</a>
+          <a href="/#image" data-nav="image">Create Image</a>
+          <a href="/#beam" data-nav="beam">Beam by Sound</a>
+          <a href="/#catch" data-nav="catch">Catch / Open</a>
+          <a href="/#open">Open .spim</a>
           <a href="/why" data-nav="why">Why SPIM</a>
           <a href="/support" data-nav="support">Support</a>
-          <a href="/receive">Open a capsule</a>
+          <hr>
+          <span data-auth="out" class="spim-mobile-auth">
+            <a href="/login">Log in</a>
+            <a href="/create-account">Create account</a>
+          </span>
+          <span data-auth="in" class="spim-mobile-auth" hidden>
+            <a href="/account#dock">Dock</a>
+            <a href="/account#connections">Connections</a>
+            <a href="/images">Images</a>
+            <a href="/account#api">API</a>
+            <a href="/account">Account</a>
+            <button type="button" data-auth-signout>Sign out</button>
+          </span>
         </nav>
       </details>
     </div>

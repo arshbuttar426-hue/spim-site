@@ -4,492 +4,515 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>Account — Share</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui'],mono:['JetBrains Mono','monospace']}}}}</script>
-<script src="/js/supabaseClient.js"></script>
-<script src="/js/entitlements.js"></script>
-<script>
-function toggleAvatarMenu(){document.getElementById('avatarMenu').classList.toggle('hidden')}
-async function doSignOut(){await window.supabase.auth.signOut(); location.href='/'}
-document.addEventListener('click',e=>{const m=document.getElementById('avatarMenu'),b=document.getElementById('avatarBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.add('hidden')});
-async function initAuth(){
-  const {data:{session}}=await window.supabase.auth.getSession();
-  const a=!!session;
-  const el=(id)=>document.getElementById(id);
-  if(el('navPublic')){el('navPublic').classList.toggle('hidden',a); el('navPublic').classList.toggle('flex',!a);}
-  if(el('navAuthed')){el('navAuthed').classList.toggle('hidden',!a); el('navAuthed').classList.toggle('flex',a);}
-  if(el('mnavPublic')) el('mnavPublic').classList.toggle('hidden',a);
-  if(el('mnavAuthed')) el('mnavAuthed').classList.toggle('hidden',!a);
-  if(a&&el('avatarBtn')) el('avatarBtn').textContent=session.user.email[0].toUpperCase();
-  if(a&&el('avatarEmail')) el('avatarEmail').textContent=session.user.email;
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAuth); else initAuth();
-</script>
-<div class="max-w-[1120px] mx-auto px-6 py-8">
-  <h1 class="text-[24px] font-black">Account</h1>
-  <div class="mt-6 grid md:grid-cols-[200px_1fr] gap-6">
-    <div class="space-y-2">
-      <button onclick="showTab('overview')" id="tab-overview" class="w-full text-left px-4 py-3 rounded-2xl bg-zinc-900 text-white font-bold">Overview</button>
-      <button onclick="showTab('images')" id="tab-images" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Images</button>
-      <button onclick="showTab('dock')" id="tab-dock" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Dock</button>
-      <button onclick="showTab('connections')" id="tab-connections" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Teammates</button>
-      <button onclick="showTab('agents')" id="tab-agents" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Agents</button>
-      <button onclick="showTab('api')" id="tab-api" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">API</button>
-      <button onclick="showTab('inbox')" id="tab-inbox" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Inbox</button>
-      <button onclick="showTab('send')" id="tab-send" class="w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold">Send capsule</button>
-    </div>
-    <div class="rounded-[24px] bg-white border-2 border-zinc-900 p-6">
-      <div id="view-overview">
-        <h2 class="font-black">Overview</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Your SPIM account and agent capsule inbox.</p>
-        <div id="overview" class="mt-4 font-mono text-[13px]">Loading...</div>
-      </div>
-      <div id="view-connections" class="hidden">
-        <h2 class="font-black">Connections</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">People, Teams, Agents, and Yourself — every addressable destination.</p>
-        <div class="mt-4 grid md:grid-cols-3 gap-4">
-          <div>
-            <h3 class="font-bold text-[11px]">People</h3>
-            <div id="teammateErr" class="hidden mt-1 text-[11px] text-red-600"></div>
-            <div id="peopleList" class="mt-2 space-y-2 font-mono text-[11px]"></div>
-            <div class="mt-2 flex gap-1">
-              <input id="personName" placeholder="Frank" class="flex-1 rounded-full border-2 border-zinc-900 px-3 py-1 font-mono text-[11px]">
-              <button onclick="createTeammate('person')" class="px-3 py-1 rounded-full bg-zinc-900 text-white font-bold text-[10px]">Add</button>
-            </div>
-          </div>
-          <div>
-            <h3 class="font-bold text-[11px]">Teams</h3>
-            <div id="teamsList" class="mt-2 space-y-2 font-mono text-[11px]"></div>
-            <div class="mt-2 flex gap-1">
-              <input id="teamName" placeholder="Product Team" class="flex-1 rounded-full border-2 border-zinc-900 px-3 py-1 font-mono text-[11px]">
-              <button onclick="createTeammate('team')" class="px-3 py-1 rounded-full bg-zinc-900 text-white font-bold text-[10px]">Add</button>
-            </div>
-          </div>
-          <div>
-            <h3 class="font-bold text-[11px]">Agents</h3>
-            <div id="agentsListSmall" class="mt-2 space-y-2 font-mono text-[11px]"></div>
-            <div class="mt-2 flex gap-1">
-              <input id="agentNameSmall" placeholder="Research Agent" class="flex-1 rounded-full border-2 border-zinc-900 px-3 py-1 font-mono text-[11px]">
-              <button onclick="createTeammate('agent')" class="px-3 py-1 rounded-full bg-zinc-900 text-white font-bold text-[10px]">Add</button>
-            </div>
-            <div class="mt-2 p-2 rounded-xl bg-zinc-50 border font-mono text-[10px]">Yourself — <span class="font-bold">Yourself</span> (self) always there for phone → desktop</div>
-          </div>
+<title>Account — SPIM</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
+</head>
+<body class="spim-page" data-page="account">
+<div class="spim-aurora"></div>
+
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/#text" data-nav="text">Text</a>
+      <a href="/#image" data-nav="image">Image</a>
+      <a href="/#beam" data-nav="beam">Beam</a>
+      <a href="/#catch" data-nav="catch">Catch</a>
+      <a href="/why" data-nav="why">Why</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <span class="spim-nav-auth" data-auth="out">
+        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+      </span>
+
+      <details class="spim-account" data-auth="in" hidden>
+        <summary class="spim-account-btn" aria-label="Account menu">
+          <span class="spim-avatar" data-auth-initial aria-hidden="true">A</span>
+          <span class="spim-account-email" data-auth-email>Account</span>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="spim-account-menu">
+          <a href="/account#dock">Dock</a>
+          <a href="/account#connections">Connections</a>
+          <a href="/images">Images</a>
+          <a href="/account#api">API</a>
+          <a href="/account">Account</a>
+          <hr>
+          <button type="button" data-auth-signout>Sign out</button>
         </div>
-        <div id="teammateList" class="hidden"></div>
-      </div>
-      <div id="view-agents" class="hidden">
-        <h2 class="font-black">Agents</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Each agent gets its own API key. Raw secret shown once.</p>
-        <div class="mt-4 flex gap-2">
-          <input id="keyName" placeholder="Key name (e.g. Research Agent)" class="flex-1 rounded-full border-2 border-zinc-900 px-4 py-2 font-mono text-[13px]">
-          <button onclick="createKey()" class="px-4 py-2 rounded-full bg-zinc-900 text-white font-bold text-[12px]">Create API key</button>
-        </div>
-        <div id="keyResult" class="hidden mt-4 p-4 rounded-2xl bg-amber-50 border-2 border-zinc-900">
-          <div class="font-mono text-[11px] font-bold">Copy your key — shown once</div>
-          <div id="keySecret" class="mt-2 font-mono text-[12px] break-all bg-white p-2 rounded-xl border"></div>
-          <div class="font-mono text-[10px] text-zinc-500 mt-1">Store it securely. We store only the hash.</div>
-        </div>
-        <div id="keyErr" class="hidden mt-1 text-[11px] text-red-600"></div>
-        <div id="keyList" class="mt-4 space-y-2 font-mono text-[11px]"></div>
-      </div>
-      <div id="view-images" class="hidden">
-        <h2 class="font-black">Images</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Your image usage and entitlements.</p>
-        <div id="imagesEntitlement" class="mt-4 p-4 rounded-2xl bg-zinc-50 border font-mono text-[11px]"></div>
-        <div class="mt-4 flex gap-2">
-          <button onclick="setPaidForTesting(true)" class="px-4 py-2 rounded-full bg-white border-2 border-zinc-900 font-bold text-[11px]">Simulate Paid (for testing)</button>
-          <button onclick="setPaidForTesting(false)" class="px-4 py-2 rounded-full bg-white border-2 border-zinc-900 font-bold text-[11px]">Simulate Free</button>
-        </div>
-      </div>
-      <div id="view-dock" class="hidden">
-        <h2 class="font-black">Dock</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Something has arrived at the boundary of your workspace. Nothing enters until you unload it.</p>
-        <div id="dockEntitlement" class="mt-4 p-4 rounded-2xl bg-zinc-50 border font-mono text-[11px]"></div>
-        <div class="mt-4 rounded-[24px] bg-zinc-900 text-white p-6">
-          <div class="flex justify-between items-center">
-            <h3 class="font-black tracking-wide">DOCK</h3>
-            <span id="dockCount" class="px-3 py-1 rounded-full bg-amber-400 text-zinc-900 font-mono text-[10px] font-bold">0 waiting</span>
-          </div>
-          <div id="dockList" class="mt-4 space-y-3"></div>
-          <div id="dockEmpty" class="hidden mt-4 p-4 rounded-2xl bg-white/10 text-center font-mono text-[11px]">No dock docked. Your dock is clear.</div>
-        </div>
-      </div>
-      <div id="view-api" class="hidden">
-        <h2 class="font-black">API</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Use your API keys to let your agents interact with SPIM.</p>
-        <div class="mt-4 p-4 rounded-2xl bg-zinc-900 text-white font-mono text-[11px]">
-          <div>Base URL: <span class="text-amber-400">/api/v1/</span></div>
-          <div class="mt-2">Auth: <span class="text-amber-400">Authorization: Bearer &lt;API_KEY&gt;</span></div>
-          <div class="mt-2">Endpoints:</div>
-          <div>POST /dock — Send capsule</div>
-          <div>GET /dock — List docked dock</div>
-          <div>GET /dock/:id — Get capsule metadata</div>
-          <div>POST /dock/:id/unload — Unload (explicit)</div>
-          <div>POST /dock/:id/reject — Reject</div>
-        </div>
-      </div>
-      <div id="view-inbox" class="hidden">
-        <h2 class="font-black">Inbox</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Dock SPIMed to you. Polling only, no push yet.</p>
-        <button onclick="loadInbox()" class="mt-4 px-4 py-2 rounded-full bg-white border-2 border-zinc-900 font-bold text-[11px]">Refresh</button>
-        <div id="inboxMsg" class="hidden mt-1 text-[11px] text-zinc-500"></div>
-        <div id="inboxList" class="mt-4 space-y-2"></div>
-      </div>
-      <div id="view-send" class="hidden">
-        <h2 class="font-black">Send capsule</h2>
-        <p class="font-mono text-[11px] text-zinc-500 mt-1">Send a capsule to a teammate. For testing.</p>
-        <div class="mt-4 space-y-3">
-          <select id="sendTeammate" class="w-full rounded-full border-2 border-zinc-900 px-4 py-3 font-mono text-[13px]"></select>
-          <select id="sendCapsule" class="w-full rounded-full border-2 border-zinc-900 px-4 py-3 font-mono text-[13px]"><option value="">Select existing capsule (or paste below)</option></select>
-          <textarea id="sendPayload" placeholder="Payload — paste capsule ID, or leave empty to use selected capsule. For testing: Meeting notes + API instructions" class="w-full min-h-[100px] rounded-2xl border-2 border-zinc-900 p-4 font-mono text-[13px]"></textarea>
-          <button onclick="sendCapsule()" class="w-full py-3 rounded-full bg-zinc-900 text-white font-black">Send capsule →</button>
-          <div id="sendErr" class="hidden mt-1 text-[11px] text-red-600"></div>
-          <div id="sendResult" class="hidden font-mono text-[11px] p-3 rounded-xl bg-emerald-50 border"></div>
-        </div>
-      </div>
+      </details>
+
+      <a class="spim-nav-open" href="/#open">Open .spim</a>
+
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/#text" data-nav="text">Create Text</a>
+          <a href="/#image" data-nav="image">Create Image</a>
+          <a href="/#beam" data-nav="beam">Beam by Sound</a>
+          <a href="/#catch" data-nav="catch">Catch / Open</a>
+          <a href="/#open">Open .spim</a>
+          <a href="/why" data-nav="why">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <hr>
+          <span data-auth="out" class="spim-mobile-auth">
+            <a href="/login">Log in</a>
+            <a href="/create-account">Create account</a>
+          </span>
+          <span data-auth="in" class="spim-mobile-auth" hidden>
+            <a href="/account#dock">Dock</a>
+            <a href="/account#connections">Connections</a>
+            <a href="/images">Images</a>
+            <a href="/account#api">API</a>
+            <a href="/account">Account</a>
+            <button type="button" data-auth-signout>Sign out</button>
+          </span>
+        </nav>
+      </details>
     </div>
   </div>
-</div>
-<script src="/js/entitlements.js"></script>
-<script>
-let session=null;
-async function checkAuth(){
-  const { data:{session:s} } = await window.supabase.auth.getSession();
-  if(!s){
-    location.href='login.html';
-    return null;
-  }
-  session=s;
-  const _ue=document.getElementById('userEmail'); if(_ue) _ue.textContent=s.user.email;
-  const _ov=document.getElementById('overview'); if(_ov) _ov.innerHTML=`<div>Email: ${s.user.email}</div><div>User ID: ${s.user.id}</div><div>Created: ${new Date().toLocaleString()}</div>`;
-  loadTeammates();
-  loadKeys();
-  loadInbox();
-  return s;
-}
-window.addEventListener('hashchange', ()=>{ const h=location.hash.replace('#',''); if(h) showTab(h); });
-function showTab(name){
-  const el=(id)=>document.getElementById(id);
-  document.querySelectorAll('[id^="view-"]').forEach(el=>el.classList.add('hidden'));
-  const v=el('view-'+name); if(v) v.classList.remove('hidden');
-  document.querySelectorAll('[id^="tab-"]').forEach(el=>{ el.className='w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-zinc-900 font-bold'; });
-  const t=el('tab-'+name); if(t) t.className='w-full text-left px-4 py-3 rounded-2xl bg-zinc-900 text-white font-bold';
-  if(name==='teammates') loadTeammates();
-  if(name==='agents') loadKeys();
-  if(name==='inbox') loadInbox();
-  if(name==='send') loadTeammateOptions();
-  if(name==='images') loadImagesEntitlement();
-  if(name==='dock') loadDock();
-  if(name==='overview') loadOverview();
-}
-async function logout(){
-  await window.supabase.auth.signOut();
-  location.href='login.html';
-}
-function loadOverview(){
-  if(!session) return;
-  const ent=window.Entitlements ? window.Entitlements.getEntitlements(session.user.id) : {images:{used:0,limit:16}, dock:{enabled:false}};
-  const _ov2=document.getElementById('overview'); if(_ov2) _ov2.innerHTML=`<div>Email: ${session.user.email}</div><div>User ID: ${session.user.id}</div><div>Images: ${ent.images.used} / ${ent.images.limit} ${ent.images.enabled?'':'— upgrade required'}</div><div>Dock: ${ent.dock.enabled?'enabled':'paid plan required'}</div>`;
-}
-function loadImagesEntitlement(){
-  if(!session) return;
-  const ent=window.Entitlements.getEntitlements(session.user.id);
-  const el=document.getElementById('imagesEntitlement'); if(!el) return;
-  if(ent.images.enabled){
-    el.innerHTML=`<div class="font-bold">${ent.images.used} / ${ent.images.limit} images used</div><div>${ent.images.limit - ent.images.used} remaining</div>`;
-    el.className='mt-4 p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 font-mono text-[11px]';
-  } else {
-    el.innerHTML=`<div class="font-bold">You've used your ${ent.images.limit} free images.</div><div>Upgrade to keep sending images.</div>`;
-    el.className='mt-4 p-4 rounded-2xl bg-amber-50 border-2 border-amber-200 font-mono text-[11px]';
-  }
-}
-function loadDock(){
-  const el=document.getElementById('dockEntitlement'); if(!el) return;
-  const countEl=document.getElementById('dockCount');
-  const list=document.getElementById('dockList'); if(!list) return;
-  const empty=document.getElementById('dockEmpty');
-  if(!session) return;
-  const ent=window.Entitlements.getEntitlements(session.user.id);
-  if(ent.dock.enabled){
-    el.innerHTML=`<div>Dock enabled — paid plan</div>`;
-    el.className='mt-4 p-4 rounded-2xl bg-emerald-50 border font-mono text-[11px]';
-  } else {
-    el.innerHTML=`<div class="font-bold">Dock are available on the paid plan.</div><div>Your dock is waiting.</div>`;
-    el.className='mt-4 p-4 rounded-2xl bg-amber-50 border font-mono text-[11px]';
-  }
-  const dock=JSON.parse(localStorage.getItem('spim_dock_'+session.user.id) || '[]').filter(p=>p.status==='docked'||p.status==='available');
-  const allDock=JSON.parse(localStorage.getItem('spim_dock_'+session.user.id) || '[]');
-  if(countEl) countEl.textContent=`${dock.length} waiting`;
-  if(dock.length===0){
-    list.innerHTML='';
-    if(empty) empty.classList.remove('hidden');
-  } else {
-    if(empty) empty.classList.add('hidden');
-    list.innerHTML=dock.map(p=>{
-      const expires=p.expires_at ? `Expires in ${Math.max(0, Math.ceil((new Date(p.expires_at)-new Date())/3600000))}h` : 'Expires in 24h';
-      const size=p.payload_size ? `${(p.payload_size/1024).toFixed(1)} KB` : '';
-      return `<div class="p-4 rounded-2xl bg-white text-zinc-900 border-2 border-amber-400">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-amber-400 border-2 border-zinc-900 grid place-items-center font-black text-[10px]">◉</div>
-            <div>
-              <div class="font-black">${p.sender_name||'Unknown'}'s Agent</div>
-              <div class="font-mono text-[11px] text-zinc-500">${p.type} · ${size} · Received ${new Date(p.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-            </div>
-          </div>
-          <span class="px-2 py-1 rounded-full bg-amber-400 text-zinc-900 font-mono text-[10px] font-bold">DOCKED</span>
-        </div>
-        <div class="mt-3 flex gap-2">
-          <button onclick="unloadCapsule('${p.capsule_id}')" class="flex-1 py-2 rounded-full bg-zinc-900 text-white font-black text-[12px]">UNLOAD</button>
-          <button onclick="rejectCapsule('${p.capsule_id}')" class="flex-1 py-2 rounded-full bg-white border-2 border-zinc-900 font-bold text-[12px]">REJECT</button>
-        </div>
-        <div class="mt-2 font-mono text-[10px] text-zinc-500">${expires} · Integrity: Verified</div>
-      </div>`;
-    }).join('');
-    // Also show recently unloaded/rejected below
-    const recent=allDock.filter(p=>p.status!=='docked'&&p.status!=='available').slice(0,3);
-    if(recent.length){
-      list.innerHTML+=`<div class="mt-4 font-mono text-[10px] text-zinc-400">Recent</div>`+recent.map(p=>`<div class="p-3 rounded-xl bg-white/10 border border-white/20 font-mono text-[11px]"><span class="font-bold">${p.status}</span> ${p.sender_name||'Unknown'} · ${new Date(p.created_at).toLocaleDateString()}</div>`).join('');
-    }
-  }
-}
-async function unloadCapsule(id){
-  const dock=JSON.parse(localStorage.getItem('spim_dock_'+session.user.id) || '[]');
-  const idx=dock.findIndex(p=>p.capsule_id===id);
-  if(idx>=0){
-    dock[idx].status='unloaded';
-    dock[idx].received_at=new Date().toISOString();
-    localStorage.setItem('spim_dock_'+session.user.id, JSON.stringify(dock));
-    document.getElementById('dockMsg').textContent='Capsule unloaded — check your workspace'; document.getElementById('dockMsg').classList.remove('hidden');
-    loadDock();
-    loadInbox();
-  }
-}
-async function rejectCapsule(id){
-  const dock=JSON.parse(localStorage.getItem('spim_dock_'+session.user.id) || '[]');
-  const idx=dock.findIndex(p=>p.capsule_id===id);
-  if(idx>=0){
-    dock[idx].status='rejected';
-    dock[idx].rejected_at=new Date().toISOString();
-    localStorage.setItem('spim_dock_'+session.user.id, JSON.stringify(dock));
-    loadDock();
-    loadInbox();
-  }
-}
-function setPaidForTesting(paid){
-  if(!session) return;
-  window.Entitlements.setPaid(session.user.id, paid);
-  loadImagesEntitlement();
-  loadDock();
-}
+</header>
+<!-- /chrome:nav -->
 
-// Teammates - mock localStorage for now, will be Supabase later
-async function loadTeammates(){
-  const teammates=JSON.parse(localStorage.getItem('spim_teammates_'+session.user.id) || '[]');
-  const people=teammates.filter(t=>t.kind==='person');
-  const teams=teammates.filter(t=>t.kind==='team');
-  const agents=teammates.filter(t=>t.kind==='agent');
-  const yourself=teammates.find(t=>t.kind==='self');
-  const peopleEl=document.getElementById('peopleList');
-  const teamsEl=document.getElementById('teamsList');
-  const agentsEl=document.getElementById('agentsListSmall');
-  if(peopleEl) peopleEl.innerHTML=people.length?people.map(t=>`<div class="p-2 rounded-xl bg-white border flex justify-between"><span>${t.display_name}</span><span class="text-emerald-600">● Online</span></div>`).join(''):'<div class="text-zinc-400">No people</div>';
-  if(teamsEl) teamsEl.innerHTML=teams.length?teams.map(t=>`<div class="p-2 rounded-xl bg-white border"><div class="font-bold">${t.display_name}</div><div class="text-zinc-500">${t.members? t.members.length+' members' : '8 members'}</div></div>`).join(''):'<div class="text-zinc-400">No teams</div>';
-  if(agentsEl) agentsEl.innerHTML=agents.length?agents.map(t=>`<div class="p-2 rounded-xl bg-white border"><div class="font-bold">${t.display_name}</div><div class="text-zinc-500">Agent · Connected</div></div>`).join(''):'<div class="text-zinc-400">No agents</div>';
-  // Fallback for old list
-  const list=document.getElementById('teammateList');
-  if(list) list.innerHTML='';
-}
-async function createTeammate(kind){
-  let name;
-  if(kind==='person') name=document.getElementById('personName').value.trim();
-  else if(kind==='team') name=document.getElementById('teamName').value.trim();
-  else if(kind==='agent') name=document.getElementById('agentNameSmall').value.trim();
-  else {
-    name=document.getElementById('teammateName') ? document.getElementById('teammateName').value.trim() : '';
-    kind=document.getElementById('teammateKind') ? document.getElementById('teammateKind').value : kind;
+<main class="spim-shell" style="padding-top:48px;padding-bottom:64px">
+  <div class="spim-spread" style="align-items:flex-end;flex-wrap:wrap;gap:16px">
+    <div>
+      <span class="spim-kicker">Your workspace</span>
+      <h1 class="spim-h2" style="margin-top:10px">Account</h1>
+      <p class="spim-body" style="margin-top:6px">Signed in as <span id="accountEmail" class="spim-mono">—</span></p>
+    </div>
+    <div class="spim-row">
+      <a href="/#text" class="spim-btn spim-btn--primary spim-btn--sm">Create a capsule</a>
+      <button type="button" data-auth-signout class="spim-btn spim-btn--sm">Sign out</button>
+    </div>
+  </div>
+
+  <div id="pageError" class="spim-note spim-note--error spim-hide" style="margin-top:20px"></div>
+
+  <div class="spim-account-shell" style="margin-top:28px">
+    <nav class="spim-account-tabs" aria-label="Account sections">
+      <button type="button" class="spim-account-tab" data-tab="overview">Overview</button>
+      <button type="button" class="spim-account-tab" data-tab="dock">Dock</button>
+      <button type="button" class="spim-account-tab" data-tab="connections">Connections</button>
+      <button type="button" class="spim-account-tab" data-tab="images">Images</button>
+      <button type="button" class="spim-account-tab" data-tab="api">API keys</button>
+    </nav>
+
+    <div>
+      <!-- OVERVIEW -->
+      <section class="spim-account-panel" data-panel="overview">
+        <h2>Overview</h2>
+        <p class="spim-body" style="margin-top:6px">Your identity, quota, and workspace at a glance.</p>
+        <div class="spim-kv" style="margin-top:20px">
+          <div><span>Email</span><span id="ovEmail">—</span></div>
+          <div><span>User ID</span><span id="ovId">—</span></div>
+          <div><span>Member since</span><span id="ovCreated">—</span></div>
+          <div><span>Image capsules</span><span id="ovImages">—</span></div>
+          <div><span>Dock items</span><span id="ovDock">—</span></div>
+          <div><span>Connections</span><span id="ovConnections">—</span></div>
+          <div><span>API keys</span><span id="ovKeys">—</span></div>
+        </div>
+      </section>
+
+      <!-- DOCK -->
+      <section class="spim-account-panel" data-panel="dock" hidden>
+        <div class="spim-spread" style="align-items:flex-start;flex-wrap:wrap;gap:12px">
+          <div>
+            <h2>Dock</h2>
+            <p class="spim-body" style="margin-top:6px">Capsules waiting to be opened or handed to a connection.</p>
+          </div>
+          <button type="button" id="dockRefresh" class="spim-btn spim-btn--sm">Refresh</button>
+        </div>
+        <div id="dockList" class="spim-data-list" style="margin-top:20px"></div>
+      </section>
+
+      <!-- CONNECTIONS -->
+      <section class="spim-account-panel" data-panel="connections" hidden>
+        <h2>Connections</h2>
+        <p class="spim-body" style="margin-top:6px">People, teams, or agents you route capsules to.</p>
+
+        <form id="connectionForm" class="spim-stack" style="margin-top:20px">
+          <div class="spim-row" style="align-items:flex-end">
+            <label class="spim-field" style="flex:1;min-width:180px">
+              <span class="spim-label">Name</span>
+              <input id="connectionName" class="spim-input" placeholder="Ada Lovelace" maxlength="80" required>
+            </label>
+            <label class="spim-field" style="width:160px">
+              <span class="spim-label">Kind</span>
+              <select id="connectionKind" class="spim-select">
+                <option value="person">Person</option>
+                <option value="team">Team</option>
+                <option value="agent">Agent</option>
+                <option value="self">Self</option>
+              </select>
+            </label>
+            <button type="submit" class="spim-btn spim-btn--primary" style="margin-bottom:1px">Add</button>
+          </div>
+          <div id="connectionError" class="spim-note spim-note--error spim-hide"></div>
+        </form>
+
+        <div id="connectionList" class="spim-data-list" style="margin-top:20px"></div>
+      </section>
+
+      <!-- IMAGES -->
+      <section class="spim-account-panel" data-panel="images" hidden>
+        <h2>Images</h2>
+        <p class="spim-body" style="margin-top:6px">Every account includes 16 free image capsules.</p>
+        <div id="imageQuotaCard" style="margin-top:20px"></div>
+        <div style="margin-top:20px">
+          <a href="/#image" class="spim-btn spim-btn--primary">Create an image capsule</a>
+        </div>
+      </section>
+
+      <!-- API -->
+      <section class="spim-account-panel" data-panel="api" hidden>
+        <h2>API keys</h2>
+        <p class="spim-body" style="margin-top:6px">Use a bearer key with <span class="spim-mono">/api/dock</span> and other capsule endpoints. Keys are shown once and stored as SHA-256 hashes.</p>
+
+        <form id="keyForm" class="spim-stack" style="margin-top:20px">
+          <div class="spim-row" style="align-items:flex-end">
+            <label class="spim-field" style="flex:1;min-width:180px">
+              <span class="spim-label">Key name</span>
+              <input id="keyName" class="spim-input" placeholder="CI uploader" maxlength="80" required>
+            </label>
+            <button type="submit" class="spim-btn spim-btn--primary" style="margin-bottom:1px">Create key</button>
+          </div>
+          <div id="keyError" class="spim-note spim-note--error spim-hide"></div>
+        </form>
+
+        <div id="newKeyBox" class="spim-note spim-note--ok spim-hide" style="margin-top:16px">
+          <div style="font-weight:600">Copy this key now — it will not be shown again.</div>
+          <code id="newKeySecret" class="spim-mono" style="display:block;margin-top:8px;word-break:break-all"></code>
+        </div>
+
+        <div id="keyList" class="spim-data-list" style="margin-top:20px"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Studio</h4>
+      <a href="/#text">Create text</a>
+      <a href="/#image">Create image</a>
+      <a href="/#beam">Beam by sound</a>
+      <a href="/#catch">Catch / Open</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Account</h4>
+      <a href="/login">Log in</a>
+      <a href="/create-account">Create account</a>
+      <a href="/account#dock">Dock</a>
+      <a href="/account">Account</a>
+    </div>
+  </div>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+
+<script src="/js/supabaseClient.js"></script>
+<script src="/js/session-nav.js" defer></script>
+<script>
+(function(){
+  var state = { user:null, images:null, dock:[], connections:[], keys:[] };
+
+  function esc(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-  if(!name){ document.getElementById('teammateErr').textContent='Enter display name'; document.getElementById('teammateErr').classList.remove('hidden'); return; }
-  const teammates=JSON.parse(localStorage.getItem('spim_teammates_'+session.user.id) || '[]');
-  if(teammates.find(t=>t.display_name===name)){ document.getElementById('teammateErr').textContent='Already exists'; document.getElementById('teammateErr').classList.remove('hidden'); return; }
-  const rec={id:'tm_'+Math.random().toString(36).slice(2,9), display_name:name, kind: kind==='team'?'team':kind, created_at:new Date().toISOString()};
-  if(kind==='team') rec.members=['Arsh','Frank','Sarah'];
-  teammates.push(rec);
-  localStorage.setItem('spim_teammates_'+session.user.id, JSON.stringify(teammates));
-  if(kind==='person') document.getElementById('personName').value='';
-  if(kind==='team') document.getElementById('teamName').value='';
-  if(kind==='agent') document.getElementById('agentNameSmall').value='';
-  loadTeammates();
-}
-async function loadKeys(){
-  const list=document.getElementById('keyList');
-  const keys=JSON.parse(localStorage.getItem('spim_keys_'+session.user.id) || '[]');
-  if(keys.length===0) list.innerHTML='<div class="text-zinc-400">No API keys yet.</div>';
-  else list.innerHTML=keys.map(k=>`<div class="p-3 rounded-xl bg-zinc-50 border"><div class="flex justify-between"><span class="font-bold">${k.name}</span><span>${k.prefix}...</span></div><div>Scopes: ${k.scopes.join(', ')}</div><div>Created: ${new Date(k.created_at).toLocaleDateString()} ${k.revoked_at?'· REVOKED':''} ${k.last_used_at?'· Last used '+new Date(k.last_used_at).toLocaleString():''}</div><button onclick="revokeKey('${k.key_id}')" class="mt-1 px-3 py-1 rounded-full bg-white border text-[10px]">Revoke</button></div>`).join('');
-}
-async function createKey(){
-  const name=document.getElementById('keyName').value.trim();
-  if(!name){ document.getElementById('keyErr').textContent='Enter key name'; document.getElementById('keyErr').classList.remove('hidden'); return; }
-  const secret='sk_live_'+Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b=>b.toString(36)).join('').slice(0,32);
-  const prefix=secret.slice(0,12);
-  // Hash the secret (SHA-256 for mock, would be bcrypt in production)
-  const hash=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secret));
-  const hashed_secret=Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  const keys=JSON.parse(localStorage.getItem('spim_keys_'+session.user.id) || '[]');
-  const rec={key_id:'key_'+Math.random().toString(36).slice(2,9), name, prefix, hashed_secret, scopes:['parcel:send','capsule:receive'], created_at:new Date().toISOString()};
-  keys.push({...rec, secret}); // store secret only for mock to show once, in real would not store
-  localStorage.setItem('spim_keys_'+session.user.id, JSON.stringify(keys));
-  document.getElementById('keySecret').textContent=secret;
-  document.getElementById('keyResult').classList.remove('hidden');
-  document.getElementById('keyName').value='';
-  loadKeys();
-}
-async function revokeKey(key_id){
-  const keys=JSON.parse(localStorage.getItem('spim_keys_'+session.user.id) || '[]');
-  const idx=keys.findIndex(k=>k.key_id===key_id);
-  if(idx>=0){ keys[idx].revoked_at=new Date().toISOString(); localStorage.setItem('spim_keys_'+session.user.id, JSON.stringify(keys)); loadKeys(); }
-}
-async function loadInbox(){
-  const list=document.getElementById('inboxList');
-  const dock=JSON.parse(localStorage.getItem('spim_dock_'+session.user.id) || '[]');
-  if(dock.length===0) list.innerHTML='<div class="text-zinc-400">No dock yet. Ask someone to SPIM you.</div>';
-  else list.innerHTML=dock.map(p=>`<div class="p-4 rounded-2xl bg-white border-2 border-zinc-900"><div class="flex justify-between"><span class="font-bold">${p.status==='available'?'● New capsule':'○ Capsule'}</span><span class="text-zinc-400">${new Date(p.created_at).toLocaleString()}</span></div><div>From: ${p.sender_name||'Unknown'}</div><div>Type: ${p.type}</div><button onclick="openCapsule('${p.capsule_id}')" class="mt-2 px-3 py-1 rounded-full bg-zinc-900 text-white text-[11px]">Open</button></div>`).join('');
-}
-async function loadTeammateOptions(){
-  const sel=document.getElementById('sendTeammate');
-  const teammates=JSON.parse(localStorage.getItem('spim_teammates_'+session.user.id) || '[]');
-  // Group by kind for unified Send flow
-  const people=teammates.filter(t=>t.kind==='person');
-  const teams=teammates.filter(t=>t.kind==='team');
-  const agents=teammates.filter(t=>t.kind==='agent');
-  const yourself=teammates.find(t=>t.kind==='self');
-  let opts='';
-  if(people.length) opts+=`<optgroup label="People">${people.map(t=>`<option value="${t.display_name}">${t.display_name}</option>`).join('')}</optgroup>`;
-  if(teams.length) opts+=`<optgroup label="Teams">${teams.map(t=>`<option value="${t.display_name}">${t.display_name} (${t.members?t.members.length:8} members)</option>`).join('')}</optgroup>`;
-  if(agents.length) opts+=`<optgroup label="Agents">${agents.map(t=>`<option value="${t.display_name}">${t.display_name}</option>`).join('')}</optgroup>`;
-  if(yourself) opts+=`<optgroup label="Yourself"><option value="${yourself.display_name}">${yourself.display_name}</option></optgroup>`;
-  sel.innerHTML=opts || '<option>No teammates</option>';
-  // Load capsules for dropdown - from localStorage or from server
-  const capSel=document.getElementById('sendCapsule');
-  // Try to get capsules from localStorage (recently created)
-  const caps=JSON.parse(localStorage.getItem('spim_recent_capsules') || '[]');
-  capSel.innerHTML='<option value="">Select existing capsule (or paste below)</option>' + caps.map(c=>`<option value="${c.id}">${c.id.slice(0,8)} — ${c.preview||'capsule'} (${c.type||'capsule'})</option>`).join('');
-  capSel.addEventListener('change', (e)=>{
-    if(e.target.value){
-      document.getElementById('sendPayload').value=e.target.value;
+  function date(value){
+    if(!value) return '—';
+    var d = new Date(value);
+    if(isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+  }
+  function showError(message){
+    var el = document.getElementById('pageError');
+    if(!message){ el.hidden = true; el.textContent = ''; return; }
+    el.textContent = message; el.hidden = false;
+  }
+  function inlineError(id, message){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(!message){ el.hidden = true; el.textContent = ''; return; }
+    el.textContent = message; el.hidden = false;
+  }
+
+  async function api(path, options){
+    var opts = Object.assign({credentials:'include', headers:{}}, options || {});
+    if(opts.body && typeof opts.body !== 'string'){
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(opts.body);
     }
-  });
-}
-async function sendCapsule(){
-  const teammate=document.getElementById('sendTeammate').value;
-  const payload=document.getElementById('sendPayload').value.trim();
-  if(!teammate || !payload){ document.getElementById('sendErr').textContent='Select teammate and payload'; document.getElementById('sendErr').classList.remove('hidden'); return; }
-  const res=document.getElementById('sendResult');
-  // Check capsule entitlement
-  if(window.Entitlements && !window.Entitlements.canUse('dock', session.user.id)){
-    res.textContent='Dock are available on the paid plan. Your dock is waiting.';
-    res.classList.remove('hidden');
-    res.className='font-mono text-[11px] p-3 rounded-xl bg-amber-50 border';
-    return;
+    var res = await fetch(path, opts);
+    var body = null;
+    try { body = await res.json(); } catch(e){}
+    if(res.status === 401){ location.replace('/login?next=' + encodeURIComponent('/account')); throw new Error('not signed in'); }
+    if(!res.ok){ throw new Error((body && body.error) || ('Request failed (' + res.status + ')')); }
+    return body || {};
   }
-  // Handle Teams - expand to members
-  const teammates=JSON.parse(localStorage.getItem('spim_teammates_'+session.user.id) || '[]');
-  let tm=teammates.find(t=>t.display_name===teammate);
-  let recipients=[tm];
-  let isTeam=false;
-  if(tm && tm.kind==='team'){
-    isTeam=true;
-    // Expand team into members
-    const members=tm.members||['Arsh','Frank','Sarah'];
-    recipients=members.map(m=>{
-      let found=teammates.find(t=>t.display_name===m);
-      if(!found) {
-        found={id:'tm_'+Math.random().toString(36).slice(2,9), display_name:m, kind:'person', created_at:new Date().toISOString()};
-        teammates.push(found);
-        localStorage.setItem('spim_teammates_'+session.user.id, JSON.stringify(teammates));
-      }
-      return found;
+
+  /* ---- tabs ------------------------------------------------------------- */
+  var TABS = ['overview','dock','connections','images','api'];
+  function setTab(name){
+    if(TABS.indexOf(name) < 0) name = 'overview';
+    document.querySelectorAll('[data-tab]').forEach(function(btn){
+      btn.classList.toggle('is-active', btn.getAttribute('data-tab') === name);
     });
-    res.textContent=`Sending to team ${teammate} (${recipients.length} members: ${members.join(', ')})...`;
-    res.classList.remove('hidden');
-  } else {
-    if(!tm){ document.getElementById('sendErr').textContent='Teammate not found'; document.getElementById('sendErr').classList.remove('hidden'); return; }
+    document.querySelectorAll('[data-panel]').forEach(function(panel){
+      panel.hidden = panel.getAttribute('data-panel') !== name;
+    });
+    if(history.replaceState) history.replaceState(null, '', '#' + name);
+    if(name === 'dock') loadDock();
+    if(name === 'connections') loadConnections();
+    if(name === 'images') loadImages();
+    if(name === 'api') loadKeys();
+    if(name === 'overview') loadOverview();
   }
-  // For mock, we need to find recipient user_id - for "Yourself", it's same user, for others, we need to have a mapping
-  // In mock, we will just create a capsule in the recipient's inbox if they exist, or in same user's inbox for "Yourself"
-  let recipientUserId=session.user.id;
-  if(tm.display_name!=='Yourself'){
-    // Try to find user by email or display_name - in mock, we search profiles
-    const profiles=JSON.parse(localStorage.getItem('spim_mock_profiles') || '[]');
-    const found=profiles.find(p=>p.email===teammate || p.user_id===teammate);
-    if(found) recipientUserId=found.user_id;
-    else {
-      // For mock, if teammate is Frank and Frank doesn't exist, create a mock Frank user
-      const users=JSON.parse(localStorage.getItem('spim_mock_users') || '[]');
-      let frank=users.find(u=>u.email===teammate.toLowerCase()+'@example.com');
-      if(!frank){
-        frank={id:'user_'+Math.random().toString(36).slice(2,9), email:teammate.toLowerCase()+'@example.com', created_at:new Date().toISOString()};
-        users.push(frank);
-        localStorage.setItem('spim_mock_users', JSON.stringify(users));
-        const profiles2=JSON.parse(localStorage.getItem('spim_mock_profiles') || '[]');
-        profiles2.push({user_id:frank.id, email:frank.email, created_at:frank.created_at});
-        localStorage.setItem('spim_mock_profiles', JSON.stringify(profiles2));
-        // Also ensure Frank has a Yourself teammate
-        const frankTeammates=JSON.parse(localStorage.getItem('spim_teammates_'+frank.id) || '[]');
-        if(!frankTeammates.find(t=>t.display_name==='Yourself')){
-          frankTeammates.push({id:'tm_'+Math.random().toString(36).slice(2,9), display_name:'Yourself', kind:'self', created_at:new Date().toISOString()});
-          localStorage.setItem('spim_teammates_'+frank.id, JSON.stringify(frankTeammates));
-        }
-      }
-      recipientUserId=frank.id;
+  document.querySelectorAll('[data-tab]').forEach(function(btn){
+    btn.addEventListener('click', function(){ setTab(btn.getAttribute('data-tab')); });
+  });
+  window.addEventListener('hashchange', function(){ setTab((location.hash || '#overview').slice(1)); });
+
+  /* ---- overview --------------------------------------------------------- */
+  async function loadOverview(){
+    if(!state.user) return;
+    document.getElementById('ovEmail').textContent = state.user.email || '—';
+    document.getElementById('ovId').textContent = state.user.id || '—';
+    document.getElementById('ovCreated').textContent = date(state.user.created_at);
+    try {
+      var results = await Promise.all([api('/api/images'), api('/api/dock'), api('/api/connections'), api('/api/keys')]);
+      state.images = results[0];
+      state.dock = results[1].items || [];
+      state.connections = results[2].connections || [];
+      state.keys = results[3].keys || [];
+      document.getElementById('ovImages').textContent = state.images.used + ' / ' + state.images.limit + ' used';
+      document.getElementById('ovDock').textContent = state.dock.filter(function(i){ return i.status === 'docked'; }).length + ' waiting';
+      document.getElementById('ovConnections').textContent = state.connections.length;
+      document.getElementById('ovKeys').textContent = state.keys.filter(function(k){ return !k.revoked_at; }).length + ' active';
+    } catch(e){
+      showError(e.message);
     }
   }
-  // Handle multiple recipients for teams
-  let createdCount=0;
-  let lastCapsuleId=null;
-  for(const rec of recipients){
-    let recUserId=recipientUserId;
-    let recTmId=rec.id;
-    if(isTeam){
-      // For team, each member is a separate recipient
-      const lower=rec.display_name.toLowerCase().replace(/[^a-z0-9]/g,'');
-      if(lower==='frank') recUserId='user_frank_mock';
-      else if(lower==='sarah') recUserId='user_sarah_mock';
-      else if(lower==='arsh') recUserId='user_arsh_mock';
-      else recUserId='user_'+lower+'_mock';
-      recTmId=rec.id;
-      // Ensure user exists
-      const users=JSON.parse(localStorage.getItem('spim_mock_users') || '[]');
-      let userRec=users.find(u=>u.id===recUserId);
-      if(!userRec){
-        userRec={id:recUserId, email:rec.display_name.toLowerCase()+'@example.com', created_at:new Date().toISOString()};
-        users.push(userRec);
-        localStorage.setItem('spim_mock_users', JSON.stringify(users));
+
+  /* ---- dock ------------------------------------------------------------- */
+  async function loadDock(){
+    var list = document.getElementById('dockList');
+    list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
+    try {
+      var body = await api('/api/dock');
+      state.dock = body.items || [];
+      if(!state.dock.length){
+        list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No docked capsules yet. Create one and choose <strong>Dock</strong> in the share sheet.</span></div>';
+        return;
       }
+      list.innerHTML = state.dock.map(function(item){
+        var status = item.status || 'docked';
+        var action = status === 'docked'
+          ? '<button type="button" class="spim-btn spim-btn--sm" data-dock-unload="' + esc(item.id) + '">Unload</button>'
+          : '';
+        return '<div class="spim-data-row">'
+          + '<div style="min-width:0"><div style="font-weight:600">' + esc(item.connection_name || 'Capsule') + ' · <span class="spim-mono">' + esc(item.capsule_id) + '</span></div>'
+          + '<div class="spim-mono" style="margin-top:3px">' + esc(status) + ' · ' + esc(date(item.created_at)) + '</div></div>'
+          + '<div class="spim-row">' + action + '<a class="spim-btn spim-btn--sm spim-btn--ghost" href="' + esc(item.link) + '">Open</a></div>'
+          + '</div>';
+      }).join('');
+      list.querySelectorAll('[data-dock-unload]').forEach(function(btn){
+        btn.addEventListener('click', async function(){
+          btn.disabled = true;
+          try {
+            await api('/api/dock/' + encodeURIComponent(btn.getAttribute('data-dock-unload')), {method:'POST', body:{action:'unload'}});
+            await loadDock();
+            await loadOverview();
+          } catch(e){ showError(e.message); btn.disabled = false; }
+        });
+      });
+    } catch(e){
+      list.innerHTML = '';
+      showError(e.message);
     }
-    const capsule={capsule_id:'capsule_'+Math.random().toString(36).slice(2,9), sender_user_id:session.user.id, sender_name:session.user.email, recipient_user_id:recUserId, recipient_teammate_id:recTmId, type:'capsule', payload_reference:payload, payload_size:payload.length, integrity:'mock_blake3', status:'available', created_at:new Date().toISOString()};
-    const dock=JSON.parse(localStorage.getItem('spim_dock_'+recUserId) || '[]');
-    dock.unshift(capsule);
-    localStorage.setItem('spim_dock_'+recUserId, JSON.stringify(dock));
-    lastCapsuleId=capsule.capsule_id;
-    createdCount++;
   }
-  if(isTeam){
-    res.textContent=`Capsule delivered to team ${teammate} — ${createdCount} dock created (last ID: ${lastCapsuleId})`;
-  } else {
-    res.textContent=`Capsule delivered to ${teammate} — ID: ${lastCapsuleId}`;
+  document.getElementById('dockRefresh').addEventListener('click', loadDock);
+
+  /* ---- connections ------------------------------------------------------ */
+  async function loadConnections(){
+    var list = document.getElementById('connectionList');
+    list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
+    try {
+      var body = await api('/api/connections');
+      state.connections = body.connections || [];
+      if(!state.connections.length){
+        list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No connections yet. Add a person, team, or agent above.</span></div>';
+        return;
+      }
+      list.innerHTML = state.connections.map(function(c){
+        return '<div class="spim-data-row">'
+          + '<div><div style="font-weight:600">' + esc(c.name) + '</div><div class="spim-mono" style="margin-top:3px">' + esc(c.kind) + ' · ' + esc(date(c.created_at)) + '</div></div>'
+          + '<button type="button" class="spim-btn spim-btn--sm spim-btn--danger" data-conn-remove="' + esc(c.id) + '">Remove</button>'
+          + '</div>';
+      }).join('');
+      list.querySelectorAll('[data-conn-remove]').forEach(function(btn){
+        btn.addEventListener('click', async function(){
+          btn.disabled = true;
+          try {
+            await api('/api/connections/' + encodeURIComponent(btn.getAttribute('data-conn-remove')), {method:'DELETE'});
+            await loadConnections();
+            await loadOverview();
+          } catch(e){ showError(e.message); btn.disabled = false; }
+        });
+      });
+    } catch(e){
+      list.innerHTML = '';
+      showError(e.message);
+    }
   }
-  res.classList.remove('hidden');
-  res.className='font-mono text-[11px] p-3 rounded-xl bg-emerald-50 border';
-}
-function openCapsule(id){
-  document.getElementById('inboxMsg').textContent='Opening capsule '+id; document.getElementById('inboxMsg').classList.remove('hidden');
-}
-checkAuth();
-  // auto-show tab from hash
-  const initialHash=location.hash.replace('#',''); if(initialHash && document.getElementById('view-'+initialHash)) showTab(initialHash);
+  document.getElementById('connectionForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    inlineError('connectionError', '');
+    var name = document.getElementById('connectionName').value.trim();
+    var kind = document.getElementById('connectionKind').value;
+    if(!name){ inlineError('connectionError', 'Enter a name.'); return; }
+    var btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      await api('/api/connections', {method:'POST', body:{name:name, kind:kind}});
+      document.getElementById('connectionName').value = '';
+      await loadConnections();
+      await loadOverview();
+    } catch(err){ inlineError('connectionError', err.message); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ---- images ----------------------------------------------------------- */
+  async function loadImages(){
+    var card = document.getElementById('imageQuotaCard');
+    card.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
+    try {
+      var q = await api('/api/images');
+      state.images = q;
+      var pct = q.limit ? Math.min(100, Math.round((q.used / q.limit) * 100)) : 0;
+      card.innerHTML = '<div class="spim-data-row" style="display:grid;gap:12px">'
+        + '<div class="spim-spread"><span style="font-weight:600">' + q.used + ' of ' + q.limit + ' used</span><span class="spim-mono">' + q.remaining + ' remaining</span></div>'
+        + '<div class="spim-meter" style="margin:0"><i style="width:' + pct + '%"></i></div>'
+        + '<div class="spim-eyebrow">' + (q.paid ? 'Paid plan — image capsules are unlimited.' : (q.remaining > 0 ? 'Free allowance is active.' : 'Free allowance used. Upgrade to keep creating image capsules.')) + '</div>'
+        + '</div>';
+    } catch(e){
+      card.innerHTML = '';
+      showError(e.message);
+    }
+  }
+
+  /* ---- api keys --------------------------------------------------------- */
+  async function loadKeys(){
+    var list = document.getElementById('keyList');
+    list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
+    try {
+      var body = await api('/api/keys');
+      state.keys = body.keys || [];
+      if(!state.keys.length){
+        list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No API keys yet.</span></div>';
+        return;
+      }
+      list.innerHTML = state.keys.map(function(k){
+        var revoked = !!k.revoked_at;
+        return '<div class="spim-data-row">'
+          + '<div><div style="font-weight:600">' + esc(k.name) + (revoked ? ' · <span class="spim-dim">revoked</span>' : '') + '</div>'
+          + '<div class="spim-mono" style="margin-top:3px">' + esc(k.prefix) + '… · created ' + esc(date(k.created_at)) + (k.last_used_at ? ' · last used ' + esc(date(k.last_used_at)) : '') + '</div></div>'
+          + (revoked ? '' : '<button type="button" class="spim-btn spim-btn--sm spim-btn--danger" data-key-revoke="' + esc(k.id) + '">Revoke</button>')
+          + '</div>';
+      }).join('');
+      list.querySelectorAll('[data-key-revoke]').forEach(function(btn){
+        btn.addEventListener('click', async function(){
+          btn.disabled = true;
+          try {
+            await api('/api/keys/' + encodeURIComponent(btn.getAttribute('data-key-revoke')), {method:'DELETE'});
+            await loadKeys();
+            await loadOverview();
+          } catch(e){ showError(e.message); btn.disabled = false; }
+        });
+      });
+    } catch(e){
+      list.innerHTML = '';
+      showError(e.message);
+    }
+  }
+  document.getElementById('keyForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    inlineError('keyError', '');
+    document.getElementById('newKeyBox').hidden = true;
+    var name = document.getElementById('keyName').value.trim();
+    if(!name){ inlineError('keyError', 'Enter a key name.'); return; }
+    var btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var body = await api('/api/keys', {method:'POST', body:{name:name}});
+      document.getElementById('keyName').value = '';
+      document.getElementById('newKeySecret').textContent = body.secret || '';
+      document.getElementById('newKeyBox').hidden = false;
+      await loadKeys();
+      await loadOverview();
+    } catch(err){ inlineError('keyError', err.message); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ---- boot ------------------------------------------------------------- */
+  async function boot(){
+    try {
+      var me = await api('/api/auth/me');
+      state.user = me.user;
+      document.getElementById('accountEmail').textContent = me.user.email || '—';
+      var tab = (location.hash || '#overview').slice(1);
+      setTab(tab);
+      loadOverview();
+      if(tab === 'dock') loadDock();
+      if(tab === 'connections') loadConnections();
+      if(tab === 'images') loadImages();
+      if(tab === 'api') loadKeys();
+    } catch(e){
+      if(e.message !== 'not signed in') showError(e.message);
+    }
+  }
+  boot();
+})();
 </script>
 </body>
 </html>

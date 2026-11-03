@@ -1,0 +1,17 @@
+# Legacy paths folded into the unified site.
+# The .html pages also self-redirect, but these rules avoid an extra hop.
+
+/login/          /login           301
+/create-account/ /create-account  301
+/account/        /account         301
+/images/         /images.html     301
+/images          /images.html     302
+
+/about           /why             301
+/about/          /why             301
+/use-cases       /why             301
+/use-cases/      /why             301
+/contact         /support         301
+/contact/        /support         301
+/feedback        /support         301
+/feedback/       /support         301
