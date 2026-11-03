@@ -550,6 +550,7 @@ function makeTextEnvelope(notes){
     fmt_b64.push(window.format_delta_encode(s));
   });
   const b = w.encoded_bytes_b64();
+  w.free();
   const wc = notes.reduce(function(a,s){ return a + s.split(/\s+/).filter(Boolean).length; }, 0);
   const env = {magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3:notes_blake3,fmt_b64:fmt_b64,word_count:wc,blake3:""};
   env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
@@ -749,6 +750,9 @@ async function dockCapsule(){
       shareNote('Log in to save this capsule to your Dock. Open /login, then share again.', false);
       return;
     }
+    const meBody = await me.json().catch(function(){ return {}; });
+    const uid = (meBody && meBody.user && meBody.user.id) || 'anon';
+    const storageKey = 'spim_dock_pending:' + uid;
     const r = await fetch('/api/dock', {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
@@ -758,9 +762,9 @@ async function dockCapsule(){
     if(!r.ok){ shareNote(body.error || 'Could not save to Dock.', false); return; }
     if(body && body.item){
       try {
-        const pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
+        const pending = JSON.parse(localStorage.getItem(storageKey) || '[]');
         const next = [body.item].concat(pending.filter(function(i){ return i.id !== body.item.id; }));
-        localStorage.setItem('spim_dock_pending', JSON.stringify(next.slice(0, 20)));
+        localStorage.setItem(storageKey, JSON.stringify(next.slice(0, 20)));
       } catch(e){}
     }
     shareNote('Saved to your Dock. Open Account → Dock to unload it.', true);

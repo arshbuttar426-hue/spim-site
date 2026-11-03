@@ -254,6 +254,10 @@
 (function(){
   var state = { user:null, images:null, dock:[], connections:[], keys:[] };
 
+  function pendingDockKey(){
+    return 'spim_dock_pending:' + ((state.user && state.user.id) || 'anon');
+  }
+
   function esc(value){
     return String(value == null ? '' : value)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -342,11 +346,11 @@
       var body = await api('/api/dock');
       var server = body.items || [];
       var pending = [];
-      try { pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]'); } catch(e){}
+      try { pending = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]'); } catch(e){}
       var serverIds = {};
       server.forEach(function(i){ serverIds[i.id] = true; });
       var stillPending = pending.filter(function(i){ return !serverIds[i.id]; });
-      try { localStorage.setItem('spim_dock_pending', JSON.stringify(stillPending)); } catch(e){}
+      try { localStorage.setItem(pendingDockKey(), JSON.stringify(stillPending)); } catch(e){}
       state.dock = stillPending.concat(server);
       if(!state.dock.length){
         list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No docked capsules yet. Create one and choose <strong>Dock</strong> in the share sheet.</span></div>';
@@ -370,8 +374,8 @@
           try {
             await api('/api/dock/' + encodeURIComponent(id), {method:'POST', body:{action:'unload'}});
             try {
-              var pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
-              localStorage.setItem('spim_dock_pending', JSON.stringify(pending.filter(function(i){ return i.id !== id; })));
+              var pending = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]');
+              localStorage.setItem(pendingDockKey(), JSON.stringify(pending.filter(function(i){ return i.id !== id; })));
             } catch(e){}
             await loadDock();
             await loadOverview();
@@ -380,8 +384,8 @@
             // local optimistic row instead of trapping the user on an error.
             if(e.message && e.message.indexOf('not found') >= 0){
               try {
-                var q = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
-                localStorage.setItem('spim_dock_pending', JSON.stringify(q.filter(function(i){ return i.id !== id; })));
+                var q = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]');
+                localStorage.setItem(pendingDockKey(), JSON.stringify(q.filter(function(i){ return i.id !== id; })));
               } catch(err){}
               await loadDock();
               await loadOverview();
