@@ -7,7 +7,7 @@
  */
 
 const enc = new TextEncoder();
-const PBKDF2_ITERATIONS = 210000;
+const PBKDF2_ITERATIONS = 100000; // Cloudflare Workers rejects PBKDF2 counts above 100,000.
 const SESSION_TTL = 60 * 60 * 24 * 7; // 7 days
 
 export const COOKIE = 'spim_session';
