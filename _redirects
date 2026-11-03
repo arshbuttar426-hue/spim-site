@@ -4,8 +4,7 @@
 /login/          /login           301
 /create-account/ /create-account  301
 /account/        /account         301
-/images/         /images.html     301
-/images          /images.html     302
+/images/         /images          301
 
 /about           /why             301
 /about/          /why             301
