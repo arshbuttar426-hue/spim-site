@@ -380,30 +380,35 @@
     try {
       var body = await api('/api/connections');
       state.connections = body.connections || [];
-      if(!state.connections.length){
-        list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No connections yet. Add a person, team, or agent above.</span></div>';
-        return;
-      }
-      list.innerHTML = state.connections.map(function(c){
-        return '<div class="spim-data-row">'
-          + '<div><div style="font-weight:600">' + esc(c.name) + '</div><div class="spim-mono" style="margin-top:3px">' + esc(c.kind) + ' · ' + esc(date(c.created_at)) + '</div></div>'
-          + '<button type="button" class="spim-btn spim-btn--sm spim-btn--danger" data-conn-remove="' + esc(c.id) + '">Remove</button>'
-          + '</div>';
-      }).join('');
-      list.querySelectorAll('[data-conn-remove]').forEach(function(btn){
-        btn.addEventListener('click', async function(){
-          btn.disabled = true;
-          try {
-            await api('/api/connections/' + encodeURIComponent(btn.getAttribute('data-conn-remove')), {method:'DELETE'});
-            await loadConnections();
-            await loadOverview();
-          } catch(e){ showError(e.message); btn.disabled = false; }
-        });
-      });
+      renderConnections();
     } catch(e){
       list.innerHTML = '';
       showError(e.message);
     }
+  }
+  function renderConnections(){
+    var list = document.getElementById('connectionList');
+    if(!state.connections.length){
+      list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No connections yet. Add a person, team, or agent above.</span></div>';
+      return;
+    }
+    list.innerHTML = state.connections.map(function(c){
+      return '<div class="spim-data-row">'
+        + '<div><div style="font-weight:600">' + esc(c.name) + '</div><div class="spim-mono" style="margin-top:3px">' + esc(c.kind) + ' · ' + esc(date(c.created_at)) + '</div></div>'
+        + '<button type="button" class="spim-btn spim-btn--sm spim-btn--danger" data-conn-remove="' + esc(c.id) + '">Remove</button>'
+        + '</div>';
+    }).join('');
+    list.querySelectorAll('[data-conn-remove]').forEach(function(btn){
+      btn.addEventListener('click', async function(){
+        btn.disabled = true;
+        try {
+          await api('/api/connections/' + encodeURIComponent(btn.getAttribute('data-conn-remove')), {method:'DELETE'});
+          state.connections = state.connections.filter(function(c){ return c.id !== btn.getAttribute('data-conn-remove'); });
+          renderConnections();
+          document.getElementById('ovConnections').textContent = state.connections.length;
+        } catch(e){ showError(e.message); btn.disabled = false; }
+      });
+    });
   }
   document.getElementById('connectionForm').addEventListener('submit', async function(e){
     e.preventDefault();
@@ -414,10 +419,12 @@
     var btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
-      await api('/api/connections', {method:'POST', body:{name:name, kind:kind}});
+      var body = await api('/api/connections', {method:'POST', body:{name:name, kind:kind}});
       document.getElementById('connectionName').value = '';
-      await loadConnections();
-      await loadOverview();
+      // KV is eventually consistent; show the row we just created immediately.
+      if(body && body.connection) state.connections.push(body.connection);
+      renderConnections();
+      document.getElementById('ovConnections').textContent = state.connections.length;
     } catch(err){ inlineError('connectionError', err.message); }
     finally { btn.disabled = false; }
   });
