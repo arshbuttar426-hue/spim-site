@@ -340,7 +340,14 @@
     list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
     try {
       var body = await api('/api/dock');
-      state.dock = body.items || [];
+      var server = body.items || [];
+      var pending = [];
+      try { pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]'); } catch(e){}
+      var serverIds = {};
+      server.forEach(function(i){ serverIds[i.id] = true; });
+      var stillPending = pending.filter(function(i){ return !serverIds[i.id]; });
+      try { localStorage.setItem('spim_dock_pending', JSON.stringify(stillPending)); } catch(e){}
+      state.dock = stillPending.concat(server);
       if(!state.dock.length){
         list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">No docked capsules yet. Create one and choose <strong>Dock</strong> in the share sheet.</span></div>';
         return;
@@ -358,12 +365,30 @@
       }).join('');
       list.querySelectorAll('[data-dock-unload]').forEach(function(btn){
         btn.addEventListener('click', async function(){
+          var id = btn.getAttribute('data-dock-unload');
           btn.disabled = true;
           try {
-            await api('/api/dock/' + encodeURIComponent(btn.getAttribute('data-dock-unload')), {method:'POST', body:{action:'unload'}});
+            await api('/api/dock/' + encodeURIComponent(id), {method:'POST', body:{action:'unload'}});
+            try {
+              var pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
+              localStorage.setItem('spim_dock_pending', JSON.stringify(pending.filter(function(i){ return i.id !== id; })));
+            } catch(e){}
             await loadDock();
             await loadOverview();
-          } catch(e){ showError(e.message); btn.disabled = false; }
+          } catch(e){
+            // The item may still be replicating to this KV location. Drop the
+            // local optimistic row instead of trapping the user on an error.
+            if(e.message && e.message.indexOf('not found') >= 0){
+              try {
+                var q = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
+                localStorage.setItem('spim_dock_pending', JSON.stringify(q.filter(function(i){ return i.id !== id; })));
+              } catch(err){}
+              await loadDock();
+              await loadOverview();
+            } else {
+              showError(e.message); btn.disabled = false;
+            }
+          }
         });
       });
     } catch(e){

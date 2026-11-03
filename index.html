@@ -756,6 +756,13 @@ async function dockCapsule(){
     });
     const body = await r.json().catch(function(){ return {}; });
     if(!r.ok){ shareNote(body.error || 'Could not save to Dock.', false); return; }
+    if(body && body.item){
+      try {
+        const pending = JSON.parse(localStorage.getItem('spim_dock_pending') || '[]');
+        const next = [body.item].concat(pending.filter(function(i){ return i.id !== body.item.id; }));
+        localStorage.setItem('spim_dock_pending', JSON.stringify(next.slice(0, 20)));
+      } catch(e){}
+    }
     shareNote('Saved to your Dock. Open Account → Dock to unload it.', true);
   } catch(e){
     shareNote('Could not reach the Dock service.', false);

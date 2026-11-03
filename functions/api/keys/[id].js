@@ -1,7 +1,19 @@
-import { guard, json, requireUser, getJSON, putJSON, hashSecret, readBody } from '../_lib.js';
+import {
+  guard,
+  json,
+  currentUser,
+  apiKeyUser,
+  getJSON,
+  putJSON,
+  readBody,
+} from '../_lib.js';
+
+async function actor(request, env) {
+  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
+}
 
 export async function onRequestDelete({ request, env, params }) {
-  const user = await requireUser(request, env);
+  const user = await actor(request, env);
   if (!user) return json(401, { error: 'not signed in' });
   const id = String(params.id || '').replace(/[^A-Za-z0-9_]/g, '');
   if (!id) return json(400, { error: 'bad key id' });
@@ -12,7 +24,6 @@ export async function onRequestDelete({ request, env, params }) {
     await putJSON(env, 'key:' + user.id + ':' + id, record);
     if (record.hash) {
       await env.SPIM_KV.delete('keyhash:' + record.hash);
-      delete record.hash;
     }
   }
   return json(200, { ok: true, key: { ...record, hash: undefined } });
@@ -29,7 +40,7 @@ export async function onRequestPost({ request, env, params }) {
 }
 
 export async function onRequestGet({ request, env, params }) {
-  const user = await requireUser(request, env);
+  const user = await actor(request, env);
   if (!user) return json(401, { error: 'not signed in' });
   const id = String(params.id || '').replace(/[^A-Za-z0-9_]/g, '');
   const record = await getJSON(env, 'key:' + user.id + ':' + id);
