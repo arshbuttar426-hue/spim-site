@@ -528,17 +528,17 @@ body.spim-page {
   width: 112px;
   height: 112px;
   border-radius: 50%;
-  border: 1px solid var(--spim-accent-line);
+  border: 1px solid rgba(56, 189, 248, 0.32);
   background:
-    radial-gradient(circle at 50% 42%, rgba(53, 105, 238, 0.12), rgba(53, 105, 238, 0.06) 58%, transparent 72%);
-  color: var(--spim-accent);
+    radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.06) 58%, transparent 72%);
+  color: #38BDF8;
   display: grid;
   place-items: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
-.spim-orb:hover { border-color: var(--spim-accent); }
+.spim-orb:hover { border-color: rgba(56, 189, 248, 0.55); }
 .spim-orb svg { width: 30px; height: 30px; }
 .spim-orb::before,
 .spim-orb::after {
