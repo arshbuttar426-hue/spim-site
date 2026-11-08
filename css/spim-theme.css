@@ -86,8 +86,8 @@ body.spim-page {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60% 42% at 50% -8%, rgba(53, 105, 238, 0.07), transparent 70%),
-    radial-gradient(40% 30% at 85% 0%, rgba(33, 166, 122, 0.05), transparent 70%);
+    radial-gradient(60% 42% at 50% -8%, rgba(233, 162, 59, 0.08), transparent 70%),
+    radial-gradient(40% 30% at 85% 0%, rgba(56, 189, 248, 0.08), transparent 70%);
 }
 
 /* --- shell --------------------------------------------------------------- */
