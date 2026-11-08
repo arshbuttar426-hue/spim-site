@@ -38,6 +38,8 @@
   --spim-r-pill: 999px;
   --spim-shell: 1120px;
   --spim-nav-h: 64px;
+  /* Sticky-nav clearance for in-page anchors (#beam, #catch, ...). */
+  --spim-anchor-offset: calc(var(--spim-nav-h) + 12px);
 
   --spim-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --spim-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -46,6 +48,12 @@
 }
 
 /* --- base ---------------------------------------------------------------- */
+
+/* Keep in-page anchor targets clear of the fixed navigation bar. */
+html { scroll-padding-top: var(--spim-anchor-offset); }
+.spim-page section[id],
+.spim-page .spim-card[id],
+.spim-page [role='tabpanel'][id] { scroll-margin-top: var(--spim-anchor-offset); }
 
 .spim-page,
 body.spim-page {
@@ -359,6 +367,7 @@ body.spim-page {
 .spim-seg {
   display: flex;
   gap: 4px;
+  min-width: 0;
   padding: 4px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-pill);
@@ -386,6 +395,27 @@ body.spim-page {
   background: var(--spim-accent);
   color: var(--spim-accent-ink);
   font-weight: 650;
+}
+
+/* Four-way studio tabs must never clip: collapse to a 2x2 grid on phones,
+   where the natural width (~405px) exceeds every common viewport. */
+.spim-studio-head .spim-seg--4 { flex: 1 1 260px; max-width: 560px; }
+
+@media (max-width: 620px) {
+  /* Full-width strip: two 2x2 rows, so no label can ever be clipped. */
+  .spim-studio-head .spim-seg--4 { flex: 1 1 100%; max-width: none; }
+  .spim-seg--4 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: var(--spim-r-md);
+  }
+  .spim-seg--4 .spim-seg-btn {
+    height: 38px;
+    padding: 0 6px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .spim-seg--4 .spim-seg-btn .spim-seg-icon { width: 14px; height: 14px; }
 }
 
 /* --- form controls ------------------------------------------------------- */
@@ -430,6 +460,14 @@ body.spim-page {
   background-repeat: no-repeat;
   font-family: var(--spim-mono);
   font-size: 11px;
+}
+
+/* iOS Safari zooms the whole page when a focused field is under 16px.
+   Keep mobile fields at 16px so typing never reflows the layout. */
+@media (max-width: 780px) {
+  .spim-page .spim-input,
+  .spim-page .spim-textarea,
+  .spim-page .spim-select { font-size: 16px; }
 }
 
 /* --- mode selector (send) ------------------------------------------------ */

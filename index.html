@@ -114,8 +114,8 @@
 
   <!-- UNIFIED STUDIO -->
   <section id="workspace" class="spim-card" aria-label="SPIM studio">
-    <div class="spim-card-head" style="padding:12px 14px">
-      <div class="spim-seg spim-seg--4" role="tablist" aria-label="Studio mode" style="flex:1;max-width:560px">
+    <div class="spim-card-head spim-studio-head" style="padding:12px 14px">
+      <div class="spim-seg spim-seg--4" role="tablist" aria-label="Studio mode">
         <button id="tabText" class="spim-seg-btn" role="tab" aria-selected="true" aria-controls="panelText">
           <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 2.5h10M8 2.5v11M5.5 13.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Send Text
@@ -207,7 +207,7 @@
 
         <div class="spim-field">
           <label class="spim-label" for="beamInput">Capsule link</label>
-          <input id="beamInput" class="spim-input spim-mono" style="font-size:11.5px" placeholder="https://www.spim.co.in/receive#c/…" autocomplete="off">
+          <input id="beamInput" class="spim-input spim-mono" placeholder="https://www.spim.co.in/receive#c/…" autocomplete="off">
         </div>
 
         <button id="beamBtn" onclick="beamFromInput()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Play sound</button>
@@ -223,7 +223,7 @@
         <div class="spim-field">
           <label class="spim-label" for="openInput">Paste a capsule link</label>
           <div class="spim-row" style="flex-wrap:nowrap">
-            <input id="openInput" class="spim-input spim-mono" style="font-size:12px" placeholder="www.spim.co.in/receive#c/…">
+            <input id="openInput" class="spim-input spim-mono" placeholder="www.spim.co.in/receive#c/…">
             <button onclick="openCapsuleLink()" class="spim-btn">Open</button>
           </div>
           <p id="openMsg" class="spim-note spim-note--error spim-hide"></p>
@@ -337,7 +337,7 @@
     <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Your capsule is ready</span>
     <h3 class="spim-h3" style="margin-top:12px">Share it any way.</h3>
     <div class="spim-row" style="flex-wrap:nowrap;margin-top:16px">
-      <input id="shareLink" readonly class="spim-input spim-mono" style="font-size:11px;min-width:0">
+      <input id="shareLink" readonly class="spim-input spim-mono" style="min-width:0">
       <button onclick="copyLink(event)" class="spim-btn spim-btn--primary">Copy</button>
     </div>
     <div class="spim-row" style="margin-top:12px;gap:6px">
