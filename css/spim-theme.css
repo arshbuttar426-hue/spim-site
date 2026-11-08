@@ -41,7 +41,7 @@
   /* Sticky-nav clearance for in-page anchors (#beam, #catch, ...). */
   --spim-anchor-offset: calc(var(--spim-nav-h) + 13px);
 
-  --spim-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --spim-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
   --spim-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* --- modular type scale — Major Third (ratio 1.25), base 16px --- */
