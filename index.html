@@ -223,7 +223,7 @@
         <div class="spim-field">
           <label class="spim-label" for="openInput">Paste a capsule link</label>
           <div class="spim-row" style="flex-wrap:nowrap">
-            <input id="openInput" class="spim-input spim-mono" placeholder="www.spim.co.in/receive#c/…">
+            <input id="openInput" class="spim-input spim-mono" style="min-width:0" placeholder="www.spim.co.in/receive#c/…">
             <button onclick="openCapsuleLink()" class="spim-btn">Open</button>
           </div>
           <p id="openMsg" class="spim-note spim-note--error spim-hide"></p>
@@ -360,7 +360,7 @@
       <div id="qrText" class="spim-mono" style="font-size:9px;word-break:break-all;margin-top:10px;color:var(--spim-dim)"></div>
     </div>
 
-    <div class="spim-modal-actions" style="margin-top:18px">
+    <div class="spim-modal-actions spim-modal-actions--2" style="margin-top:18px">
       <button onclick="openResult()" class="spim-btn">Open capsule</button>
       <button onclick="closeResult()" class="spim-btn spim-btn--ghost">Close</button>
     </div>
