@@ -1,35 +1,35 @@
 /* ==========================================================================
    SPIM — one design system for every page.
-   Minimal, obsidian, hairline-ruled. No per-page colour drift.
+   Minimal, light, hairline-ruled. No per-page colour drift.
    ========================================================================== */
 
 :root {
-  /* surface */
-  --spim-bg: #07080A;
-  --spim-bg-soft: #0A0B0E;
-  --spim-panel: #0B0C10;
-  --spim-panel-2: #0E1016;
-  --spim-raise: rgba(255, 255, 255, 0.035);
+  /* surface — light, Salesforce/Slack inspired */
+  --spim-bg: #f5f7fb;
+  --spim-bg-soft: #eef2f7;
+  --spim-panel: #ffffff;
+  --spim-panel-2: #f3f6fa;
+  --spim-raise: rgba(23, 35, 59, 0.04);
 
   /* line */
-  --spim-line: rgba(255, 255, 255, 0.08);
-  --spim-line-strong: rgba(255, 255, 255, 0.14);
+  --spim-line: #e7ecf3;
+  --spim-line-strong: #d9e2ee;
 
   /* text */
-  --spim-text: #F8FAFC;
-  --spim-muted: #94A3B8;
-  --spim-dim: #64748B;
-  --spim-faint: #475569;
+  --spim-text: #17233b;
+  --spim-muted: #718096;
+  --spim-dim: #91a0b5;
+  --spim-faint: #9aa8bb;
 
   /* signal */
-  --spim-accent: #38BDF8;
-  --spim-accent-ink: #04121B;
-  --spim-accent-soft: rgba(56, 189, 248, 0.12);
-  --spim-accent-line: rgba(56, 189, 248, 0.32);
-  --spim-verified: #10B981;
-  --spim-verified-soft: rgba(16, 185, 129, 0.12);
-  --spim-warn: #F59E0B;
-  --spim-danger: #F87171;
+  --spim-accent: #3569ee;
+  --spim-accent-ink: #ffffff;
+  --spim-accent-soft: rgba(53, 105, 238, 0.08);
+  --spim-accent-line: rgba(53, 105, 238, 0.32);
+  --spim-verified: #21a67a;
+  --spim-verified-soft: rgba(33, 166, 122, 0.1);
+  --spim-warn: #e9a23b;
+  --spim-danger: #df6666;
 
   /* geometry */
   --spim-r-sm: 8px;
@@ -44,7 +44,7 @@
   --spim-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --spim-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --spim-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+  --spim-shadow: 0 1px 0 rgba(23, 35, 59, 0.04) inset, 0 24px 60px -32px rgba(23, 35, 59, 0.12);
 }
 
 /* --- base ---------------------------------------------------------------- */
@@ -86,8 +86,8 @@ body.spim-page {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60% 42% at 50% -8%, rgba(56, 189, 248, 0.10), transparent 70%),
-    radial-gradient(40% 30% at 85% 0%, rgba(16, 185, 129, 0.06), transparent 70%);
+    radial-gradient(60% 42% at 50% -8%, rgba(53, 105, 238, 0.07), transparent 70%),
+    radial-gradient(40% 30% at 85% 0%, rgba(33, 166, 122, 0.05), transparent 70%);
 }
 
 /* --- shell --------------------------------------------------------------- */
@@ -172,7 +172,7 @@ body.spim-page {
   top: 0;
   z-index: 60;
   border-bottom: 1px solid var(--spim-line);
-  background: rgba(7, 8, 10, 0.72);
+  background: rgba(255, 255, 255, 0.82);
   -webkit-backdrop-filter: saturate(140%) blur(18px);
   backdrop-filter: saturate(140%) blur(18px);
 }
@@ -315,7 +315,7 @@ body.spim-page {
   color: var(--spim-accent-ink);
   font-weight: 650;
 }
-.spim-btn--primary:hover { background: #5CC9FA; border-color: transparent; }
+.spim-btn--primary:hover { background: #2f5fd0; border-color: transparent; }
 .spim-btn--quiet { border-color: var(--spim-line); color: var(--spim-muted); }
 .spim-btn--quiet:hover { color: var(--spim-text); }
 .spim-btn--ghost { border-color: transparent; color: var(--spim-muted); }
@@ -513,9 +513,9 @@ body.spim-page {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--spim-muted);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(23, 35, 59, 0.03);
 }
-.spim-pill--verified { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #6EE7B7; }
+.spim-pill--verified { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #15805a; }
 .spim-pill--accent { border-color: var(--spim-accent-line); background: var(--spim-accent-soft); color: var(--spim-accent); }
 .spim-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .spim-dot--live { background: var(--spim-verified); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
@@ -530,7 +530,7 @@ body.spim-page {
   border-radius: 50%;
   border: 1px solid var(--spim-accent-line);
   background:
-    radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.20), rgba(56, 189, 248, 0.05) 58%, transparent 72%);
+    radial-gradient(circle at 50% 42%, rgba(53, 105, 238, 0.12), rgba(53, 105, 238, 0.06) 58%, transparent 72%);
   color: var(--spim-accent);
   display: grid;
   place-items: center;
@@ -550,7 +550,7 @@ body.spim-page {
   opacity: 0;
   pointer-events: none;
 }
-.spim-orb.is-listening { border-color: var(--spim-verified); color: var(--spim-verified); background: radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05) 58%, transparent 72%); }
+.spim-orb.is-listening { border-color: var(--spim-verified); color: var(--spim-verified); background: radial-gradient(circle at 50% 42%, rgba(33, 166, 122, 0.14), rgba(33, 166, 122, 0.05) 58%, transparent 72%); }
 .spim-orb.is-listening::before { animation: spim-pulse 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
 .spim-orb.is-listening::after { animation: spim-pulse 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) 1.2s infinite; }
 @keyframes spim-pulse {
@@ -567,7 +567,7 @@ body.spim-page {
   max-width: 240px;
   margin: 14px auto 0;
   border-radius: var(--spim-r-pill);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(23, 35, 59, 0.06);
   overflow: hidden;
 }
 .spim-meter > i {
@@ -588,7 +588,7 @@ body.spim-page {
   padding: 3px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-pill);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(23, 35, 59, 0.03);
 }
 .spim-sound select {
   appearance: none;
@@ -651,7 +651,7 @@ body.spim-page {
   color: var(--spim-text);
 }
 .spim-acc summary::-webkit-details-marker { display: none; }
-.spim-acc summary:hover { color: #fff; }
+.spim-acc summary:hover { color: var(--spim-text); }
 .spim-acc summary::after {
   content: '+';
   font-family: var(--spim-mono);
@@ -780,7 +780,7 @@ body.spim-page {
   place-items: center;
   padding: 20px;
   overflow: auto;
-  background: rgba(3, 4, 6, 0.8);
+  background: rgba(15, 23, 42, 0.28);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
@@ -839,7 +839,7 @@ body.spim-page {
   padding: 12px 14px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-md);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(23, 35, 59, 0.03);
   cursor: pointer;
   font-size: 12px;
 }
@@ -856,13 +856,13 @@ body.spim-page {
   padding: 12px 14px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-sm);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(23, 35, 59, 0.03);
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--spim-muted);
 }
-.spim-note--error { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.07); color: #FCA5A5; }
-.spim-note--ok { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #6EE7B7; }
+.spim-note--error { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.07); color: #b3261e; }
+.spim-note--ok { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #15805a; }
 
 /* --- capsule reader notes ------------------------------------------------ */
 
@@ -972,7 +972,7 @@ body.spim-page {
   padding: 0 10px 0 4px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-pill);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(23, 35, 59, 0.03);
   color: var(--spim-muted);
   font-size: 12px;
 }
@@ -1080,7 +1080,7 @@ body.spim-page {
   margin: 0 auto;
   border-radius: 50%;
   border: 1px solid var(--spim-accent-line);
-  background: radial-gradient(circle at 50% 42%, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.05) 58%, transparent 72%);
+  background: radial-gradient(circle at 50% 42%, rgba(53, 105, 238, 0.12), rgba(53, 105, 238, 0.06) 58%, transparent 72%);
   color: var(--spim-accent);
   display: grid;
   place-items: center;
