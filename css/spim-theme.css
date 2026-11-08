@@ -27,6 +27,7 @@
   --spim-accent-soft: rgba(53, 105, 238, 0.08);
   --spim-accent-line: rgba(53, 105, 238, 0.32);
   --spim-verified: #21a67a;
+  --spim-verified-line: rgba(33, 166, 122, 0.28);
   --spim-verified-soft: rgba(33, 166, 122, 0.1);
   --spim-warn: #e9a23b;
   --spim-danger: #df6666;
@@ -315,7 +316,7 @@ body.spim-page {
   white-space: nowrap;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
-.spim-btn:hover { border-color: rgba(255, 255, 255, 0.28); background: var(--spim-raise); }
+.spim-btn:hover { border-color: rgba(23, 35, 59, 0.18); background: var(--spim-raise); }
 .spim-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .spim-btn--primary {
   border-color: transparent;
@@ -379,7 +380,7 @@ body.spim-page {
   padding: 4px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-pill);
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(23, 35, 59, 0.04);
 }
 .spim-seg-btn {
   flex: 1;
@@ -523,7 +524,7 @@ body.spim-page {
   color: var(--spim-muted);
   background: rgba(23, 35, 59, 0.03);
 }
-.spim-pill--verified { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #15805a; }
+.spim-pill--verified { border-color: var(--spim-verified-line); background: var(--spim-verified-soft); color: #15805a; }
 .spim-pill--accent { border-color: var(--spim-accent-line); background: var(--spim-accent-soft); color: var(--spim-accent); }
 .spim-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .spim-dot--live { background: var(--spim-verified); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
@@ -554,7 +555,7 @@ body.spim-page {
   position: absolute;
   inset: -1px;
   border-radius: 50%;
-  border: 1px solid var(--spim-accent-line);
+  border: 1px solid var(--spim-verified-line);
   opacity: 0;
   pointer-events: none;
 }
@@ -585,6 +586,15 @@ body.spim-page {
   border-radius: inherit;
   background: var(--spim-verified);
   transition: width 0.12s linear;
+}
+
+/* --- listen zone (catch panel) ------------------------------------------- */
+
+.spim-listen-zone {
+  border: 1px solid var(--spim-line);
+  background: var(--spim-bg-soft);
+  border-radius: var(--spim-r-md);
+  padding: 18px 14px;
 }
 
 /* --- drop-sound pill ----------------------------------------------------- */
@@ -701,8 +711,8 @@ body.spim-page {
   background: var(--spim-accent-soft);
   color: var(--spim-accent);
 }
-.spim-pillar:nth-child(2) .spim-pillar-icon { border-color: rgba(16, 185, 129, 0.32); background: var(--spim-verified-soft); color: var(--spim-verified); }
-.spim-pillar:nth-child(3) .spim-pillar-icon { border-color: var(--spim-line-strong); background: rgba(255, 255, 255, 0.04); color: var(--spim-text); }
+.spim-pillar:nth-child(2) .spim-pillar-icon { border-color: var(--spim-verified-line); background: var(--spim-verified-soft); color: var(--spim-verified); }
+.spim-pillar:nth-child(3) .spim-pillar-icon { border-color: var(--spim-line-strong); background: var(--spim-panel-2); color: var(--spim-text); }
 .spim-pillar h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
 .spim-pillar p { font-size: 13.5px; line-height: 1.6; color: var(--spim-muted); }
 .spim-pillar-num { margin-left: auto; font-family: var(--spim-mono); font-size: 10px; color: var(--spim-faint); letter-spacing: 0.1em; }
@@ -870,7 +880,7 @@ body.spim-page {
   color: var(--spim-muted);
 }
 .spim-note--error { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.07); color: #b3261e; }
-.spim-note--ok { border-color: rgba(16, 185, 129, 0.28); background: var(--spim-verified-soft); color: #15805a; }
+.spim-note--ok { border-color: var(--spim-verified-line); background: var(--spim-verified-soft); color: #15805a; }
 
 /* --- capsule reader notes ------------------------------------------------ */
 
