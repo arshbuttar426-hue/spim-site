@@ -3,7 +3,8 @@ compatibility_date = "2024-09-23"
 pages_build_output_dir = "."
 
 [vars]
-SPIM_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com"
+SPIM_ORIGIN = "https://similar-speeches-marine-occasion.trycloudflare.com"
+# KV origin is no longer used — hard-coded in functions to avoid KV auth issues
 # SPIM_UPDATE_TOKEN is a Pages secret, set with:
 #   wrangler pages secret put SPIM_UPDATE_TOKEN --project-name=spim-site
 # Never put it back in this file: everything in the deploy tree is public.

@@ -1,15 +1,3 @@
-const DEFAULT_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com";
-
-async function origin(env) {
-  try {
-    if (env && env.SPIM_KV) {
-      const current = await env.SPIM_KV.get("origin");
-      if (current) return current;
-    }
-  } catch (e) {}
-  return (env && env.SPIM_ORIGIN) || DEFAULT_ORIGIN;
-}
-
 function json(status, body) {
   return new Response(JSON.stringify(body), {
     status,
@@ -22,7 +10,7 @@ function json(status, body) {
 }
 
 async function proxy(request, env, path) {
-  const target = (await origin(env)).replace(/\/+$/, "") + path;
+  const target = (env && env.SPIM_ORIGIN) || "https://similar-speeches-marine-occasion.trycloudflare.com";
   const init = { method: request.method, headers: {} };
   const type = request.headers.get("content-type");
   if (type) init.headers["content-type"] = type;
@@ -31,7 +19,7 @@ async function proxy(request, env, path) {
   }
   let res;
   try {
-    res = await fetch(target, init);
+    res = await fetch(target + path, init);
   } catch (e) {
     return json(502, { error: "upstream unreachable", detail: String((e && e.message) || e) });
   }
@@ -63,4 +51,15 @@ export async function onRequestPost({ request, env }) {
 
 export async function onRequestGet() {
   return json(405, { error: "method not allowed" });
+}
+
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-allow-headers": "content-type",
+    },
+  });
 }
