@@ -34,17 +34,6 @@ async function proxy(request, env, path) {
   });
 }
 
-export async function onRequestOptions() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET, POST, OPTIONS",
-      "access-control-allow-headers": "content-type",
-    },
-  });
-}
-
 export async function onRequestPost({ request, env }) {
   return proxy(request, env, "/capsules");
 }
