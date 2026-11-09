@@ -1,40 +1,25 @@
-const DEFAULT_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com";
-
-async function origin(env) {
-  try {
-    if (env && env.SPIM_KV) {
-      const current = await env.SPIM_KV.get("origin");
-      if (current) return current;
-    }
-  } catch (e) {}
-  return (env && env.SPIM_ORIGIN) || DEFAULT_ORIGIN;
-}
-
-export async function onRequestPost({ env, params }) {
-  const id = String(params.id || "").replace(/[^A-Za-z0-9_-]/g, "");
-  if (!id) {
-    return new Response(JSON.stringify({ error: "bad id" }), {
-      status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    });
-  }
-  const target = (await origin(env)).replace(/\/+$/, "") + "/capsules/" + encodeURIComponent(id) + "/consume";
-  let res;
-  try {
-    res = await fetch(target, { method: "POST", headers: { accept: "application/json" } });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: "upstream unreachable" }), {
-      status: 502,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
-    });
-  }
-  const body = await res.text();
-  return new Response(body, {
-    status: res.status,
+function json(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: {
-      "content-type": res.headers.get("content-type") || "application/json; charset=utf-8",
+      "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "access-control-allow-origin": "*",
     },
   });
+}
+
+export async function onRequestPost({ env, params }) {
+  const id = String(params.id || "").replace(/[^A-Za-z0-9_-]/g, "");
+  if (!id) return json(400, { error: "bad id" });
+  if (!env || !env.SPIM_KV) return json(500, { error: "storage unavailable" });
+  const raw = await env.SPIM_KV.get("capsule:" + id);
+  if (!raw) return json(404, { error: "not found" });
+  let data;
+  try { data = JSON.parse(raw); } catch { return json(500, { error: "corrupt capsule" }); }
+  if (data.consumed) return json(410, { error: "already destroyed" });
+  if (!data.destroyable) return json(400, { error: "not destroyable" });
+  data.consumed = true;
+  await env.SPIM_KV.put("capsule:" + id, JSON.stringify(data));
+  return json(200, { consumed: true });
 }

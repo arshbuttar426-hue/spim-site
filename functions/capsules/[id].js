@@ -1,44 +1,22 @@
-const DEFAULT_ORIGIN = "https://administration-witch-catalogue-characteristic.trycloudflare.com";
-
-async function origin(env) {
-  try {
-    if (env && env.SPIM_KV) {
-      const current = await env.SPIM_KV.get("origin");
-      if (current) return current;
-    }
-  } catch (e) {}
-  return (env && env.SPIM_ORIGIN) || DEFAULT_ORIGIN;
-}
-
-async function proxy(request, env, path) {
-  const target = (await origin(env)).replace(/\/+$/, "") + path;
-  let res;
-  try {
-    res = await fetch(target, { method: request.method, headers: { accept: "application/json" } });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: "upstream unreachable" }), {
-      status: 502,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
-    });
-  }
-  const body = await res.text();
-  return new Response(body, {
-    status: res.status,
+function json(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: {
-      "content-type": res.headers.get("content-type") || "application/json; charset=utf-8",
+      "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
       "access-control-allow-origin": "*",
     },
   });
 }
 
-export async function onRequestGet({ request, env, params }) {
+export async function onRequestGet({ env, params }) {
   const id = String(params.id || "").replace(/[^A-Za-z0-9_-]/g, "");
-  if (!id) {
-    return new Response(JSON.stringify({ error: "bad id" }), {
-      status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    });
-  }
-  return proxy(request, env, "/capsules/" + encodeURIComponent(id));
+  if (!id) return json(400, { error: "bad id" });
+  if (!env || !env.SPIM_KV) return json(500, { error: "storage unavailable" });
+  const raw = await env.SPIM_KV.get("capsule:" + id);
+  if (!raw) return json(404, { error: "not found" });
+  let data;
+  try { data = JSON.parse(raw); } catch { return json(500, { error: "corrupt capsule" }); }
+  if (data.consumed) return json(410, { error: "destroyed", message: "This delivery has already been opened." });
+  return json(200, { blob: data.blob, destroyable: !!data.destroyable });
 }
