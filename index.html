@@ -418,6 +418,7 @@
 
 <script src="/js/supabaseClient.js"></script>
 <script src="/js/spim-codec.js"></script>
+<script src="/js/spim-audio.js"></script>
 <script src="/js/session-nav.js" defer></script>
 <script>
 const SERVER = '';
@@ -888,11 +889,8 @@ function createImage(){
 }
 
 /* ---- beam --------------------------------------------------------------- */
-let beamCtx = null, beamSrc = null, beamTimer = null;
 function ensureBeamCtx(){
-  if(!beamCtx){ const C = window.AudioContext || window.webkitAudioContext; beamCtx = new C(); }
-  if(beamCtx.state === 'suspended') beamCtx.resume();
-  return beamCtx;
+  return window.SpimAudio.getContext();
 }
 function beamFromInput(){
   const el = document.getElementById('beamInput');
@@ -916,26 +914,25 @@ function startBeam(text){
   }
   let samples;
   try { samples = window.SpimCodec.encode(bytes); } catch(e){ if(err){ err.textContent = 'Could not encode the beam.'; err.classList.remove('spim-hide'); } return; }
-  const ctx = ensureBeamCtx();
-  const buf = ctx.createBuffer(1, samples.length, 48000);
-  buf.copyToChannel(samples, 0);
-  const src = ctx.createBufferSource();
-  src.buffer = buf; src.connect(ctx.destination);
-  const secs = samples.length / 48000;
+  window.SpimAudio.playBeam(samples, {
+    onProgress: function(f){
+      const overlay = document.getElementById('beamOverlay');
+      if(overlay.classList.contains('spim-hide')) return;
+      const bar = document.getElementById('beamBar');
+      bar.style.transition = 'width ' + (samples.length/48000) + 's linear';
+      bar.style.width = (f * 100) + '%';
+    },
+  });
   const overlay = document.getElementById('beamOverlay');
   document.getElementById('beamText').textContent = text;
   const bar = document.getElementById('beamBar');
   bar.style.transition = 'none'; bar.style.width = '0%';
   document.getElementById('beamVisual').classList.add('is-playing');
   overlay.classList.remove('spim-hide');
-  requestAnimationFrame(function(){ bar.style.transition = 'width ' + secs + 's linear'; bar.style.width = '100%'; });
-  src.start(); beamSrc = src;
-  beamTimer = setTimeout(stopBeam, secs * 1000 + 200);
+  requestAnimationFrame(function(){ bar.style.transition = 'width ' + (samples.length/48000) + 's linear'; bar.style.width = '100%'; });
 }
 function stopBeam(){
-  if(beamTimer){ clearTimeout(beamTimer); beamTimer = null; }
-  try { if(beamSrc) beamSrc.stop(); } catch(e){}
-  beamSrc = null;
+  window.SpimAudio.stopBeam();
   document.getElementById('beamOverlay').classList.add('spim-hide');
   const v = document.getElementById('beamVisual');
   if(v) v.classList.remove('is-playing');
@@ -948,39 +945,11 @@ let micCtx = null, micStream = null, micNode = null, receiver = null, listening 
 let dropCtx = null, customDropBuf = null, lastCaught = '', lastCaughtAt = 0;
 
 function audioCtx(){
-  const C = window.AudioContext || window.webkitAudioContext;
-  if(!dropCtx) dropCtx = new C();
-  if(dropCtx.state === 'suspended') dropCtx.resume();
-  return dropCtx;
+  return window.SpimAudio.getContext();
 }
 function playDrop(){
   try {
-    const ctx = audioCtx();
-    if(customDropBuf){ const s = ctx.createBufferSource(); s.buffer = customDropBuf; s.connect(ctx.destination); s.start(); return; }
-    const sel = document.getElementById('dropSoundSel');
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    if(sel.value === 'ding'){
-      o.type = 'sine'; o.frequency.value = 1046;
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.55);
-      o.start(); o.stop(ctx.currentTime + 0.55);
-    } else if(sel.value === 'whoosh'){
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(420, ctx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(1250, ctx.currentTime + 0.18);
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.05);
-      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
-      o.start(); o.stop(ctx.currentTime + 0.3);
-    } else {
-      o.type = 'triangle'; o.frequency.value = 880;
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.24, ctx.currentTime + 0.008);
-      g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.24);
-      o.start(); o.stop(ctx.currentTime + 0.24);
-    }
+    window.SpimAudio.playDrop({ kind: (document.getElementById('dropSoundSel') || {}).value || 'chime', buffer: customDropBuf });
   } catch(e){}
 }
 function setListeningUI(on,note){
@@ -1010,28 +979,12 @@ async function startListen(){
   if(listening) return;
   if(!window.SpimCodec){ document.getElementById('catchState').textContent = 'Unsupported'; return; }
   try {
-    audioCtx();
-    const C = window.AudioContext || window.webkitAudioContext;
-    micCtx = new C({sampleRate:48000});
-    if(micCtx.state === 'suspended') await micCtx.resume();
-    micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-    const src = micCtx.createMediaStreamSource(micStream);
-    receiver = window.SpimCodec.createReceiver();
-    micNode = micCtx.createScriptProcessor(2048,1,1);
-    const zero = micCtx.createGain(); zero.gain.value = 0;
-    const level = document.getElementById('catchLevelBar');
-    micNode.onaudioprocess = function(e){
-      if(!listening) return;
-      const ch = e.inputBuffer.getChannelData(0);
-      let sum = 0;
-      for(let i=0;i<ch.length;i++) sum += ch[i]*ch[i];
-      const rms = Math.sqrt(sum/ch.length);
-      level.style.width = Math.min(100, Math.round(rms*700)) + '%';
-      const payload = receiver.push(new Float32Array(ch));
-      if(payload) onCaught(payload);
-    };
-    src.connect(micNode); micNode.connect(zero); zero.connect(micCtx.destination);
-    setListeningUI(true, micCtx.sampleRate === 48000 ? 'Listening' : 'Mic rate ' + micCtx.sampleRate + ' Hz');
+    await window.SpimAudio.startListening({
+      onState: function(st, note){ setListeningUI(true, note); },
+      onLevel: function(rms){ const level = document.getElementById('catchLevelBar'); if(level) level.style.width = Math.min(100, Math.round(rms*700)) + '%'; },
+      onCaught: function(payload){ onCaught(payload); },
+    });
+    listening = true;
   } catch(e){
     stopListen();
     document.getElementById('catchState').textContent = e && e.name === 'NotAllowedError' ? 'Mic blocked' : 'Mic unavailable';
@@ -1039,10 +992,7 @@ async function startListen(){
 }
 function stopListen(){
   listening = false;
-  try { if(micNode) micNode.disconnect(); } catch(e){}
-  try { if(micStream) micStream.getTracks().forEach(function(t){ t.stop(); }); } catch(e){}
-  try { if(micCtx) micCtx.close(); } catch(e){}
-  micNode = null; micStream = null; micCtx = null; receiver = null;
+  window.SpimAudio.stopListening();
   document.getElementById('catchLevelBar').style.width = '0%';
   setListeningUI(false, 'Idle');
 }
