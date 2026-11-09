@@ -177,7 +177,13 @@ export async function apiKeyUser(request, env) {
   const record = await getJSON(env, 'key:' + index.user_id + ':' + index.key_id);
   if (!record || record.revoked_at) return null;
   record.last_used_at = new Date().toISOString();
-  await putJSON(env, 'key:' + index.user_id + ':' + index.key_id, record);
+  // Failure-proofing: last_used_at is telemetry — a KV write failure must not
+  // turn a successful auth into a 500.
+  try {
+    await putJSON(env, 'key:' + index.user_id + ':' + index.key_id, record);
+  } catch (e) {
+    // telemetry only; ignore
+  }
   return { id: index.user_id, email: null, via: 'api_key' };
 }
 
