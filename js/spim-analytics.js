@@ -35,10 +35,6 @@
       s: sid
     });
 
-    if (navigator.sendBeacon) {
-      var blob = new Blob([body], { type: 'application/json' });
-      if (navigator.sendBeacon('/api/hit', blob)) return;
-    }
     fetch('/api/hit', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
