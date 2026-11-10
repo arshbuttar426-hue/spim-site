@@ -9,7 +9,9 @@ capsule API proxied through Pages Functions to a self-hosted VPS origin.
 
 - `index.html`, `receive.html`, `images.html`, `account.html`, `login.html`, ... — pages
 - `js/` — client crypto/envelope code (WASM-ready, `window.wasmReady`)
+- `js/spim-analytics.js` — cookie-free visit counter (included on every page)
 - `pkg/` — WASM package assets served by the static site
+- `functions/api/hit.js` — `POST /api/hit` (daily visit aggregates in `SPIM_KV`)
 - `functions/capsules.js` — `POST /capsules` (create)
 - `functions/capsules/[id].js` — `GET /capsules/:id` (fetch)
 - `functions/capsules/[id]/consume.js` — `POST /capsules/:id/consume` (destroy)
@@ -91,6 +93,25 @@ state, so the failure is in zone provisioning for this account, not the DNS reco
 Before any retry: create the zone, wait until its status is `pending` (not
 `initializing`) and its nameservers actually answer, **then** switch registrar
 nameservers. Switching first is what caused the outage.
+
+## Analytics
+
+First-party only: no third-party script, no cookies, no IPs.
+
+- Each page includes `/js/spim-analytics.js`. It keeps a random id in
+  `localStorage` (`spim_sid`), respects Do Not Track, and sends one `POST /api/hit`
+  per page load with `{ p: path, r: referrer host, s: sid }`.
+- `functions/api/hit.js` ignores known crawler user-agents and requires the JS id, so
+  scanners and non-JS bots are not counted. Daily aggregates are stored in `SPIM_KV`
+  as `stats:day:<YYYY-MM-DD>`:
+  `{ views, visitors: { <sid>: 1 }, paths: {}, refs: {} }` (400-day TTL).
+- Reads are eventually consistent (~60s) and the read-modify-write assumes low
+  traffic. Tracking starts 2026-11-10; earlier traffic has no visit data.
+
+```
+npx wrangler kv key list --namespace-id=0df622028d884c439f064e3673f4bfe9 --remote
+npx wrangler kv key get stats:day:2026-11-10 --namespace-id=0df622028d884c439f064e3673f4bfe9 --remote
+```
 
 ## Accounts / history
 
