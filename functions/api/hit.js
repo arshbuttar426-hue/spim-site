@@ -42,7 +42,23 @@ export async function onRequestPost({ request, env }) {
     if (!ua || BOT.test(ua)) return done();
 
     var data = {};
-    try { data = await request.json(); } catch (e) { return done(); }
+    var rawBody = '';
+    try {
+      rawBody = await request.text();
+      data = JSON.parse(rawBody || '{}');
+    } catch (e) {
+      // Keep a small breadcrumb so malformed beacons are diagnosable.
+      try {
+        await env.SPIM_KV.put('stats:debug:last', JSON.stringify({
+          at: new Date().toISOString(),
+          contentType: request.headers.get('content-type') || '',
+          length: rawBody.length,
+          body: rawBody.slice(0, 300),
+          ua: ua.slice(0, 160)
+        }), { expirationTtl: 60 * 60 * 24 * 7 });
+      } catch (e2) {}
+      return done();
+    }
 
     var sid = String(data.s || '').slice(0, 64);
     if (!sid) return done();
