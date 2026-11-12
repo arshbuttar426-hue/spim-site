@@ -84,7 +84,7 @@ await check('create image capsule -> result modal opens', async () => {
   await page.click('#createImageBtn');
   await page.waitForSelector('#choice', { state: 'visible', timeout: 10000 });
   await page.click('#choicePublic');
-  const createBtn = page.locator('#choice button.spim-modal-actions button.spim-btn--primary');
+  const createBtn = page.locator('#choice .spim-modal-actions button.spim-btn--primary');
   await createBtn.click();
   await page.waitForSelector('#result:not([class*="spim-hide"])', { state: 'visible', timeout: 30000 });
   const link = await page.inputValue('#shareLink');
