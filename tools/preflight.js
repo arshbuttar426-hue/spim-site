@@ -34,17 +34,49 @@ function mustNot(rel) {
 
 /* --- required surface ---------------------------------------------------- */
 for (const f of [
-  'index.html', 'app.html', 'receive.html', 'why.html', 'support.html',
+  'index.html', 'app.html', 'receive.html', 'seam.html', 'why.html', 'support.html',
   'login.html', 'create-account.html', 'account.html', 'images.html',
-  'css/spim-theme.css', 'js/spim-codec.js', 'js/supabaseClient.js', 'js/session-nav.js',
+  'css/spim-theme.css', 'js/spim-codec.js', 'js/seam-client.js', 'js/supabaseClient.js', 'js/session-nav.js',
   'pkg/spim_wasm.js', 'favicon.svg',
   'functions/capsules.js',
   'functions/api/_lib.js', 'functions/api/auth/register.js', 'functions/api/auth/login.js',
   'functions/api/auth/logout.js', 'functions/api/auth/me.js',
   'functions/api/keys.js', 'functions/api/connections.js', 'functions/api/dock.js',
   'functions/api/images.js',
+  'functions/api/seam/_lib.js', 'functions/api/seam/prekeys.js',
+  'functions/api/seam/prekeys/[id].js', 'functions/api/seam/envelopes.js',
+  'functions/api/seam/envelopes/[id].js', 'functions/api/seam/envelopes/[id]/ack.js',
   '404.html', '_headers', '_redirects'
 ]) must(f);
+
+/* --- the shipped WASM build actually carries Seam ------------------------ */
+const wasmJs = fs.existsSync(path.join(root, 'pkg/spim_wasm.js'))
+  ? fs.readFileSync(path.join(root, 'pkg/spim_wasm.js'), 'utf8')
+  : '';
+for (const [needle, why] of [
+  ['WasmIdentity', 'Seam identity'],
+  ['WasmPreKeyStore', 'Seam prekey store'],
+  ['WasmSession', 'Seam session'],
+  ['seam_generate_prekeys', 'Seam prekey generation'],
+  ['seam_peek_init', 'Seam handshake peek'],
+  ['seam_seal', 'Seam sealed store']
+]) {
+  if (!wasmJs.includes(needle)) problems.push('pkg/spim_wasm.js lost ' + why + ' (' + needle + ')');
+}
+must('pkg/spim_wasm_bg.wasm');
+
+/* --- seam page is wired to the real engine ------------------------------- */
+const seam = fs.existsSync(path.join(root, 'seam.html'))
+  ? fs.readFileSync(path.join(root, 'seam.html'), 'utf8')
+  : '';
+for (const [needle, why] of [
+  ['/js/seam-client.js', 'Seam client'],
+  ['id="seamPeer"', 'conversation start field'],
+  ['id="seamMessages"', 'message list'],
+  ['id="seamInvite"', 'invite link']
+]) {
+  if (!seam.includes(needle)) problems.push('seam.html lost ' + why + ' (' + needle + ')');
+}
 
 /* --- nothing experimental ------------------------------------------------ */
 for (const f of [
@@ -77,7 +109,7 @@ for (const [needle, why] of [
 }
 
 /* --- no jargon in anything a person can read ----------------------------- */
-const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
+const PAGES = ['index.html', 'app.html', 'receive.html', 'seam.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
 const jargon = /2-FSK|8-FSK|symbol rate|preamble|baud/i;
 for (const page of PAGES) {
   const full = path.join(root, page);

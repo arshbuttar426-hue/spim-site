@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-page="seam">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Seam — private messaging inside SPIM</title>
+<meta name="description" content="Seam is SPIM's private channel: an X3DH handshake, a double ratchet, and sealed capsules the relay can carry but never read.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/spim-theme.css">
+<style>
+  .seam-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; }
+  .seam-thread { display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--spim-line); border-radius: 10px; background: var(--spim-panel); cursor: pointer; }
+  .seam-thread:hover { border-color: var(--spim-accent-line); background: var(--spim-raise); }
+  .seam-thread.is-active { border-color: var(--spim-accent-line); background: var(--spim-accent-soft); }
+  .seam-thread-id { font-family: var(--spim-mono); font-size: 11px; color: var(--spim-text); }
+  .seam-thread-meta { font-size: 11px; color: var(--spim-muted); }
+  .seam-messages { display: grid; gap: 10px; max-height: 420px; overflow-y: auto; padding: 4px 2px; }
+  .seam-message { max-width: 78%; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--spim-line); background: var(--spim-panel); }
+  .seam-message--out { margin-left: auto; background: var(--spim-accent-soft); border-color: var(--spim-accent-line); }
+  .seam-message p { font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .seam-message-time { display: block; margin-top: 5px; font-family: var(--spim-mono); font-size: 9.5px; color: var(--spim-dim); }
+  .seam-kv { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px 12px; font-size: 12.5px; }
+  .seam-kv dt { color: var(--spim-muted); }
+  .seam-kv dd { margin: 0; font-family: var(--spim-mono); overflow-wrap: anywhere; }
+  @media (max-width: 720px) {
+    .seam-grid { grid-template-columns: 1fr; }
+    .seam-message { max-width: 92%; }
+    .seam-kv { grid-template-columns: 1fr; gap: 2px 0; }
+  }
+</style>
+</head>
+<body class="spim-page" data-page="seam">
+<div class="spim-aurora"></div>
+
+<!-- chrome:nav -->
+<header class="spim-nav">
+  <div class="spim-nav-inner">
+    <a class="spim-brand" href="/" aria-label="SPIM home">
+      <span class="spim-mark" aria-hidden="true">S</span>
+      <span class="spim-wordmark">SPIM</span>
+    </a>
+
+    <nav class="spim-nav-links" aria-label="Primary">
+      <a href="/#text" data-nav="text">Text</a>
+      <a href="/#image" data-nav="image">Image</a>
+      <a href="/#beam" data-nav="beam">Beam</a>
+      <a href="/#catch" data-nav="catch">Catch</a>
+      <a href="/seam" data-nav="seam" aria-current="page">Seam</a>
+      <a href="/why" data-nav="why">Why</a>
+      <a href="/support" data-nav="support">Support</a>
+    </nav>
+
+    <div class="spim-nav-actions">
+      <span class="spim-nav-auth" data-auth="out">
+        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+      </span>
+
+      <details class="spim-account" data-auth="in" hidden>
+        <summary class="spim-account-btn" aria-label="Account menu">
+          <span class="spim-avatar" data-auth-initial aria-hidden="true">A</span>
+          <span class="spim-account-email" data-auth-email>Account</span>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="spim-account-menu">
+          <a href="/account#dock">Dock</a>
+          <a href="/account#connections">Connections</a>
+          <a href="/images">Images</a>
+          <a href="/account#api">API</a>
+          <a href="/account">Account</a>
+          <hr>
+          <button type="button" data-auth-signout>Sign out</button>
+        </div>
+      </details>
+
+      <a class="spim-nav-open" href="/#open">Open .spim</a>
+
+      <details class="spim-mobile-wrap">
+        <summary class="spim-nav-toggle" aria-label="Open menu">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </summary>
+        <nav class="spim-mobile-panel" aria-label="Menu">
+          <a href="/#text" data-nav="text">Create Text</a>
+          <a href="/#image" data-nav="image">Create Image</a>
+          <a href="/#beam" data-nav="beam">Beam by Sound</a>
+          <a href="/#catch" data-nav="catch">Catch / Open</a>
+          <a href="/seam" data-nav="seam" aria-current="page">Seam</a>
+          <a href="/#open">Open .spim</a>
+          <a href="/why" data-nav="why">Why SPIM</a>
+          <a href="/support" data-nav="support">Support</a>
+          <hr>
+          <span data-auth="out" class="spim-mobile-auth">
+            <a href="/login">Log in</a>
+            <a href="/create-account">Create account</a>
+          </span>
+          <span data-auth="in" class="spim-mobile-auth" hidden>
+            <a href="/account#dock">Dock</a>
+            <a href="/account#connections">Connections</a>
+            <a href="/images">Images</a>
+            <a href="/account#api">API</a>
+            <a href="/account">Account</a>
+            <button type="button" data-auth-signout>Sign out</button>
+          </span>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+<!-- /chrome:nav -->
+
+<main>
+  <section class="spim-shell spim-section" style="padding-bottom:24px">
+    <div style="max-width:720px">
+      <span class="spim-kicker">Seam</span>
+      <h1 class="spim-h1">A private channel,<br>inside SPIM.</h1>
+      <p class="spim-lede">Seam adds secrecy to the capsule you already trust. An X3DH handshake, a double ratchet, and a chain that only the recipient can verify — carried by a relay that never sees a name, a key, or a word.</p>
+    </div>
+  </section>
+
+  <section class="spim-shell" style="padding-bottom:24px">
+    <p id="seamStatus" class="spim-note" hidden></p>
+  </section>
+
+  <section class="spim-shell" style="padding-bottom:40px">
+    <div class="spim-stack spim-stack--lg">
+
+      <div class="spim-card" id="seamCreateCard" hidden>
+        <div class="spim-card-head">
+          <span class="spim-eyebrow">First use</span>
+          <span class="spim-pill">On this device only</span>
+        </div>
+        <div class="spim-card-body">
+          <div class="spim-field">
+            <label for="seamPass">Passphrase</label>
+            <input class="spim-input" id="seamPass" type="password" autocomplete="current-password" placeholder="At least 12 characters">
+            <span class="spim-body">The passphrase derives the device key. It is never stored or sent. If you lose it, the sealed state cannot be opened.</span>
+          </div>
+          <p id="seamAuthState" class="spim-note" style="margin-top:14px"></p>
+          <div class="spim-row" style="margin-top:14px">
+            <button class="spim-btn spim-btn--primary" id="seamCreateBtn" type="button">Create identity</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spim-card" id="seamUnlockCard" hidden>
+        <div class="spim-card-head">
+          <span class="spim-eyebrow">Welcome back</span>
+          <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Sealed state</span>
+        </div>
+        <div class="spim-card-body">
+          <div class="spim-field">
+            <label for="seamPassUnlock">Passphrase</label>
+            <input class="spim-input" id="seamPassUnlock" type="password" autocomplete="current-password" placeholder="Unlock this device">
+          </div>
+          <div class="spim-row" style="margin-top:14px">
+            <button class="spim-btn spim-btn--primary" id="seamUnlockBtn" type="button">Unlock</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spim-card" id="seamIdentityCard" hidden>
+        <div class="spim-card-head">
+          <span class="spim-eyebrow">Your identity</span>
+          <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Ready</span>
+        </div>
+        <div class="spim-card-body">
+          <dl class="seam-kv">
+            <dt>Fingerprint</dt><dd id="seamFingerprint">—</dd>
+            <dt>Identity</dt><dd id="seamId">—</dd>
+            <dt>Today's mailbox</dt><dd id="seamMailbox">—</dd>
+            <dt>One-time prekeys</dt><dd id="seamPrekeys">—</dd>
+            <dt>Published</dt><dd id="seamPublished">—</dd>
+          </dl>
+          <div class="spim-field" style="margin-top:16px">
+            <label for="seamInvite">Invite link</label>
+            <input class="spim-input" id="seamInvite" type="text" readonly>
+            <span class="spim-body">The link carries only a public mailbox. A peer fetches one signed prekey bundle from it; no identity or message is exposed.</span>
+          </div>
+          <div class="spim-row" style="margin-top:14px">
+            <button class="spim-btn spim-btn--primary" id="seamPublishBtn" type="button">Publish prekeys</button>
+            <button class="spim-btn" id="seamCopyInvite" type="button">Copy invite</button>
+            <button class="spim-btn spim-btn--ghost" id="seamRefreshBtn" type="button">Check now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spim-card" id="seamWorkspace" hidden>
+        <div class="spim-card-head">
+          <span class="spim-eyebrow">Conversations</span>
+          <span class="spim-pill">End-to-end</span>
+        </div>
+        <div class="spim-card-body">
+          <div class="spim-field">
+            <label for="seamPeer">Start a conversation</label>
+            <input class="spim-input" id="seamPeer" type="text" placeholder="Paste a mailbox (32 hex) or a signed prekey bundle">
+            <span class="spim-body">A mailbox fetches one one-time prekey bundle from the relay. A bundle can also be pasted directly.</span>
+          </div>
+          <div class="spim-row" style="margin-top:12px">
+            <button class="spim-btn spim-btn--primary" id="seamPeerStartBtn" type="button">Open conversation</button>
+          </div>
+
+          <div class="seam-grid" style="margin-top:20px">
+            <div>
+              <span class="spim-eyebrow">Threads</span>
+              <div id="seamThreads" class="spim-stack" style="margin-top:10px"></div>
+            </div>
+            <div>
+              <div class="spim-row" style="justify-content:space-between;align-items:center">
+                <span class="spim-eyebrow" id="seamThreadTitle">No conversation selected</span>
+                <button class="spim-btn spim-btn--quiet spim-btn--sm" id="seamResetBtn" type="button">Forget session</button>
+              </div>
+              <div class="seam-messages" id="seamMessages" style="margin-top:10px"></div>
+              <div id="seamCompose" hidden style="margin-top:14px">
+                <div class="spim-field">
+                  <label for="seamBody">Message</label>
+                  <textarea class="spim-input" id="seamBody" rows="3" placeholder="Write a message. It is sealed before it leaves this page."></textarea>
+                </div>
+                <div class="spim-row" style="margin-top:10px">
+                  <button class="spim-btn spim-btn--primary" id="seamSendBtn" type="button">Seal and send</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spim-card spim-card--flat">
+        <div class="spim-card-body">
+          <span class="spim-eyebrow">What the relay can see</span>
+          <p class="spim-body" style="margin-top:8px">A mailbox derived from a public key and a day. A capsule size, bucketed by padding. A time. Nothing else: the sender, the recipient's identity, the ordering chain, and the plaintext all live inside the ciphertext.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<!-- chrome:footer -->
+<footer class="spim-footer">
+  <div class="spim-footer-inner">
+    <div class="spim-footer-brand">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Studio</h4>
+      <a href="/#text">Create text</a>
+      <a href="/#image">Create image</a>
+      <a href="/#beam">Beam by sound</a>
+      <a href="/#catch">Catch / Open</a>
+      <a href="/seam">Seam messages</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Learn</h4>
+      <a href="/why">Why SPIM</a>
+      <a href="/support">Support</a>
+      <a href="/support#contact">Contact</a>
+    </div>
+
+    <div class="spim-footer-col">
+      <h4>Account</h4>
+      <a href="/login">Log in</a>
+      <a href="/create-account">Create account</a>
+      <a href="/account#dock">Dock</a>
+      <a href="/account">Account</a>
+    </div>
+  </div>
+  <div class="spim-footer-base">
+    <span>© 2026 SPIM</span>
+    <span>Private by construction · Verified by BLAKE3</span>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+
+<script type="module" src="/js/seam-client.js"></script>
+</body>
+</html>

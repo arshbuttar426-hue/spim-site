@@ -22,6 +22,7 @@ const footer = fs.readFileSync(path.join(__dirname, 'chrome', 'footer.html'), 'u
 const PAGES = {
   'index.html': 'text',
   'receive.html': 'catch',
+  'seam.html': 'seam',
   'why.html': 'why',
   'support.html': 'support',
   'login.html': '',
