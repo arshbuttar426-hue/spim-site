@@ -839,7 +839,11 @@ async function handleImage(file){
       showImageError('Image dimensions are too large (' + dims.w + '×' + dims.h + ').');
       return;
     }
-  } catch(e){ showImageError('Could not read this image.'); return; }
+  } catch(e){
+    // Dimensions are preview metadata, not a precondition for sending. A
+    // read failure must not block the capsule; proceed with dims = null.
+    dims = null;
+  }
 
   selectedFile = file; selectedBytes = bytes; selectedMime = file.type; selectedName = file.name; selectedDims = dims;
   if(thumbUrl) URL.revokeObjectURL(thumbUrl);
