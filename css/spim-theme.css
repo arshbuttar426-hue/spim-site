@@ -17,12 +17,12 @@
 
   /* text */
   --spim-text: #17233b;
-  --spim-muted: #718096;
-  --spim-dim: #91a0b5;
-  --spim-faint: #9aa8bb;
+  --spim-muted: #5b6b7d;
+  --spim-dim: #4d5a6b;
+  --spim-faint: #55637a;
 
   /* signal */
-  --spim-accent: #3569ee;
+  --spim-accent: #2b56c4;
   --spim-accent-ink: #ffffff;
   --spim-accent-soft: rgba(53, 105, 238, 0.08);
   --spim-accent-line: rgba(53, 105, 238, 0.32);
@@ -82,7 +82,7 @@ body.spim-page {
 
 .spim-page ::selection { background: var(--spim-accent); color: var(--spim-accent-ink); }
 .spim-page :focus-visible { outline: 2px solid var(--spim-accent); outline-offset: 2px; border-radius: 4px; }
-.spim-page a { color: inherit; text-decoration: none; }
+.spim-page :where(a) { color: inherit; text-decoration: none; }
 .spim-page h1, .spim-page h2, .spim-page h3, .spim-page h4, .spim-page p { margin: 0; }
 .spim-page button { font: inherit; color: inherit; }
 .spim-page img, .spim-page svg { display: block; max-width: 100%; }
@@ -118,7 +118,7 @@ body.spim-page {
   align-items: center;
   gap: 8px;
   font-family: var(--spim-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--spim-muted);
@@ -168,7 +168,7 @@ body.spim-page {
 
 .spim-eyebrow {
   font-family: var(--spim-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--spim-dim);
@@ -320,8 +320,8 @@ body.spim-page {
 .spim-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .spim-btn--primary {
   border-color: transparent;
-  background: var(--spim-accent);
-  color: var(--spim-accent-ink);
+  background: #2b56c4;
+  color: #ffffff;
   font-weight: 650;
 }
 .spim-btn--primary:hover { background: #2f5fd0; border-color: transparent; }
@@ -432,7 +432,7 @@ body.spim-page {
 .spim-field { display: grid; gap: 7px; }
 .spim-label {
   font-family: var(--spim-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--spim-dim);
@@ -513,12 +513,12 @@ body.spim-page {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 26px;
-  padding: 0 10px;
+  height: 30px;
+  padding: 0 12px;
   border: 1px solid var(--spim-line);
   border-radius: var(--spim-r-pill);
   font-family: var(--spim-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--spim-muted);
@@ -726,7 +726,7 @@ body.spim-page {
   align-items: center;
   gap: 8px;
   font-family: var(--spim-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--spim-dim);
@@ -755,11 +755,11 @@ body.spim-page {
   gap: 32px;
 }
 .spim-footer-brand { display: grid; gap: 12px; align-content: start; }
-.spim-footer-brand p { font-size: 12.5px; color: var(--spim-dim); max-width: 26ch; line-height: 1.6; }
+.spim-footer-brand p { font-size: 12.5px; color: var(--spim-dim); max-width: 52ch; line-height: 1.6; }
 .spim-footer-col { display: grid; gap: 9px; align-content: start; }
 .spim-footer-col h4 {
   font-family: var(--spim-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--spim-faint);
@@ -778,8 +778,8 @@ body.spim-page {
   justify-content: space-between;
   gap: 10px;
   font-family: var(--spim-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  letter-spacing: 0.02em;
   color: var(--spim-faint);
 }
 @media (max-width: 780px) {
@@ -972,7 +972,7 @@ body.spim-page {
 .spim-nav-open {
   margin-left: 2px;
   font-family: var(--spim-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--spim-dim);
