@@ -10,6 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/spim-theme.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<script type="module" src="/.taste-moment/moments.js"></script>
 <script type="module">
   import init, { WasmSpim, blake3_hex_static, format_delta_encode, format_delta_apply } from '/pkg/spim_wasm.js';
   window.WasmSpim = WasmSpim;
@@ -105,11 +108,22 @@
 <!-- /chrome:nav -->
 
 <main class="spim-shell spim-section--tight">
-  <div style="max-width:680px">
-    <h1 class="spim-h1">One workspace.<br>Every kind of message.</h1>
-    <p class="spim-lede">Write a note, send an image, beam it by sound, or catch what someone sends you. One capsule, five ways to deliver it — link, QR, .spim file, Dock, or ultrasonic beam.</p>
-  </div>
+  <section class="hero" data-enter aria-label="Private notes, images and sounds in one workspace">
+    <div class="wrap" style="max-width:680px; margin: 0 auto">
+      <h1 class="spim-h1">One private workspace.<br>Every kind of message.</h1>
+      <p class="spim-lede">In v1, write a note, send an image, beam it by sound, or catch what someone sends you. One capsule, five ways to deliver it — link, QR, .spim file, Dock, or ultrasonic beam.</p>
+      <a class="spim-btn spim-btn--primary spim-btn--lg" href="/create-account">Create your first capsule</a>
+    </div>
+  </section>
 </main>
+
+<section class="section ground-inverse" data-moment="iris-opens" data-moment-opts='{"from": "base"}'>
+  <div class="wrap">
+    <h2 class="spim-h2">Open your capsule</h2>
+    <p class="spim-body">A sealed capsule is a sealed capsule until you open it.</p>
+    <a class="spim-btn spim-btn--primary" href="#catch">Open a capsule</a>
+  </div>
+</section>
 
 <main class="spim-shell" style="padding-bottom:24px">
 
@@ -145,7 +159,7 @@
       <div id="notes">
         <div class="note spim-card-body" style="padding-bottom:12px">
           <div class="spim-spread">
-            <span class="spim-label">Your note</span>
+            <label class="spim-label" for="noteText">Your note</label>
             <button onclick="removeNote(this)" class="spim-hide spim-btn spim-btn--ghost spim-btn--sm">Remove</button>
           </div>
           <textarea id="noteText" aria-label="Your note" placeholder="What should they know?" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:150px" oninput="updateMeta()"></textarea>
@@ -256,6 +270,7 @@
 
           <div class="spim-row" style="justify-content:center;margin-top:16px">
             <div class="spim-sound">
+              <label class="spim-label" for="dropSoundSel">Drop sound</label>
               <select id="dropSoundSel" aria-label="Drop sound">
                 <option value="chime">Chime</option>
                 <option value="ding">Ding</option>
@@ -276,7 +291,7 @@
             <button id="copyCaughtBtn" class="spim-btn spim-btn--ghost spim-btn--sm">Copy</button>
           </div>
           <p id="caughtText" class="spim-body" style="margin-top:10px;color:var(--spim-text);word-break:break-word;white-space:pre-wrap"></p>
-          <a id="caughtOpen" href="#" class="spim-btn spim-btn--sm spim-hide" style="margin-top:12px">Open capsule →</a>
+          <a id="caughtOpen" href="#catch" class="spim-btn spim-btn--sm spim-hide" style="margin-top:12px">Open capsule →</a>
         </div>
 
       </div>

@@ -110,6 +110,7 @@ body.spim-page {
 .spim-shell--narrow { max-width: 760px; }
 .spim-section { padding: 72px 0; }
 .spim-section--tight { padding: 40px 0; }
+.hero { height: calc(100svh - var(--spim-nav-h, 64px)); display: flex; align-items: center; }
 
 /* --- typography ---------------------------------------------------------- */
 
@@ -157,7 +158,7 @@ body.spim-page {
   max-width: 560px;
   font-size: 16px;
   line-height: 1.65;
-  color: var(--spim-muted);
+  color: var(--spim-text);
 }
 .spim-body { color: var(--spim-muted); font-size: 14px; line-height: 1.65; }
 .spim-mono { font-family: var(--spim-mono); }
@@ -458,6 +459,12 @@ body.spim-page {
   outline: none;
   border-color: var(--spim-accent-line);
   background: var(--spim-panel);
+}
+.spim-textarea:focus-visible,
+.spim-input:focus-visible,
+.spim-select:focus-visible {
+  outline: 2px solid var(--spim-accent);
+  outline-offset: 2px;
 }
 .spim-textarea { resize: none; line-height: 1.65; min-height: 132px; }
 .spim-select {
