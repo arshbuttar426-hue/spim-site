@@ -436,33 +436,15 @@
 <script src="/js/supabaseClient.js"></script>
 <script src="/js/spim-codec.js"></script>
 <script src="/js/spim-audio.js"></script>
+<script src="/js/spim-capsule-client.js"></script>
 <script src="/js/session-nav.js" defer></script>
 <script>
-const SERVER = '';
 const CANONICAL_BASE = location.origin + '/receive';
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 const MAX_DIM = 8192;
 const MAX_PIXELS = 25 * 1024 * 1024;
 
 function countWords(s){ return s.trim() ? s.trim().split(/\s+/).filter(Boolean).length : 0; }
-function b64encodeBytes(b){ let s=''; b.forEach(v=>s+=String.fromCharCode(v)); return btoa(s); }
-function b64decodeBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
-function b64encodeStr(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64decodeStr(b){ return decodeURIComponent(escape(atob(b))); }
-function b64urlEncode(b){ let s=b64encodeBytes(b); return s.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-function b64urlDecode(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return b64decodeBytes(s); }
-function wasmBlake3Hex(s){ if(window.wasmReady && window.blake3_hex_static) try { return window.blake3_hex_static(s); } catch(e){} return 'pending'; }
-function wasmBlake3BytesHex(b64){
-  try {
-    if(window.wasmReady && window.WasmSpim){
-      const w = new window.WasmSpim();
-      const h = w.blake3_bytes_hex(b64);
-      w.free();
-      return h;
-    }
-  } catch(e){}
-  return wasmBlake3Hex(b64);
-}
 function formatBytes(n){ if(n<1024) return n+' B'; if(n<1024*1024) return (n/1024).toFixed(1)+' KB'; return (n/1024/1024).toFixed(2)+' MB'; }
 
 let noteCount = 1;
@@ -559,49 +541,6 @@ function updateMeta(){
 }
 window.addEventListener('wasm-ready', updateMeta);
 
-/* ---- envelope ----------------------------------------------------------- */
-function makeTextEnvelope(notes){
-  const w = new window.WasmSpim(), notes_blake3 = [], fmt_b64 = [];
-  notes.forEach(function(s){
-    w.remember(s);
-    notes_blake3.push(wasmBlake3Hex(s));
-    fmt_b64.push(window.format_delta_encode(s));
-  });
-  const b = w.encoded_bytes_b64();
-  w.free();
-  const wc = notes.reduce(function(a,s){ return a + s.split(/\s+/).filter(Boolean).length; }, 0);
-  const env = {magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),spim_b64:b,notes_blake3:notes_blake3,fmt_b64:fmt_b64,word_count:wc,blake3:""};
-  env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
-  return env;
-}
-function makeImageEnvelope(){
-  if(!selectedBytes) throw new Error('Choose an image first.');
-  if(!window.wasmReady) throw new Error('Engine is still loading.');
-  const b64 = b64encodeBytes(selectedBytes);
-  const blake = wasmBlake3BytesHex(b64);
-  const imageEntry = {kind:"image", source_bytes_b64:b64, mime:selectedMime, filename:selectedName, source_blake3:blake};
-  const w = new window.WasmSpim();
-  const spim_b64 = w.encoded_bytes_b64();
-  w.free();
-  const env = {magic:"CAP1",product_version:1,spim_version:1,tokenization_version:1,flags:0,created_at:new Date().toISOString(),notes:[],images:[imageEntry],spim_b64:spim_b64,word_count:0,blake3:""};
-  env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
-  return env;
-}
-async function generateKey(){ const b = new Uint8Array(32); crypto.getRandomValues(b); return b; }
-async function encryptEnvelope(j,k){
-  const iv = new Uint8Array(12); crypto.getRandomValues(iv);
-  const key = await crypto.subtle.importKey('raw', k, {name:'AES-GCM'}, false, ['encrypt']);
-  const enc = await crypto.subtle.encrypt({name:'AES-GCM',iv:iv}, key, new TextEncoder().encode(j));
-  const c = new Uint8Array(iv.length + enc.byteLength);
-  c.set(iv,0); c.set(new Uint8Array(enc), iv.length);
-  return b64encodeBytes(c);
-}
-async function postCapsule(blob, destroyable){
-  const r = await fetch(SERVER + '/capsules', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({blob:blob, destroyable:!!destroyable})});
-  if(!r.ok) throw new Error('POST ' + r.status);
-  return (await r.json()).id;
-}
-
 /* ---- create flow -------------------------------------------------------- */
 function createText(){
   const notes = Array.prototype.slice.call(document.querySelectorAll('.note textarea')).map(function(t){ return t.value; }).filter(function(v){ return v.trim(); });
@@ -665,25 +604,25 @@ async function doCreate(choice, single){
     if(kind === 'image'){
       const quota = await consumeImageQuota();
       if(!quota.ok){ showImageError(quota.error); return; }
-      env = makeImageEnvelope();
+      env = spimMakeImageEnvelope(selectedBytes, selectedMime, selectedName);
     } else {
-      env = makeTextEnvelope(notes);
+      env = spimMakeTextEnvelope(notes);
     }
     env.flags = single ? 1 : 0;
-    env.blake3 = wasmBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
+    env.blake3 = spimBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
 
     const json = JSON.stringify(env);
     const isPrivate = choice === 'private';
     let blob, keyB64 = null;
     if(isPrivate){
-      const kb = await generateKey();
-      keyB64 = b64urlEncode(kb);
-      blob = await encryptEnvelope(json, kb);
+      const kb = await spimGenerateKey();
+      keyB64 = spimB64UrlEncode(kb);
+      blob = await spimEncryptEnvelope(json, kb);
     } else {
-      blob = b64encodeStr(json);
+      blob = spimB64EncodeStr(json);
     }
 
-    const id = await postCapsule(blob, single);
+    const id = await spimPostCapsule(blob, single);
     const base = CANONICAL_BASE + '#c/' + id;
     const link = isPrivate ? base + '#' + keyB64 : base;
 
@@ -1043,22 +982,10 @@ document.getElementById('copyCaughtBtn').onclick = function(e){
 
 /* ---- catch: local .spim ------------------------------------------------- */
 function resolveEnvelopeNotes(env){
-  if(env.notes && env.notes.length) return env.notes.map(function(n){ return {source:b64decodeStr(n.source_b64)}; });
-  if(env.spim_b64){
-    const w = window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
-    const out = [];
-    try {
-      const n = w.num_memories();
-      for(let i=0;i<n;i++){
-        const norm = w.reconstruct(i);
-        if(norm == null) continue;
-        const fmt = (env.fmt_b64 && env.fmt_b64[i]) || null;
-        out.push({source: fmt ? window.format_delta_apply(norm, fmt) : norm});
-      }
-    } finally { w.free(); }
-    return out;
-  }
-  return [];
+  // Tolerant reconstruction for catch/display: skip notes that cannot be
+  // reconstructed rather than failing the whole open.
+  const notes = spimResolveCatchNotes(env);
+  return notes.map(function(n){ return {source: n.source}; });
 }
 async function openSpimFile(file){
   const msg = document.getElementById('fileMsg');
@@ -1072,14 +999,10 @@ async function openSpimFile(file){
     let blob = wrapper.blob, key = wrapper.key_b64url;
     let jsonStr;
     if(blob && key){
-      const kb = b64urlDecode(key);
-      const c = b64decodeBytes(blob);
-      const iv = c.slice(0,12);
-      const keyObj = await crypto.subtle.importKey('raw', kb, {name:'AES-GCM'}, false, ['decrypt']);
-      const plain = await crypto.subtle.decrypt({name:'AES-GCM',iv:iv}, keyObj, c.slice(12));
-      jsonStr = new TextDecoder().decode(plain);
+      const kb = spimB64UrlDecode(key);
+      jsonStr = await spimDecryptEnvelope(blob, kb);
     } else if(blob){
-      jsonStr = b64decodeStr(blob);
+      jsonStr = spimB64DecodeStr(blob);
     } else {
       jsonStr = text;
     }

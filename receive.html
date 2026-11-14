@@ -250,10 +250,8 @@
   </div>
 </footer>
 <!-- /chrome:footer -->
+<script src="/js/spim-capsule-client.js"></script>
 <script>
-function b64d(b){ return decodeURIComponent(escape(atob(b))); }
-function b64dBytes(b){ const s=atob(b); const o=new Uint8Array(s.length); for(let i=0;i<s.length;i++) o[i]=s.charCodeAt(i); return o; }
-function b64urlDecode(s){ let b=s.replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4) b+='='; return b64dBytes(b); }
 let currentEnv=null, currentId=null, currentKey=null, currentBlob=null;
 function parseReceiveHash(){
   const h=location.hash.replace(/^#/,'');
@@ -266,38 +264,7 @@ function parseReceiveHash(){
   if(q) return {id:q, key:new URLSearchParams(location.search).get('key')};
   return null;
 }
-async function decryptEnvelope(b64, keyBytes){
-  const combined=b64dBytes(b64);
-  const iv=combined.slice(0,12);
-  const ct=combined.slice(12);
-  const key=await crypto.subtle.importKey('raw',keyBytes,{name:'AES-GCM'},false,['decrypt']);
-  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
-  return new TextDecoder().decode(dec);
-}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-// Resolve the note list from an envelope. Legacy capsules carry raw notes[];
-// zero-redundancy capsules store only spim_b64 (+ optional fmt_b64 delta) and
-// reconstruct the notes. When a fmt delta is present, apply it to recover the
-// sender's exact bytes (case, newlines, indentation, multiple spaces).
-function resolveNotes(env){
-  if(env.images && env.images.length) return [];
-  if(env.notes && env.notes.length) return env.notes.map(n=>({source:b64d(n.source_b64), blake3:n.source_blake3||null}));
-  if(env.spim_b64){
-    const w=window.WasmSpim.from_encoded_bytes_b64(env.spim_b64);
-    if(!w) throw new Error('bad spim');
-    const out=[]; const n=w.num_memories();
-    for(let i=0;i<n;i++){
-      const norm=w.reconstruct(i);
-      if(norm==null){w.free();throw new Error('reconstruct failed');}
-      const fmt=(env.fmt_b64 && env.fmt_b64[i])||null;
-      const source=fmt?(window.format_delta_apply(norm,fmt)??norm):norm;
-      out.push({source, blake3:(env.notes_blake3&&env.notes_blake3[i])||null});
-    }
-    w.free();
-    return out;
-  }
-  return [];
-}
 function highlightText(text, terms){
   let esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   if(terms && terms.length){
@@ -309,38 +276,22 @@ function highlightText(text, terms){
 function finalizeEnvelope(jsonStr){
   const env=JSON.parse(jsonStr);
   if(env.magic!=="CAP1") throw new Error('bad magic');
-  const stored=env.blake3; const comp=window.blake3_hex_static(JSON.stringify({...env, blake3:""}));
+  const stored=env.blake3; const comp=spimBlake3Hex(JSON.stringify({...env, blake3:""}));
   document.getElementById('blake3hex').textContent=comp;
   if(comp!==stored) throw new Error('blake3 mismatch');
   // Resolve notes: legacy raw notes[] or zero-redundancy reconstruction from spim_b64
-  const notes=resolveNotes(env);
+  const notes=spimResolveNotes(env);
   env.notes=notes;
   // Verify SPIM reconstruction + per-note integrity
   if(notes.length){
-    const w=new window.WasmSpim(); let ok=true;
-    notes.forEach(n=>{
-      if(n.blake3 && window.blake3_hex_static(n.source)!==n.blake3) ok=false;
-      const id=w.remember(n.source);
-      if(!w.verify_reconstruct(id, n.source)) ok=false;
-    });
-    if(!ok) throw new Error('blake3 mismatch');
+    if(!spimVerifyNotes(notes)) throw new Error('blake3 mismatch');
     document.getElementById('spimVerify').textContent='Verified';
   } else {
     document.getElementById('spimVerify').textContent='—';
   }
   // Image integrity: verify source_blake3 on bytes
   if(env.images && env.images.length){
-    for(const img of env.images){
-      if(!img.source_bytes_b64 || !img.source_blake3) throw new Error('blake3 mismatch');
-      // blake3_bytes_hex expects base64 of bytes
-      let calc;
-      try{
-        const tmp=new window.WasmSpim();
-        calc=tmp.blake3_bytes_hex(img.source_bytes_b64);
-        tmp.free();
-      }catch(e){ calc=''; }
-      if(calc && calc!==img.source_blake3) throw new Error('blake3 mismatch');
-    }
+    for(const img of env.images){ spimVerifyImage(img); }
   }
   document.getElementById('postcardLoading').classList.add('spim-hide');
   document.getElementById('postcardActions').classList.remove('spim-hide');
@@ -368,9 +319,9 @@ async function loadReceive(){
     currentBlob=j.blob;
     let jsonStr;
     if(p.key){
-      try{ const kb=b64urlDecode(p.key); jsonStr=await decryptEnvelope(j.blob, kb); }catch(e){ throw new Error('decrypt failed'); }
+      try{ const kb=spimB64UrlDecode(p.key); jsonStr=await spimDecryptEnvelope(j.blob, kb); }catch(e){ throw new Error('decrypt failed'); }
     }else{
-      try{ jsonStr=b64d(j.blob); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
+      try{ jsonStr=spimB64DecodeStr(j.blob); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
       try{ JSON.parse(jsonStr); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
     }
     finalizeEnvelope(jsonStr);
@@ -390,7 +341,7 @@ async function handleDownload(){
   if(currentEnv.images && currentEnv.images.length){
     // Image download - exact bytes
     const img=currentEnv.images[0];
-    const bytes=b64dBytes(img.source_bytes_b64);
+    const bytes=spimB64DecodeBytes(img.source_bytes_b64);
     const blob=new Blob([bytes],{type:img.mime||'image/jpeg'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=img.filename||'image'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
@@ -431,9 +382,9 @@ async function openSpimFile(file){
       currentBlob=wrapper.blob; currentKey=wrapper.key_b64url||null; currentId=(file.name||'local').replace(/\.spim$/i,'');
       if(wrapper.locked){
         if(!wrapper.key_b64url) throw new Error('decrypt failed');
-        jsonStr=await decryptEnvelope(wrapper.blob, b64urlDecode(wrapper.key_b64url));
+        jsonStr=await spimDecryptEnvelope(wrapper.blob, spimB64UrlDecode(wrapper.key_b64url));
       } else {
-        jsonStr=b64d(wrapper.blob);
+        jsonStr=spimB64DecodeStr(wrapper.blob);
       }
     } else {
       // Raw envelope JSON (or legacy .json)
@@ -456,7 +407,7 @@ async function handleOpenHere(){
     document.getElementById('postcardView').classList.add('spim-hide');
     document.getElementById('imageView').classList.remove('spim-hide');
     const img=currentEnv.images[0];
-    const bytes=b64dBytes(img.source_bytes_b64);
+    const bytes=spimB64DecodeBytes(img.source_bytes_b64);
     const blob=new Blob([bytes],{type:img.mime||'image/jpeg'});
     if(currentImageUrl) URL.revokeObjectURL(currentImageUrl);
     currentImageUrl=URL.createObjectURL(blob);
