@@ -29,6 +29,37 @@
 <body class="spim-page" data-page="index">
 <div class="spim-aurora"></div>
 
+<!-- C6 website redesign — Stage 1: app shell (sidebar + main) -->
+<div class="spim-app">
+  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
+    <div class="spim-app-sidebar-inner">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <nav class="spim-app-nav" aria-label="Workspace">
+        <a href="#top">Overview</a>
+        <a href="#workspace">Studio</a>
+        <a href="#delivery">Delivery methods</a>
+        <a href="#security" data-auth="out">Privacy & integrity</a>
+        <a href="/seam">SEAM</a>
+      </nav>
+      <nav class="spim-app-nav" aria-label="Manage">
+        <a href="/account#dock" data-auth="in">Dock</a>
+        <a href="/account#connections" data-auth="in">Connections</a>
+        <a href="/images" data-auth="in">Images</a>
+      </nav>
+      <nav class="spim-app-nav" aria-label="Developers">
+        <a href="/account#api" data-auth="in">API access</a>
+        <a href="/support" data-auth="out">Help & FAQ</a>
+      </nav>
+    </div>
+  </aside>
+  <div class="spim-app-main">
+
 <!-- chrome:nav -->
 <header class="spim-nav">
   <div class="spim-nav-inner">
@@ -108,11 +139,315 @@
 <!-- /chrome:nav -->
 
 <main class="spim-shell spim-section--tight">
-  <section class="hero" data-enter aria-label="Private notes, images and sounds in one workspace">
-    <div class="wrap" style="max-width:680px; margin: 0 auto">
-      <h1 class="spim-h1">One private workspace.<br>Every kind of message.</h1>
-      <p class="spim-lede">In v1, write a note, send an image, beam it by sound, or catch what someone sends you. One capsule, five ways to deliver it — link, QR, .spim file, Dock, or ultrasonic beam.</p>
-      <a class="spim-btn spim-btn--primary spim-btn--lg" href="/create-account">Create your first capsule</a>
+  <section id="top" class="hero" data-enter aria-label="Private notes, images and sounds in one workspace">
+    <div class="wrap" style="max-width:1120px; margin: 0 auto; padding: 0 20px;">
+      <div class="spim-hero-grid">
+        <div>
+          <div class="spim-eyebrow"><span class="spim-dot spim-dot--live"></span> One workspace · Every kind of message</div>
+          <h1 class="spim-h1">Your message.<br><span class="spim-h1-accent">Your way to send it.</span></h1>
+          <p class="spim-lede">Create a capsule for text or images, then deliver it in the way that fits the moment — a link, QR, a portable file, Dock, or sound.</p>
+          <div style="display:flex; gap:12px; margin-top:26px; flex-wrap:wrap;">
+            <a class="spim-btn spim-btn--primary spim-btn--lg" href="/create-account">Create a capsule <span>→</span></a>
+            <a class="spim-btn spim-btn--ghost spim-btn--lg" href="#delivery" style="border:1px solid var(--spim-line-strong); background:var(--spim-panel); color:var(--spim-text); border-radius:var(--spim-r-md); padding:14px 22px;">Explore delivery methods</a>
+          </div>
+          <div class="spim-trust" style="margin-top:22px; display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--spim-dim);">
+            <span>✦ Private by construction</span>
+            <span>◈ BLAKE3 verified</span>
+            <span>↗ Opens across devices</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Illustrative SPIM capsule preview" style="display:flex; justify-content:center;">
+          <div style="width:100%; max-width:420px; border:1px solid var(--spim-line); border-radius:var(--spim-r-lg); background:var(--spim-panel); padding:22px; box-shadow: var(--spim-shadow);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+              <span style="font-size:11px; font-weight:700; letter-spacing:0.08em; color:var(--spim-dim); text-transform:uppercase;">Capsule preview</span>
+              <span class="spim-pill spim-pill--verified">READY TO SHARE</span>
+            </div>
+            <div style="border:1px dashed var(--spim-line-strong); border-radius:var(--spim-r-md); padding:18px; background:var(--spim-bg-soft);">
+              <div class="spim-eyebrow">TEXT CAPSULE · PERSONAL NOTE</div>
+              <div class="spim-body" style="margin-top:10px; font-size:14px; color:var(--spim-text); line-height:1.6;">Your message, sealed in the browser.</div>
+            </div>
+            <div class="spim-hero-art-row">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="spim-avatar" style="width:24px; height:24px; border-radius:50%; background:var(--spim-accent); color:#fff; display:grid; place-items:center; font-size:11px; font-weight:700;">S</span>
+                <span class="spim-body" style="font-size:12px; color:var(--spim-muted);">Sealed in your browser</span>
+              </div>
+              <span style="color:var(--spim-verified); font-weight:700;">✓ Verified format</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPIM WEBSITE REDESIGN — Stage 2: approved design homepage sections -->
+  <section id="features" class="spim-section" aria-labelledby="featuresHeading">
+    <div class="spim-section-head">
+      <div>
+        <span class="spim-eyebrow">What SPIM does</span>
+        <h2 id="featuresHeading" class="spim-h2">Everything you need to move a message</h2>
+        <p class="spim-body" style="margin-top:10px;max-width:56ch">One capsule. Flexible ways to create, share, and receive.</p>
+      </div>
+      <a class="spim-link" href="/why">Why SPIM? <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="spim-feature-grid">
+      <article class="spim-card spim-feature" id="feature-text">
+        <div class="spim-feature-icon" aria-hidden="true">✎</div>
+        <strong class="spim-feature-title">Create text capsules</strong>
+        <p class="spim-body">Write notes in your browser and package them as one sealed capsule.</p>
+      </article>
+      <article class="spim-card spim-feature" id="feature-image">
+        <div class="spim-feature-icon" aria-hidden="true">▧</div>
+        <strong class="spim-feature-title">Share images</strong>
+        <p class="spim-body">PNG, JPEG, and WebP images sealed byte-exact inside the capsule.</p>
+      </article>
+      <article class="spim-card spim-feature" id="feature-beam">
+        <div class="spim-feature-icon" aria-hidden="true">〰</div>
+        <strong class="spim-feature-title">Beam by sound</strong>
+        <p class="spim-body">Send a capsule link as an ultrasonic tone between nearby devices.</p>
+      </article>
+      <article class="spim-card spim-feature" id="feature-catch">
+        <div class="spim-feature-icon" aria-hidden="true">◈</div>
+        <strong class="spim-feature-title">Catch &amp; open</strong>
+        <p class="spim-body">Open a capsule by link or by a self-contained .spim file.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="demo" class="spim-section" aria-labelledby="demoHeading">
+    <div class="spim-section-head">
+      <div>
+        <span class="spim-eyebrow">Interactive preview</span>
+        <h2 id="demoHeading" class="spim-h2">Try the capsule composer</h2>
+        <p class="spim-body" style="margin-top:10px;max-width:56ch">A local interactive preview of the creation experience. It does not send or store anything.</p>
+      </div>
+      <span class="spim-pill spim-pill--accent">Demo widget</span>
+    </div>
+
+    <div class="spim-workspace-grid">
+      <div class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">New text capsule</h3>
+            <span class="spim-eyebrow" style="display:block;margin-top:5px">Draft · This browser only</span>
+          </div>
+          <span class="spim-pill">Local</span>
+        </div>
+        <div class="spim-card-body spim-stack spim-stack--lg">
+          <div class="spim-demo-tabs" role="tablist" aria-label="Demo capsule type">
+            <button type="button" class="spim-demo-tab" id="demoTabText" role="tab" aria-selected="true" data-demo-tab="text">Text</button>
+            <button type="button" class="spim-demo-tab" id="demoTabImage" role="tab" aria-selected="false" data-demo-tab="image">Image info</button>
+          </div>
+          <div id="demoComposerText">
+            <div class="spim-field">
+              <label class="spim-label" for="demoText">Your note</label>
+              <textarea id="demoText" class="spim-textarea" placeholder="Write something worth sending…" maxlength="3000" style="min-height:140px"></textarea>
+            </div>
+            <div class="spim-spread">
+              <span class="spim-eyebrow" id="demoWordCount">0 words</span>
+              <span class="spim-eyebrow" id="demoCharCount">0 / 3,000</span>
+            </div>
+            <div class="spim-stack">
+              <label class="spim-check">
+                <input type="checkbox" id="demoPrivate" checked>
+                <span><strong>Private capsule</strong><span>The key stays in the link; it is not sent to the server.</span></span>
+              </label>
+              <label class="spim-check">
+                <input type="checkbox" id="demoSingle">
+                <span><strong>Single view</strong><span>Burn after the first open.</span></span>
+              </label>
+            </div>
+          </div>
+          <div id="demoComposerImage" hidden>
+            <div style="border:1px dashed var(--spim-line-strong);border-radius:var(--spim-r-md);padding:24px 18px;text-align:center;background:var(--spim-bg-soft);color:var(--spim-muted);font-size:12px;">
+              <strong style="display:block;font-size:13px;color:var(--spim-text);margin-bottom:6px">Add an image in SPIM Studio</strong>
+              <p style="margin:0 0 12px;line-height:1.6">The live product supports image capsules up to 1 MB. The demo previews text only.</p>
+              <a class="spim-btn spim-btn--quiet" href="/create-account">Open the image studio <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+          <div class="spim-row spim-spread">
+            <span class="spim-body" style="font-size:12px">Nothing is uploaded by this preview.</span>
+            <a class="spim-btn spim-btn--primary" href="/create-account">Create in SPIM</a>
+          </div>
+        </div>
+      </div>
+
+      <aside class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">Live preview</h3>
+            <span class="spim-eyebrow" style="display:block;margin-top:5px">Updates as you type</span>
+          </div>
+        </div>
+        <div class="spim-card-body spim-stack">
+          <div class="spim-card spim-card--flat" style="padding:16px;display:grid;gap:10px">
+            <span class="spim-pill spim-pill--verified" id="demoPreviewState"><i class="spim-dot"></i>Draft ready</span>
+            <h4 class="spim-h3" id="demoPreviewTitle" style="font-size:15px">Your capsule preview</h4>
+            <p class="spim-body" id="demoPreviewText" style="font-size:12.5px;line-height:1.6;min-height:46px;white-space:pre-wrap;overflow-wrap:anywhere">Your note will appear here as you type.</p>
+            <div class="spim-row" style="gap:6px">
+              <span class="spim-pill" id="demoPrivacyTag">PRIVATE</span>
+              <span class="spim-pill" id="demoViewTag">REUSABLE</span>
+              <span class="spim-pill">TEXT</span>
+            </div>
+          </div>
+          <div>
+            <span class="spim-body" style="font-size:12px">Choose a delivery path</span>
+            <div class="spim-row" style="margin-top:8px">
+              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="link">Link</button>
+              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="qr">QR</button>
+              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="file">File</button>
+            </div>
+            <p class="spim-body" id="demoDeliveryHint" style="font-size:11px;margin-top:10px;line-height:1.6">Private capsules keep the key in the link; the key is not sent to the server.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="delivery" class="spim-section" aria-labelledby="deliveryHeading">
+    <div class="spim-section-head">
+      <div>
+        <span class="spim-eyebrow">Sharing</span>
+        <h2 id="deliveryHeading" class="spim-h2">Five ways to deliver</h2>
+        <p class="spim-body" style="margin-top:10px;max-width:56ch">Pick the route that matches where the recipient is and what they need.</p>
+      </div>
+    </div>
+    <div class="spim-delivery-layout">
+      <div class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">Delivery selector</h3>
+            <span class="spim-eyebrow" style="display:block;margin-top:5px">Tap a method to learn more</span>
+          </div>
+        </div>
+        <div class="spim-card-body spim-stack">
+          <div class="spim-delivery-tabs" role="tablist" aria-label="Delivery methods">
+            <button type="button" class="spim-delivery-tab" data-route="link" aria-pressed="true">↗ Link</button>
+            <button type="button" class="spim-delivery-tab" data-route="qr" aria-pressed="false">▦ QR</button>
+            <button type="button" class="spim-delivery-tab" data-route="file" aria-pressed="false">▤ .spim file</button>
+            <button type="button" class="spim-delivery-tab" data-route="dock" aria-pressed="false">▣ Dock</button>
+            <button type="button" class="spim-delivery-tab" data-route="sound" aria-pressed="false">〰 Sound</button>
+          </div>
+          <div class="spim-delivery-info" aria-live="polite">
+            <div class="spim-delivery-symbol" id="deliverySymbol">↗</div>
+            <div>
+              <h4 id="deliveryTitle">Share a link</h4>
+              <p id="deliveryDescription">Send a capsule link to someone anywhere. For private capsules, the decryption key stays in the link fragment and is not sent to the server.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">Workspace handoff</h3>
+          </div>
+        </div>
+        <div class="spim-card-body spim-stack">
+          <div class="spim-route-list">
+            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">▣</span><span><strong style="color:var(--spim-text)">Dock</strong> — hold capsules for later opening or handoff.</span></div>
+            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">♧</span><span><strong style="color:var(--spim-text)">Connections</strong> — route to people, teams, or agents.</span></div>
+            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">▧</span><span><strong style="color:var(--spim-text)">Images</strong> — account workspace includes 16 free image capsules.</span></div>
+          </div>
+          <a class="spim-link" href="/account">Explore your workspace <span aria-hidden="true">→</span></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="security" class="spim-section" aria-labelledby="securityHeading">
+    <div class="spim-security">
+      <div class="spim-security-icon" aria-hidden="true">◈</div>
+      <div>
+        <strong id="securityHeading" class="spim-security-title">Privacy you can understand. Integrity you can check.</strong>
+        <p class="spim-body" style="margin-top:6px">Private capsules are encrypted in the browser; their key stays in the link. A .spim file or sound beam does not touch a server. Capsules are verified with BLAKE3. Single-view capsules are destroyed after the first open.</p>
+      </div>
+      <a class="spim-link" href="/why">How it works <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section id="api" class="spim-section" aria-labelledby="apiHeading">
+    <div class="spim-section-head">
+      <div>
+        <span class="spim-eyebrow">Developers</span>
+        <h2 id="apiHeading" class="spim-h2">Built for people and workflows</h2>
+        <p class="spim-body" style="margin-top:10px;max-width:56ch">Bring SPIM into the way you already work.</p>
+      </div>
+      <a class="spim-link" href="/account#api">Manage API keys <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="spim-api-layout">
+      <div class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">API access</h3>
+            <span class="spim-pill spim-pill--accent">Bearer auth</span>
+          </div>
+        </div>
+        <div class="spim-card-body spim-stack">
+          <p class="spim-body">SPIM account workspaces support API keys for Dock and other capsule endpoints. Keys are shown once when created and stored as SHA-256 hashes.</p>
+          <div class="spim-code-window">
+            <div class="spim-code-top"><span class="spim-code-dot"></span><span class="spim-code-dot"></span><span class="spim-code-dot"></span></div>
+            <pre>Authorization: Bearer $SPIM_API_KEY
+
+# Dock endpoint
+https://www.spim.co.in/api/dock</pre>
+            <div class="spim-code-copy"><span>Copy the header template</span><button type="button" id="copyApi" class="spim-code-copy-btn">Copy ↗</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="spim-api-facts">
+        <div class="spim-api-fact"><strong>Keys are shown once</strong><p>Create a named key in your account and copy it when it is issued.</p></div>
+        <div class="spim-api-fact"><strong>Dock-aware workflows</strong><p>Use the Dock endpoint and other capsule endpoints to connect your workflow.</p></div>
+        <div class="spim-api-fact"><strong>Safer key storage</strong><p>API keys are stored as SHA-256 hashes rather than saved as readable secrets.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="spim-section" aria-labelledby="faqHeading">
+    <div class="spim-section-head">
+      <div>
+        <span class="spim-eyebrow">How it works</span>
+        <h2 id="faqHeading" class="spim-h2">How SPIM works</h2>
+        <p class="spim-body" style="margin-top:10px;max-width:56ch">A simple flow, with control over the handoff.</p>
+      </div>
+    </div>
+    <div class="spim-bottom-grid">
+      <div class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">From note to recipient</h3>
+            <span class="spim-eyebrow" style="display:block;margin-top:5px">3 steps</span>
+          </div>
+        </div>
+        <div class="spim-card-body">
+          <div class="spim-steps">
+            <div class="spim-step"><div class="spim-step-num">01</div><strong>Create</strong><p>Write a note or choose an image in SPIM Studio.</p></div>
+            <div class="spim-step"><div class="spim-step-num">02</div><strong>Seal</strong><p>The capsule is sealed in your browser and verified with BLAKE3.</p></div>
+            <div class="spim-step"><div class="spim-step-num">03</div><strong>Deliver</strong><p>Send by link, QR, file, Dock, or sound.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="spim-card">
+        <div class="spim-card-head">
+          <div>
+            <h3 class="spim-h3" style="font-size:15px">Good to know</h3>
+            <span class="spim-eyebrow" style="display:block;margin-top:5px">Quick answers</span>
+          </div>
+        </div>
+        <div class="spim-card-body spim-stack">
+          <div class="spim-faq-item open">
+            <button type="button" class="spim-faq-q" aria-expanded="true">Does a .spim file work offline?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
+            <div class="spim-faq-a">Yes. Open the file in Catch / Open. The file carries the capsule and can be opened without a network call.</div>
+          </div>
+          <div class="spim-faq-item">
+            <button type="button" class="spim-faq-q" aria-expanded="false">Does private mean the server has the key?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
+            <div class="spim-faq-a">No. The private capsule is encrypted in the browser. The key remains in the link fragment and is not sent to the server.</div>
+          </div>
+          <div class="spim-faq-item">
+            <button type="button" class="spim-faq-q" aria-expanded="false">What happens after a single view?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
+            <div class="spim-faq-a">A single-view capsule can be opened once. After the first open, it is consumed and the link stops working.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -305,6 +640,14 @@
     <a href="/why" class="spim-proof-item" style="color:var(--spim-accent)">Why SPIM →</a>
   </div>
 </main>
+
+<section class="spim-footer-cta" aria-labelledby="footerCtaTitle">
+  <div>
+    <h2 id="footerCtaTitle" class="spim-h2" style="font-size:22px;letter-spacing:-0.03em">Keep the message. Choose the handoff.</h2>
+    <p class="spim-body" style="margin-top:8px;max-width:52ch">Create a capsule and share it in the way that works for you.</p>
+  </div>
+  <a class="spim-btn spim-btn--light" href="/create-account">Explore SPIM Studio</a>
+</section>
 
 <!-- chrome:footer -->
 <footer class="spim-footer">
@@ -1059,5 +1402,141 @@ window.addEventListener('load', function(){
 updateMeta(); renumber();
 </script>
 <script src="/js/spim-analytics.js" defer></script>
+
+<script>
+  /* SPIM WEBSITE REDESIGN — Stage 2: local demo composer, delivery tabs, FAQ, API copy. */
+  (function () {
+    /* Demo composer — local preview only. No upload, no capsule creation, no API call. */
+    var demoText = document.getElementById('demoText');
+    var demoWordCount = document.getElementById('demoWordCount');
+    var demoCharCount = document.getElementById('demoCharCount');
+    var demoPreviewText = document.getElementById('demoPreviewText');
+    var demoPreviewTitle = document.getElementById('demoPreviewTitle');
+    var demoPrivacyTag = document.getElementById('demoPrivacyTag');
+    var demoViewTag = document.getElementById('demoViewTag');
+    var demoDeliveryHint = document.getElementById('demoDeliveryHint');
+
+    function demoCountWords(v) { var t = (v || '').trim(); return t ? t.split(/\s+/).filter(Boolean).length : 0; }
+
+    function updateDemoPreview() {
+      var v = demoText ? demoText.value : '';
+      var words = demoCountWords(v);
+      if (demoWordCount) demoWordCount.textContent = words + (words === 1 ? ' word' : ' words');
+      if (demoCharCount) demoCharCount.textContent = v.length.toLocaleString() + ' / 3,000';
+      if (demoPreviewText) demoPreviewText.textContent = v.trim() ? v : 'Your note will appear here as you type.';
+      if (demoPreviewTitle) demoPreviewTitle.textContent = v.trim() ? 'Your capsule preview' : 'An empty capsule draft';
+      var priv = document.getElementById('demoPrivate');
+      var single = document.getElementById('demoSingle');
+      if (demoPrivacyTag) {
+        var privOn = !!(priv && priv.checked);
+        demoPrivacyTag.textContent = privOn ? 'PRIVATE' : 'PUBLIC';
+        demoPrivacyTag.classList.toggle('spim-pill--accent', privOn);
+      }
+      if (demoViewTag) {
+        var singleOn = !!(single && single.checked);
+        demoViewTag.textContent = singleOn ? 'SINGLE VIEW' : 'REUSABLE';
+        demoViewTag.classList.toggle('spim-pill--verified', singleOn);
+      }
+    }
+
+    if (demoText) { demoText.addEventListener('input', updateDemoPreview); updateDemoPreview(); }
+    var demoPrivate = document.getElementById('demoPrivate');
+    var demoSingle = document.getElementById('demoSingle');
+    if (demoPrivate) demoPrivate.addEventListener('change', updateDemoPreview);
+    if (demoSingle) demoSingle.addEventListener('change', updateDemoPreview);
+
+    var DEMO_DELIVERY_HINTS = {
+      link: 'Private capsules keep the key in the link; the key is not sent to the server.',
+      qr: 'QR is a convenient handoff when the recipient is nearby.',
+      file: 'The .spim file is self-contained and can be opened offline.',
+      dock: 'Save the capsule to your Dock to hand it off later.',
+      sound: 'Beam the link as an ultrasonic tone; the receiver opens Catch and listens.',
+    };
+    document.querySelectorAll('[data-demo-delivery]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var key = btn.getAttribute('data-demo-delivery');
+        if (demoDeliveryHint) demoDeliveryHint.textContent = DEMO_DELIVERY_HINTS[key] || DEMO_DELIVERY_HINTS.link;
+      });
+    });
+
+    var demoTabTextBtn = document.getElementById('demoTabText');
+    var demoTabImageBtn = document.getElementById('demoTabImage');
+    var demoComposerText = document.getElementById('demoComposerText');
+    var demoComposerImage = document.getElementById('demoComposerImage');
+    function setDemoTab(which) {
+      var isText = (which || 'text') === 'text';
+      if (demoTabTextBtn) { demoTabTextBtn.setAttribute('aria-selected', isText ? 'true' : 'false'); demoTabTextBtn.classList.toggle('spim-demo-tab--active', isText); }
+      if (demoTabImageBtn) { demoTabImageBtn.setAttribute('aria-selected', isText ? 'false' : 'true'); demoTabImageBtn.classList.toggle('spim-demo-tab--active', !isText); }
+      if (demoComposerText) demoComposerText.hidden = !isText;
+      if (demoComposerImage) demoComposerImage.hidden = isText;
+    }
+    if (demoTabTextBtn) demoTabTextBtn.addEventListener('click', function () { setDemoTab('text'); });
+    if (demoTabImageBtn) demoTabImageBtn.addEventListener('click', function () { setDemoTab('image'); });
+    setDemoTab('text');
+
+    /* Delivery methods — informational tabs on the homepage (no capsule flow). */
+    var deliveryTabs = document.querySelectorAll('.spim-delivery-tab');
+    var deliverySymbol = document.getElementById('deliverySymbol');
+    var deliveryTitle = document.getElementById('deliveryTitle');
+    var deliveryDesc = document.getElementById('deliveryDescription');
+    var DELIVERY_INFO = {
+      link: { symbol: '↗', title: 'Share a link', description: 'Send a capsule link to someone anywhere. For private capsules, the decryption key stays in the link fragment and is not sent to the server.' },
+      qr: { symbol: '▦', title: 'Show a QR code', description: 'Let someone scan to open the capsule. QR is a convenient handoff when both people are together.' },
+      file: { symbol: '▤', title: 'Send a .spim file', description: 'Download the self-contained capsule and share it as a file. Recipients can open it in Catch / Open, including offline.' },
+      dock: { symbol: '▣', title: 'Save to Dock', description: 'Keep capsules in your account Dock so they can be opened later or handed to a saved connection.' },
+      sound: { symbol: '〰', title: 'Beam by sound', description: 'Play the capsule link as an ultrasonic tone. The receiving device opens Catch and listens; keep both devices nearby.' },
+    };
+    function selectDelivery(key) {
+      var info = DELIVERY_INFO[key] || DELIVERY_INFO.link;
+      if (deliverySymbol) deliverySymbol.textContent = info.symbol;
+      if (deliveryTitle) deliveryTitle.textContent = info.title;
+      if (deliveryDesc) deliveryDesc.textContent = info.description;
+      deliveryTabs.forEach(function (btn) { btn.setAttribute('aria-pressed', btn.getAttribute('data-route') === key ? 'true' : 'false'); });
+    }
+    deliveryTabs.forEach(function (btn) { btn.addEventListener('click', function () { selectDelivery(btn.getAttribute('data-route')); }); });
+
+    /* FAQ accordion. */
+    var faqBtns = document.querySelectorAll('.spim-faq-q');
+    faqBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var item = btn.closest('.spim-faq-item');
+        var open = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        var ico = btn.querySelector('.spim-faq-ico');
+        if (ico) ico.textContent = open ? '−' : '＋';
+      });
+    });
+
+    /* API header template copy (placeholder only — never a live key). */
+    var copyApiBtn = document.getElementById('copyApi');
+    if (copyApiBtn) {
+      copyApiBtn.addEventListener('click', function () {
+        var snippet = 'Authorization: Bearer $SPIM_API_KEY';
+        var reset = function () { copyApiBtn.textContent = 'Copy ↗'; };
+        var done = function () { copyApiBtn.textContent = 'Copied ✓'; setTimeout(reset, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(snippet).then(done).catch(function () { copyApiBtn.textContent = 'Clipboard unavailable'; });
+        } else { copyApiBtn.textContent = 'Clipboard unavailable'; }
+      });
+    }
+  })();
+</script>
+
+</div>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('spimSidebarToggle');
+    var sb = document.getElementById('spimSidebar');
+    if (!btn || !sb) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var open = sb.classList.toggle('spim-app-sidebar--open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.classList.toggle('spim-app-sidebar-open', open);
+    });
+  })();
+</script>
 </body>
 </html>

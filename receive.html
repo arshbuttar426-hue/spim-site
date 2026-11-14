@@ -20,7 +20,36 @@
 </script>
 </head>
 <body class="spim-page" data-page="receive">
-<div class="spim-aurora"></div>
+<!-- C6 website redesign — Stage 3: app shell (secondary pages) -->
+<div class="spim-app">
+  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
+    <div class="spim-app-sidebar-inner">
+      <a class="spim-brand" href="/" aria-label="SPIM home">
+        <span class="spim-mark" aria-hidden="true">S</span>
+        <span class="spim-wordmark">SPIM</span>
+      </a>
+      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <nav class="spim-app-nav" aria-label="Workspace">
+        <a href="#top">Overview</a>
+        <a href="#workspace">Studio</a>
+        <a href="#delivery">Delivery methods</a>
+        <a href="#security" data-auth="out">Privacy & integrity</a>
+        <a href="/seam">SEAM</a>
+      </nav>
+      <nav class="spim-app-nav" aria-label="Manage">
+        <a href="/account#dock" data-auth="in">Dock</a>
+        <a href="/account#connections" data-auth="in">Connections</a>
+        <a href="/images" data-auth="in">Images</a>
+      </nav>
+      <nav class="spim-app-nav" aria-label="Developers">
+        <a href="/account#api" data-auth="in">API access</a>
+        <a href="/support" data-auth="out">Help & FAQ</a>
+      </nav>
+    </div>
+  </aside>
+  <div class="spim-app-main">
 
 <!-- chrome:nav -->
 <header class="spim-nav">
@@ -495,5 +524,22 @@ window.addEventListener('hashchange', loadReceive);
 </script>
 <script src="/js/session-nav.js" defer></script>
 <script src="/js/spim-analytics.js" defer></script>
+
+</div>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('spimSidebarToggle');
+    var sb = document.getElementById('spimSidebar');
+    if (!btn || !sb) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var open = sb.classList.toggle('spim-app-sidebar--open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.classList.toggle('spim-app-sidebar-open', open);
+    });
+  })();
+</script>
 </body>
 </html>
