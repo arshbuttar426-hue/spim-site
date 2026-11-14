@@ -254,6 +254,7 @@
 <!-- /chrome:footer -->
 
 <script src="/js/spim-codec.js"></script>
+<script src="/js/spim-audio.js"></script>
 <script>
 (function(){
   var micBtn=document.getElementById('micTestBtn');
@@ -324,12 +325,10 @@
       if(window.SpimCodec){
         var bytes=new TextEncoder().encode('spim test');
         var samples=window.SpimCodec.encode(bytes);
-        var buf=spkCtx.createBuffer(1,samples.length,48000);
-        buf.copyToChannel(samples,0);
-        var src=spkCtx.createBufferSource(); src.buffer=buf; src.connect(spkCtx.destination);
-        src.onended=function(){ spkStatus.textContent='Played'; spkStatus.className='spim-pill spim-pill--verified'; };
-        src.start();
         spkStatus.textContent='Playing…'; spkStatus.className='spim-pill spim-pill--accent';
+        window.SpimAudio.playFloat32(samples, function(){
+          spkStatus.textContent='Played'; spkStatus.className='spim-pill spim-pill--verified';
+        });
       }else{
         var o=spkCtx.createOscillator(), g=spkCtx.createGain();
         o.type='sine'; o.frequency.value=18000;

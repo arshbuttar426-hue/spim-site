@@ -120,6 +120,25 @@
       }
     },
 
+    playFloat32: function (samples, onEnd) {
+      var ctx = this.getContext();
+      var buffer = ctx.createBuffer(1, samples.length, 48000);
+      buffer.copyToChannel(samples, 0);
+      var src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        try { src.stop(); } catch (e) {}
+        if (typeof onEnd === 'function') onEnd();
+      }
+      src.onended = finish;
+      src.start();
+      return { stop: finish };
+    },
+
     startListening: function (handlers) {
       var self = this;
       if (self.listen) return Promise.resolve(self.listen.ctx);
