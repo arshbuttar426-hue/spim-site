@@ -34,7 +34,7 @@ function mustNot(rel) {
 
 /* --- required surface ---------------------------------------------------- */
 for (const f of [
-  'index.html', 'app.html', 'receive.html', 'seam.html', 'why.html', 'support.html',
+  'index.html', 'receive.html', 'seam.html', 'why.html', 'support.html',
   'login.html', 'create-account.html', 'account.html', 'images.html',
   'css/spim-theme.css', 'js/spim-codec.js', 'js/seam-client.js', 'js/supabaseClient.js', 'js/session-nav.js',
   'pkg/spim_wasm.js', 'favicon.svg',
@@ -116,14 +116,14 @@ for (const [needle, why] of [
 }
 
 /* --- no jargon in anything a person can read ----------------------------- */
-const PAGES = ['index.html', 'app.html', 'receive.html', 'seam.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
+const PAGES = ['index.html', 'receive.html', 'seam.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
 const jargon = /2-FSK|8-FSK|symbol rate|preamble|baud/i;
 for (const page of PAGES) {
   const full = path.join(root, page);
   if (!fs.existsSync(full)) continue;
   const html = fs.readFileSync(full, 'utf8');
   if (jargon.test(html)) problems.push(page + ' exposes engineering jargon');
-  if (page !== 'app.html' && !html.includes('spim-theme.css')) problems.push(page + ' does not load the shared theme');
+  if (!html.includes('spim-theme.css')) problems.push(page + ' does not load the shared theme');
 }
 
 /* --- links resolve inside the tree --------------------------------------- */

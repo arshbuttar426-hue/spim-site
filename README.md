@@ -15,7 +15,6 @@ capsule API proxied through Pages Functions to a self-hosted VPS origin.
 - `functions/capsules.js` — `POST /capsules` (create)
 - `functions/capsules/[id].js` — `GET /capsules/:id` (fetch)
 - `functions/capsules/[id]/consume.js` — `POST /capsules/:id/consume` (destroy)
-- `functions/update-origin.js` — `POST /update-origin` (token-protected origin update)
 - `wrangler.toml` — Pages project, vars, KV binding
 
 Clean routes are real directories (`receive/index.html` etc.), so there is no SPA
@@ -43,13 +42,6 @@ browser → www.spim.co.in (Pages + Functions)
         → https://<random>.trycloudflare.com  (cloudflared quick tunnel on VPS)
         → 127.0.0.1:8080  (/root/server.py, JSON files in /root/capsules)
 ```
-
-The cloudflared quick tunnel URL changes whenever the tunnel restarts. `spim-report`
-on the VPS watches `/root/tunnel.log`, health-checks the new URL, and POSTs it to
-`/update-origin` with `x-update-token`. The Pages Function writes it to KV, so the
-public site heals itself without a redeploy. A wrong/missing token gets 403; a
-non-`https://*.trycloudflare.com` origin gets 400. KV reads can be stale for ~60s,
-which shows up briefly as a 530/1033 on `/capsules/*`.
 
 VPS units (enabled, survive reboot):
 
