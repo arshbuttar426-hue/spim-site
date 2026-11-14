@@ -89,6 +89,9 @@ for (const f of [
 const index = fs.existsSync(path.join(root, 'index.html'))
   ? fs.readFileSync(path.join(root, 'index.html'), 'utf8')
   : '';
+const capsuleClient = fs.existsSync(path.join(root, 'js/spim-capsule-client.js'))
+  ? fs.readFileSync(path.join(root, 'js/spim-capsule-client.js'), 'utf8')
+  : '';
 
 for (const [needle, why] of [
   ['id="panelText"', 'Text panel'],
@@ -105,7 +108,11 @@ for (const [needle, why] of [
   ['spim-nav', 'shared navigation'],
   ['spim-footer', 'shared footer']
 ]) {
-  if (!index.includes(needle)) problems.push('index.html lost ' + why + ' (' + needle + ')');
+  // C3: the capsule API call may live in the shared capsule client module
+  // (/js/spim-capsule-client.js) now that index.html delegates delivery there.
+  let found = index.includes(needle);
+  if (!found && needle === '/capsules') found = capsuleClient.includes('/capsules');
+  if (!found) problems.push('index.html lost ' + why + ' (' + needle + ')');
 }
 
 /* --- no jargon in anything a person can read ----------------------------- */
