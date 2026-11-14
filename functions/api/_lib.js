@@ -187,6 +187,11 @@ export async function apiKeyUser(request, env) {
   return { id: index.user_id, email: null, via: 'api_key' };
 }
 
+/** Shared resolver: signed-in user via session cookie or Bearer API key. */
+export async function actor(request, env) {
+  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
+}
+
 export async function getJSON(env, key) {
   const raw = await env.SPIM_KV.get(key);
   if (!raw) return null;

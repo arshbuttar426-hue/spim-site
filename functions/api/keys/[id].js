@@ -1,16 +1,11 @@
 import {
   guard,
   json,
-  currentUser,
-  apiKeyUser,
+  actor,
   getJSON,
   putJSON,
   readBody,
 } from '../_lib.js';
-
-async function actor(request, env) {
-  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
-}
 
 export async function onRequestDelete({ request, env, params }) {
   const user = await actor(request, env);

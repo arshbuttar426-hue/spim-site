@@ -1,8 +1,7 @@
 import {
   guard,
   json,
-  currentUser,
-  apiKeyUser,
+  actor,
   listJSON,
   putJSON,
   getJSON,
@@ -11,10 +10,6 @@ import {
 } from './_lib.js';
 
 const CAPSULE_RE = /^[A-Za-z0-9_-]{6,16}$/;
-
-async function actor(request, env) {
-  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
-}
 
 export async function onRequestGet({ request, env }) {
   const user = await actor(request, env);

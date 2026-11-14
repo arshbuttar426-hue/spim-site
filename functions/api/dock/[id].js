@@ -1,10 +1,6 @@
-import { guard, json, currentUser, apiKeyUser, getJSON, putJSON, readBody } from '../_lib.js';
+import { guard, json, actor, getJSON, putJSON, readBody } from '../_lib.js';
 
 const ACTIONS = new Set(['unload', 'reject']);
-
-async function actor(request, env) {
-  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
-}
 
 export async function onRequestPost({ request, env, params }) {
   const blocked = guard(request, env);

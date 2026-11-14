@@ -1,8 +1,4 @@
-import { json, currentUser, apiKeyUser, getJSON } from '../_lib.js';
-
-async function actor(request, env) {
-  return (await currentUser(request, env)) || (await apiKeyUser(request, env));
-}
+import { json, actor, getJSON } from '../_lib.js';
 
 export async function onRequestDelete({ request, env, params }) {
   const user = await actor(request, env);
