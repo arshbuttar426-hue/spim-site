@@ -129,7 +129,7 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell" style="max-width:720px;padding-top:44px;padding-bottom:64px">
+<main class="spim-shell spim-shell--prose">
 
   <!-- POSTCARD VIEW -->
   <div id="postcardView">
@@ -183,7 +183,7 @@
         </div>
         <div id="verifyDetail2" class="spim-note spim-hide" style="margin-top:10px;flex-direction:column;gap:4px;font-family:var(--spim-mono);font-size:10px">
           <div style="color:var(--spim-text)">Verified</div>
-          <div style="word-break:break-all">BLAKE3: <span id="blake3hex">—</span></div>
+          <div style="word-break:break-all">Integrity: <span id="blake3hex">—</span></div>
           <div>SPIM: <span id="spimVerify">—</span></div>
         </div>
       </div>
@@ -201,7 +201,7 @@
       </div>
     </div>
     <div id="verifyDetail3" class="spim-note spim-hide" style="margin-bottom:18px;font-family:var(--spim-mono);font-size:10px">
-      Reconstructed from the capsule, then checked against its BLAKE3 seal.
+      Reconstructed from the capsule, then checked against its seal.
     </div>
 
     <span class="spim-kicker">Shared capsule</span>
@@ -275,7 +275,7 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified by BLAKE3</span>
+    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->

@@ -121,16 +121,16 @@
 </header>
 <!-- /chrome:nav -->
 
-<main>
-  <section class="spim-shell spim-section" style="padding-bottom:40px">
-    <div style="max-width:680px">
+<main class="spim-shell">
+  <section class="spim-section" style="padding-bottom:40px">
+    <div class="spim-prose">
       <span class="spim-kicker">Why SPIM</span>
       <h1 class="spim-h1">Your words should<br>arrive intact.</h1>
       <p class="spim-lede">A link is a promise someone else keeps. A capsule is one you can check yourself — byte for byte, with or without a network.</p>
     </div>
   </section>
 
-  <section class="spim-shell" style="padding-bottom:24px">
+  <section class="spim-section" style="padding-bottom:24px">
     <div class="spim-pillars">
 
       <article class="spim-pillar">
@@ -163,13 +163,13 @@
           <span class="spim-pillar-num">03</span>
         </div>
         <h2 class="spim-h3">Cryptographic truth</h2>
-        <p>Every capsule is sealed with BLAKE3. If a single byte changes — in transit, on disk, or by an editor — the seal breaks and the page says so. Trust the maths, not the messenger.</p>
+        <p>Every capsule carries a built-in integrity check. If anything changes — in transit, on disk, or by an editor — the check fails and the page says so. Trust the seal, not the messenger.</p>
       </article>
 
     </div>
   </section>
 
-  <section class="spim-shell spim-section">
+  <section class="spim-section">
     <div class="spim-card">
       <div class="spim-card-head">
         <span class="spim-eyebrow">How it works</span>
@@ -185,7 +185,7 @@
           <div>
             <span class="spim-eyebrow" style="color:var(--spim-accent)">02 — Seal</span>
             <h3 class="spim-h3" style="margin-top:8px">Sealed in your browser.</h3>
-            <p class="spim-body" style="margin-top:6px">A BLAKE3 hash and, if you choose, an AES key that never leaves the link.</p>
+            <p class="spim-body" style="margin-top:6px">A private seal, and if you choose, a key that never leaves the link.</p>
           </div>
           <div>
             <span class="spim-eyebrow" style="color:var(--spim-accent)">03 — Send</span>
@@ -197,7 +197,7 @@
     </div>
   </section>
 
-  <section class="spim-shell" style="padding-bottom:56px">
+  <section class="spim-section" style="padding-bottom:56px">
     <div class="spim-center">
       <h2 class="spim-h2">See it for yourself.</h2>
       <p class="spim-body" style="margin:12px auto 0;max-width:44ch">The demo is the product. Write a note, beam it to your phone, and watch the seal hold.</p>
@@ -246,7 +246,7 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified by BLAKE3</span>
+    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->

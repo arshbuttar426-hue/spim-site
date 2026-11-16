@@ -121,12 +121,12 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell" style="padding-top:48px;padding-bottom:64px">
-  <div class="spim-spread" style="align-items:flex-end;flex-wrap:wrap;gap:16px">
-    <div>
+<main class="spim-shell">
+  <div class="spim-spread spim-spread--end">
+    <div class="spim-account-head">
       <span class="spim-kicker">Your workspace</span>
-      <h1 class="spim-h2" style="margin-top:10px">Account</h1>
-      <p class="spim-body" style="margin-top:6px">Signed in as <span id="accountEmail" class="spim-mono">—</span></p>
+      <h1 class="spim-h2">Account</h1>
+      <p class="spim-body">Signed in as <span id="accountEmail" class="spim-mono">—</span></p>
     </div>
     <div class="spim-row">
       <a href="/#text" class="spim-btn spim-btn--primary spim-btn--sm">Create a capsule</a>
@@ -214,7 +214,7 @@
       <!-- API -->
       <section class="spim-account-panel" id="api" data-panel="api" hidden>
         <h2>API keys</h2>
-        <p class="spim-body" style="margin-top:6px">Use a bearer key with <span class="spim-mono">/api/dock</span> and other capsule endpoints. Keys are shown once and stored as SHA-256 hashes.</p>
+        <p class="spim-body" style="margin-top:6px">Use your private key with the Dock and other handoffs. Keys are shown once and never saved in plain text.</p>
 
         <form id="keyForm" class="spim-stack" style="margin-top:20px">
           <div class="spim-row" style="align-items:flex-end">
@@ -275,7 +275,7 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified by BLAKE3</span>
+    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->

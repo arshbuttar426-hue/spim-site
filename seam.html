@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Seam — private messaging inside SPIM</title>
-<meta name="description" content="Seam is SPIM's private channel: an X3DH handshake, a double ratchet, and sealed capsules the relay can carry but never read.">
+<meta name="description" content="Seam is SPIM's private channel: a private line between two people, carried by a relay that never reads what crosses it.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -142,20 +142,20 @@
 </header>
 <!-- /chrome:nav -->
 
-<main>
-  <section class="spim-shell spim-section" style="padding-bottom:24px">
-    <div style="max-width:720px">
+<main class="spim-shell">
+  <section class="spim-section" style="padding-bottom:24px">
+    <div class="spim-prose">
       <span class="spim-kicker">Seam</span>
       <h1 class="spim-h1">A private channel,<br>inside SPIM.</h1>
-      <p class="spim-lede">Seam adds secrecy to the capsule you already trust. An X3DH handshake, a double ratchet, and a chain that only the recipient can verify — carried by a relay that never sees a name, a key, or a word.</p>
+      <p class="spim-lede">Seam adds secrecy to the capsule you already trust. A private channel only the two of you can hear — carried by a relay that never sees who you are or what you say.</p>
     </div>
   </section>
 
-  <section class="spim-shell" style="padding-bottom:24px">
+  <section class="spim-section" style="padding-bottom:24px">
     <p id="seamStatus" class="spim-note" hidden></p>
   </section>
 
-  <section class="spim-shell" style="padding-bottom:40px">
+  <section class="spim-section" style="padding-bottom:40px">
     <div class="spim-stack spim-stack--lg">
 
       <div class="spim-card" id="seamCreateCard" hidden>
@@ -261,7 +261,7 @@
       <div class="spim-card spim-card--flat">
         <div class="spim-card-body">
           <span class="spim-eyebrow">What the relay can see</span>
-          <p class="spim-body" style="margin-top:8px">A mailbox derived from a public key and a day. A capsule size, bucketed by padding. A time. Nothing else: the sender, the recipient's identity, the ordering chain, and the plaintext all live inside the ciphertext.</p>
+          <p class="spim-body" style="margin-top:8px">A private mailbox keyed to a person and a day. A capsule size, bucketed by padding. A time. Nothing else: the sender, the recipient, the order, and the message all live together.</p>
         </div>
       </div>
 
@@ -306,7 +306,7 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified by BLAKE3</span>
+    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->
