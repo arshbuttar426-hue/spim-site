@@ -1091,6 +1091,11 @@ body.spim-page {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The address is a label, not a control: drop it before the nav has to scroll. */
+@media (max-width: 780px) {
+  .spim-account-email { display: none; }
+  .spim-account-btn { padding: 0 6px 0 4px; }
+}
 .spim-account-menu {
   position: absolute;
   right: 0;

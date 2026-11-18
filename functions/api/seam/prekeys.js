@@ -15,9 +15,11 @@ import {
   MAX_BUNDLE_BYTES,
   OWNER_TTL,
   PREKEY_TTL,
+  identKey,
   ownerKey,
   prekeyKey,
   rateLimit,
+  userKey,
   validMailbox,
 } from './_lib.js';
 
@@ -89,6 +91,15 @@ export async function onRequestPost({ request, env }) {
     expirationTtl: PREKEY_TTL,
   });
   await env.SPIM_KV.put(ownerKey(mailbox), user.id, { expirationTtl: OWNER_TTL });
+
+  // Make this account and this device addressable without exposing a key.
+  // Both records live exactly as long as the prekeys they point at.
+  const binding = JSON.stringify({ user: user.id, mailbox, created_at: now, expires_at: record.expires_at });
+  await env.SPIM_KV.put(userKey(user.id), binding, { expirationTtl: PREKEY_TTL });
+  const deviceId = bundles[0] && bundles[0].id;
+  if (deviceId) {
+    await env.SPIM_KV.put(identKey(deviceId), binding, { expirationTtl: PREKEY_TTL });
+  }
 
   return json(201, { mailbox, stored: bundles.length, expires_at: record.expires_at });
 }

@@ -160,12 +160,31 @@
     err.hidden = false;
   }
 
+  /* Return to the page that asked for sign-in, but never to another origin. */
+  function nextPath(){
+    var raw = new URLSearchParams(location.search).get('next') || '';
+    if(raw.charAt(0) !== '/' || raw.charAt(1) === '/' || raw.charAt(1) === '\\') return '/account';
+    try {
+      var u = new URL(raw, location.origin);
+      if(u.origin !== location.origin) return '/account';
+      return u.pathname + u.search + u.hash;
+    } catch(e){ return '/account'; }
+  }
+
+  /* A new visitor must not lose the invite by switching forms. */
+  (function carryNext(){
+    var next = new URLSearchParams(location.search).get('next');
+    if(!next) return;
+    var link = document.querySelector('.spim-auth-alt a[href="/create-account"]');
+    if(link) link.href = '/create-account?next=' + encodeURIComponent(next);
+  })();
+
   async function alreadySignedIn(){
     try {
       var res = await fetch('/api/auth/me', {credentials:'include'});
       if(res.ok){
         var body = await res.json();
-        if(body && body.user){ location.replace('/account'); return true; }
+        if(body && body.user){ location.replace(nextPath()); return true; }
       }
     } catch(e){}
     return false;
@@ -184,7 +203,7 @@
     try {
       var out = await window.supabase.auth.signInWithPassword({email:email, password:password});
       if(out.error){ showError(out.error.message); return; }
-      location.href = '/account';
+      location.href = nextPath();
     } catch(ex){
       showError('Could not log in. Check your connection.');
     } finally {

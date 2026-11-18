@@ -61,6 +61,17 @@ export function prekeyKey(mailbox) {
   return `seam:prekey:${mailbox}`;
 }
 
+/* Address bindings: the public user id, and the device identity id, both point
+ * at the mailbox that device currently publishes. The relay already records
+ * the owner of every mailbox; this only makes that owner addressable. */
+export function userKey(id) {
+  return `seam:user:${id}`;
+}
+
+export function identKey(id) {
+  return `seam:ident:${id}`;
+}
+
 export function ownerKey(mailbox) {
   return `seam:owner:${mailbox}`;
 }

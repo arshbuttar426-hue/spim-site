@@ -165,6 +165,25 @@
     err.hidden = false;
   }
 
+  /* Return to the page that asked for sign-up, but never to another origin. */
+  function nextPath(){
+    var raw = new URLSearchParams(location.search).get('next') || '';
+    if(raw.charAt(0) !== '/' || raw.charAt(1) === '/' || raw.charAt(1) === '\\') return '/account';
+    try {
+      var u = new URL(raw, location.origin);
+      if(u.origin !== location.origin) return '/account';
+      return u.pathname + u.search + u.hash;
+    } catch(e){ return '/account'; }
+  }
+
+  /* An existing account must not lose the invite by switching forms. */
+  (function carryNext(){
+    var next = new URLSearchParams(location.search).get('next');
+    if(!next) return;
+    var link = document.querySelector('.spim-auth-alt a[href="/login"]');
+    if(link) link.href = '/login?next=' + encodeURIComponent(next);
+  })();
+
   form.addEventListener('submit', async function(e){
     e.preventDefault();
     err.hidden = true;
@@ -182,7 +201,7 @@
     try {
       var out = await window.supabase.auth.signUp({email:email, password:password});
       if(out.error){ showError(out.error.message); return; }
-      location.href = '/account';
+      location.href = nextPath();
     } catch(ex){
       showError('Could not create the account. Check your connection.');
     } finally {
