@@ -60,3 +60,16 @@ test('no third-party asset hosts', () => {
   }
   assert.deepStrictEqual(problems, [], 'third-party hosts:\n' + problems.join('\n'));
 });
+
+test('every page with the nav resolves the session', () => {
+  // The nav renders a logged-out "Account" button until session-nav.js runs.
+  // A page that ships the nav without the script shows "Account" to a signed-in
+  // user forever — /seam did exactly that.
+  const problems = [];
+  for (const page of PAGES) {
+    const html = read(page);
+    if (!html.includes('class="spim-nav"')) continue;
+    if (!html.includes('/js/session-nav.js')) problems.push(page);
+  }
+  assert.deepStrictEqual(problems, [], 'nav without session-nav.js:\n' + problems.join('\n'));
+});
