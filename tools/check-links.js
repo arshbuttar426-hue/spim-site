@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const PAGES = ['index.html', 'app.html', 'receive.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html', 'about.html', 'use-cases.html', 'contact.html', 'feedback.html'];
+const PAGES = ['index.html', 'receive.html', 'seam.html', 'why.html', 'support.html', 'login.html', 'create-account.html', 'account.html', 'images.html'];
 const SKIP = /^(https?:|mailto:|tel:|data:|javascript:|#)/i;
 
 function existsAsRoute(urlPath) {

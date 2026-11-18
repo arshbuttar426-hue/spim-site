@@ -20,8 +20,8 @@ const footer = fs.readFileSync(path.join(__dirname, 'chrome', 'footer.html'), 'u
 
 // page file -> which nav item is the current page
 const PAGES = {
-  'index.html': 'text',
-  'receive.html': 'catch',
+  'index.html': '',
+  'receive.html': '',
   'seam.html': 'seam',
   'why.html': 'why',
   'support.html': 'support',
@@ -29,6 +29,9 @@ const PAGES = {
   'create-account.html': '',
   'account.html': ''
 };
+
+// The homepage is a single screen: it carries the nav, not the footer.
+const NO_FOOTER = new Set(['index.html']);
 
 function markCurrent(html, current) {
   return html.replace(/<a\b([^>]*\bdata-nav="([^"]+)"[^>]*)>/g, (match, attrs, key) => {
@@ -63,7 +66,7 @@ for (const [file, current] of Object.entries(PAGES)) {
   let after;
   try {
     after = replaceBlock(before, 'nav', markCurrent(nav, current));
-    after = replaceBlock(after, 'footer', footer);
+    if (!NO_FOOTER.has(file)) after = replaceBlock(after, 'footer', footer);
   } catch (err) {
     console.error(file + ': ' + err.message);
     dirty++;

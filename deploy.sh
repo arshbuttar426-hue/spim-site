@@ -15,8 +15,9 @@ git archive HEAD | tar -x -C "$OUT"
 
 # Repository files are not site files. wrangler.toml must never be served:
 # every file in the deploy tree is public.
-rm -rf "$OUT/tools" "$OUT/.gitignore" "$OUT/README.md" "$OUT/deploy.sh" "$OUT/wrangler.toml"
+rm -rf "$OUT/tools" "$OUT/migrations" "$OUT/.github" "$OUT/.gitignore" "$OUT/README.md" "$OUT/deploy.sh" "$OUT/wrangler.toml"
 
+node "$ROOT/tools/gate.js"
 node "$ROOT/tools/preflight.js" "$OUT"
 
 npx --yes wrangler pages deploy "$OUT" --project-name=spim-site --commit-dirty=true

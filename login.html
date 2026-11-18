@@ -14,33 +14,7 @@
 <body class="spim-page" data-page="login">
 <!-- C6 website redesign — Stage 3: app shell (secondary pages) -->
 <div class="spim-app">
-  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
-    <div class="spim-app-sidebar-inner">
-      <a class="spim-brand" href="/" aria-label="SPIM home">
-        <span class="spim-mark" aria-hidden="true">S</span>
-        <span class="spim-wordmark">SPIM</span>
-      </a>
-      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
-      <nav class="spim-app-nav" aria-label="Workspace">
-        <a href="#top">Overview</a>
-        <a href="#workspace">Studio</a>
-        <a href="#delivery">Delivery methods</a>
-        <a href="#security" data-auth="out">Privacy & integrity</a>
-        <a href="/seam">SEAM</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Manage">
-        <a href="/account#dock" data-auth="in">Dock</a>
-        <a href="/account#connections" data-auth="in">Connections</a>
-        <a href="/images" data-auth="in">Images</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Developers">
-        <a href="/account#api" data-auth="in">API access</a>
-        <a href="/support" data-auth="out">Help & FAQ</a>
-      </nav>
-    </div>
-  </aside>
+  
   <div class="spim-app-main">
 
 <!-- chrome:nav -->
@@ -52,19 +26,14 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/#text" data-nav="text">Text</a>
-      <a href="/#image" data-nav="image">Image</a>
-      <a href="/#beam" data-nav="beam">Beam</a>
-      <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/seam" data-nav="seam">Seam</a>
+      <a href="/seam" data-nav="seam">Disposable Chats</a>
       <a href="/why" data-nav="why">Why</a>
       <a href="/support" data-nav="support">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
       <span class="spim-nav-auth" data-auth="out">
-        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
-        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/login">Account</a>
       </span>
 
       <details class="spim-account" data-auth="in" hidden>
@@ -84,8 +53,6 @@
         </div>
       </details>
 
-      <a class="spim-nav-open" href="/#open">Open .spim</a>
-
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -93,18 +60,12 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/#text" data-nav="text">Create Text</a>
-          <a href="/#image" data-nav="image">Create Image</a>
-          <a href="/#beam" data-nav="beam">Beam by Sound</a>
-          <a href="/#catch" data-nav="catch">Catch / Open</a>
-          <a href="/seam" data-nav="seam">Seam</a>
-          <a href="/#open">Open .spim</a>
+          <a href="/seam" data-nav="seam">Disposable Chats</a>
           <a href="/why" data-nav="why">Why SPIM</a>
           <a href="/support" data-nav="support">Support</a>
           <hr>
           <span data-auth="out" class="spim-mobile-auth">
-            <a href="/login">Log in</a>
-            <a href="/create-account">Create account</a>
+            <a href="/login">Account</a>
           </span>
           <span data-auth="in" class="spim-mobile-auth" hidden>
             <a href="/account#dock">Dock</a>
@@ -154,7 +115,7 @@
         <span class="spim-mark" aria-hidden="true">S</span>
         <span class="spim-wordmark">SPIM</span>
       </a>
-      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
+      <p>Notes and images that arrive intact.</p>
     </div>
 
     <div class="spim-footer-col">
@@ -170,7 +131,6 @@
       <h4>Learn</h4>
       <a href="/why">Why SPIM</a>
       <a href="/support">Support</a>
-      <a href="/support#contact">Contact</a>
     </div>
 
     <div class="spim-footer-col">
@@ -183,7 +143,6 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->
@@ -242,18 +201,5 @@
 </div>
 </div>
 
-<script>
-  (function () {
-    var btn = document.getElementById('spimSidebarToggle');
-    var sb = document.getElementById('spimSidebar');
-    if (!btn || !sb) return;
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var open = sb.classList.toggle('spim-app-sidebar--open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.body.classList.toggle('spim-app-sidebar-open', open);
-    });
-  })();
-</script>
 </body>
 </html>

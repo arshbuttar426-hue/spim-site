@@ -1,0 +1,17 @@
+name: gate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      # The same command deploy.sh runs. If this is red, the tree cannot ship.
+      - run: node tools/gate.js

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>Why SPIM — own your memory</title>
-<meta name="description" content="Your notes and voice belong in capsules you can verify, not in a database you rent.">
+<title>Why SPIM — messages you can check yourself</title>
+<meta name="description" content="A link depends on someone else's service. SPIM sends messages you can check yourself — even without internet.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,33 +14,7 @@
 <body class="spim-page" data-page="why">
 <!-- C6 website redesign — Stage 3: app shell (secondary pages) -->
 <div class="spim-app">
-  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
-    <div class="spim-app-sidebar-inner">
-      <a class="spim-brand" href="/" aria-label="SPIM home">
-        <span class="spim-mark" aria-hidden="true">S</span>
-        <span class="spim-wordmark">SPIM</span>
-      </a>
-      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
-      <nav class="spim-app-nav" aria-label="Workspace">
-        <a href="#top">Overview</a>
-        <a href="#workspace">Studio</a>
-        <a href="#delivery">Delivery methods</a>
-        <a href="#security" data-auth="out">Privacy & integrity</a>
-        <a href="/seam">SEAM</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Manage">
-        <a href="/account#dock" data-auth="in">Dock</a>
-        <a href="/account#connections" data-auth="in">Connections</a>
-        <a href="/images" data-auth="in">Images</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Developers">
-        <a href="/account#api" data-auth="in">API access</a>
-        <a href="/support" data-auth="out">Help & FAQ</a>
-      </nav>
-    </div>
-  </aside>
+  
   <div class="spim-app-main">
 
 <!-- chrome:nav -->
@@ -52,19 +26,14 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/#text" data-nav="text">Text</a>
-      <a href="/#image" data-nav="image">Image</a>
-      <a href="/#beam" data-nav="beam">Beam</a>
-      <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/seam" data-nav="seam">Seam</a>
+      <a href="/seam" data-nav="seam">Disposable Chats</a>
       <a href="/why" data-nav="why" aria-current="page">Why</a>
       <a href="/support" data-nav="support">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
       <span class="spim-nav-auth" data-auth="out">
-        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
-        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/login">Account</a>
       </span>
 
       <details class="spim-account" data-auth="in" hidden>
@@ -84,8 +53,6 @@
         </div>
       </details>
 
-      <a class="spim-nav-open" href="/#open">Open .spim</a>
-
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -93,18 +60,12 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/#text" data-nav="text">Create Text</a>
-          <a href="/#image" data-nav="image">Create Image</a>
-          <a href="/#beam" data-nav="beam">Beam by Sound</a>
-          <a href="/#catch" data-nav="catch">Catch / Open</a>
-          <a href="/seam" data-nav="seam">Seam</a>
-          <a href="/#open">Open .spim</a>
+          <a href="/seam" data-nav="seam">Disposable Chats</a>
           <a href="/why" data-nav="why" aria-current="page">Why SPIM</a>
           <a href="/support" data-nav="support">Support</a>
           <hr>
           <span data-auth="out" class="spim-mobile-auth">
-            <a href="/login">Log in</a>
-            <a href="/create-account">Create account</a>
+            <a href="/login">Account</a>
           </span>
           <span data-auth="in" class="spim-mobile-auth" hidden>
             <a href="/account#dock">Dock</a>
@@ -121,90 +82,85 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell">
-  <section class="spim-section" style="padding-bottom:40px">
-    <div class="spim-prose">
-      <span class="spim-kicker">Why SPIM</span>
-      <h1 class="spim-h1">Your words should<br>arrive intact.</h1>
-      <p class="spim-lede">A link is a promise someone else keeps. A capsule is one you can check yourself — byte for byte, with or without a network.</p>
-    </div>
-  </section>
+<main class="spim-doc">
+  <header class="spim-doc-head">
+    <span class="spim-kicker">Why SPIM</span>
+    <h1 class="spim-h1-doc">Your words should arrive exactly as you sent them.</h1>
+    <p class="spim-lede-doc">A link depends on someone else's service. SPIM lets you send messages that you can check yourself — even without internet.</p>
+  </header>
 
-  <section class="spim-section" style="padding-bottom:24px">
-    <div class="spim-pillars">
+  <div class="spim-block-grid spim-block-grid--3">
 
-      <article class="spim-pillar">
-        <div class="spim-pillar-top">
-          <span class="spim-pillar-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4.4 3.4 7.4 8 8 4.6-.6 8-3.6 8-8V7l-8-4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-          <span class="spim-pillar-num">01</span>
-        </div>
-        <h2 class="spim-h3">Own your memory</h2>
-        <p>A capsule is self-contained. The words, the structure, the seal — all of it lives with the thing you sent, not in a database you rent. Export it, keep it, open it in ten years.</p>
-      </article>
-
-      <article class="spim-pillar">
-        <div class="spim-pillar-top">
-          <span class="spim-pillar-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h3l2-5 3 10 2.5-7 2 5H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-          <span class="spim-pillar-num">02</span>
-        </div>
-        <h2 class="spim-h3">Zero-network freedom</h2>
-        <p>Two devices in a room need no Wi-Fi, no server, no account. A sound carries the link. A .spim file carries everything else. Both work when the internet does not.</p>
-      </article>
-
-      <article class="spim-pillar">
-        <div class="spim-pillar-top">
-          <span class="spim-pillar-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="9.5" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 15v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </span>
-          <span class="spim-pillar-num">03</span>
-        </div>
-        <h2 class="spim-h3">Cryptographic truth</h2>
-        <p>Every capsule carries a built-in integrity check. If anything changes — in transit, on disk, or by an editor — the check fails and the page says so. Trust the seal, not the messenger.</p>
-      </article>
-
-    </div>
-  </section>
-
-  <section class="spim-section">
-    <div class="spim-card">
-      <div class="spim-card-head">
-        <span class="spim-eyebrow">How it works</span>
-        <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>No account needed</span>
+    <section class="spim-block">
+      <div class="spim-block-top">
+        <span class="spim-pillar-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4.4 3.4 7.4 8 8 4.6-.6 8-3.6 8-8V7l-8-4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="spim-block-num">01</span>
       </div>
-      <div class="spim-card-body">
-        <div class="spim-pillars" style="gap:24px">
-          <div>
-            <span class="spim-eyebrow" style="color:var(--spim-accent)">01 — Write</span>
-            <h3 class="spim-h3" style="margin-top:8px">Type it, or record a short drop.</h3>
-            <p class="spim-body" style="margin-top:6px">One note or ten. Your text is never rewritten to fit a template.</p>
-          </div>
-          <div>
-            <span class="spim-eyebrow" style="color:var(--spim-accent)">02 — Seal</span>
-            <h3 class="spim-h3" style="margin-top:8px">Sealed in your browser.</h3>
-            <p class="spim-body" style="margin-top:6px">A private seal, and if you choose, a key that never leaves the link.</p>
-          </div>
-          <div>
-            <span class="spim-eyebrow" style="color:var(--spim-accent)">03 — Send</span>
-            <h3 class="spim-h3" style="margin-top:8px">Link, QR, file, or sound.</h3>
-            <p class="spim-body" style="margin-top:6px">Pick the path that fits the room. The capsule is the same on every one.</p>
-          </div>
-        </div>
+      <h2>Keep your messages</h2>
+      <p>Your message stays together with everything needed to open it. Save it, share it, or open it years later. You don't need to rely on a database or subscription.</p>
+    </section>
+
+    <section class="spim-block">
+      <div class="spim-block-top">
+        <span class="spim-pillar-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h3l2-5 3 10 2.5-7 2 5H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="spim-block-num">02</span>
+      </div>
+      <h2>Works without internet</h2>
+      <p>Send between two devices without Wi-Fi, a server, or an account. Use sound to send the message and a .spim file to carry it. It works even when the internet doesn't.</p>
+    </section>
+
+    <section class="spim-block">
+      <div class="spim-block-top">
+        <span class="spim-pillar-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="9.5" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 15v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="spim-block-num">03</span>
+      </div>
+      <h2>Know if anything changed</h2>
+      <p>Every message has a built-in security check. If someone changes the message, SPIM detects it and tells you. You don't have to take anyone's word for it.</p>
+    </section>
+
+  </div>
+
+  <section class="spim-block">
+    <div class="spim-block-top">
+      <span class="spim-block-label">How it works · No account needed</span>
+    </div>
+    <div class="spim-step-row">
+      <span class="spim-block-num">01</span>
+      <div>
+        <h3>Write</h3>
+        <p>Type a message or record a short voice note. Send one message or several. Your words stay as you wrote them.</p>
+      </div>
+    </div>
+    <div class="spim-step-row">
+      <span class="spim-block-num">02</span>
+      <div>
+        <h3>Protect</h3>
+        <p>SPIM protects your message directly in your browser. You can also add a private key for extra protection.</p>
+      </div>
+    </div>
+    <div class="spim-step-row">
+      <span class="spim-block-num">03</span>
+      <div>
+        <h3>Send</h3>
+        <p>Share using a link, QR code, file, or sound. Choose whichever works best. Your message stays the same whichever way you send it.</p>
       </div>
     </div>
   </section>
 
-  <section class="spim-section" style="padding-bottom:56px">
-    <div class="spim-center">
-      <h2 class="spim-h2">See it for yourself.</h2>
-      <p class="spim-body" style="margin:12px auto 0;max-width:44ch">The demo is the product. Write a note, beam it to your phone, and watch the seal hold.</p>
-      <div class="spim-row" style="justify-content:center;margin-top:24px">
-        <a class="spim-btn spim-btn--primary spim-btn--lg" href="/#beam">Create a capsule</a>
-        <a class="spim-btn spim-btn--lg" href="/support">Read the FAQ</a>
-      </div>
+  <section class="spim-block spim-block--cta">
+    <div>
+      <h2>Try it yourself.</h2>
+      <p>Write a message, send it to your phone using sound, and see how SPIM keeps it intact.</p>
+    </div>
+    <div class="spim-row">
+      <a class="spim-btn spim-btn--primary" href="/">Create a message</a>
+      <a class="spim-btn" href="/support">Read the FAQ</a>
     </div>
   </section>
 </main>
@@ -217,7 +173,7 @@
         <span class="spim-mark" aria-hidden="true">S</span>
         <span class="spim-wordmark">SPIM</span>
       </a>
-      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
+      <p>Notes and images that arrive intact.</p>
     </div>
 
     <div class="spim-footer-col">
@@ -233,7 +189,6 @@
       <h4>Learn</h4>
       <a href="/why">Why SPIM</a>
       <a href="/support">Support</a>
-      <a href="/support#contact">Contact</a>
     </div>
 
     <div class="spim-footer-col">
@@ -246,7 +201,6 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->
@@ -256,18 +210,5 @@
 </div>
 </div>
 
-<script>
-  (function () {
-    var btn = document.getElementById('spimSidebarToggle');
-    var sb = document.getElementById('spimSidebar');
-    if (!btn || !sb) return;
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var open = sb.classList.toggle('spim-app-sidebar--open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.body.classList.toggle('spim-app-sidebar-open', open);
-    });
-  })();
-</script>
 </body>
 </html>

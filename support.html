@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Support — SPIM</title>
-<meta name="description" content="Test your mic and speakers, fix a missed chirp, and open a .spim file offline.">
+<meta name="description" content="Find an answer, test your microphone and speaker, or contact SPIM support.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,33 +14,7 @@
 <body class="spim-page" data-page="support">
 <!-- C6 website redesign — Stage 3: app shell (secondary pages) -->
 <div class="spim-app">
-  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
-    <div class="spim-app-sidebar-inner">
-      <a class="spim-brand" href="/" aria-label="SPIM home">
-        <span class="spim-mark" aria-hidden="true">S</span>
-        <span class="spim-wordmark">SPIM</span>
-      </a>
-      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
-      <nav class="spim-app-nav" aria-label="Workspace">
-        <a href="#top">Overview</a>
-        <a href="#workspace">Studio</a>
-        <a href="#delivery">Delivery methods</a>
-        <a href="#security" data-auth="out">Privacy & integrity</a>
-        <a href="/seam">SEAM</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Manage">
-        <a href="/account#dock" data-auth="in">Dock</a>
-        <a href="/account#connections" data-auth="in">Connections</a>
-        <a href="/images" data-auth="in">Images</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Developers">
-        <a href="/account#api" data-auth="in">API access</a>
-        <a href="/support" data-auth="out">Help & FAQ</a>
-      </nav>
-    </div>
-  </aside>
+  
   <div class="spim-app-main">
 
 <!-- chrome:nav -->
@@ -52,19 +26,14 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/#text" data-nav="text">Text</a>
-      <a href="/#image" data-nav="image">Image</a>
-      <a href="/#beam" data-nav="beam">Beam</a>
-      <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/seam" data-nav="seam">Seam</a>
+      <a href="/seam" data-nav="seam">Disposable Chats</a>
       <a href="/why" data-nav="why">Why</a>
       <a href="/support" data-nav="support" aria-current="page">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
       <span class="spim-nav-auth" data-auth="out">
-        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
-        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/login">Account</a>
       </span>
 
       <details class="spim-account" data-auth="in" hidden>
@@ -84,8 +53,6 @@
         </div>
       </details>
 
-      <a class="spim-nav-open" href="/#open">Open .spim</a>
-
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -93,18 +60,12 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/#text" data-nav="text">Create Text</a>
-          <a href="/#image" data-nav="image">Create Image</a>
-          <a href="/#beam" data-nav="beam">Beam by Sound</a>
-          <a href="/#catch" data-nav="catch">Catch / Open</a>
-          <a href="/seam" data-nav="seam">Seam</a>
-          <a href="/#open">Open .spim</a>
+          <a href="/seam" data-nav="seam">Disposable Chats</a>
           <a href="/why" data-nav="why">Why SPIM</a>
           <a href="/support" data-nav="support" aria-current="page">Support</a>
           <hr>
           <span data-auth="out" class="spim-mobile-auth">
-            <a href="/login">Log in</a>
-            <a href="/create-account">Create account</a>
+            <a href="/login">Account</a>
           </span>
           <span data-auth="in" class="spim-mobile-auth" hidden>
             <a href="/account#dock">Dock</a>
@@ -121,121 +82,117 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell">
-  <section class="spim-section" style="padding-bottom:36px">
-    <div class="spim-prose">
-      <span class="spim-kicker">Support</span>
-      <h1 class="spim-h1">Help, without<br>the runaround.</h1>
-      <p class="spim-lede">Most problems are a muted mic or a covered speaker. Test both here in seconds, then read the answer you need.</p>
+<main class="spim-doc">
+  <header class="spim-doc-head">
+    <span class="spim-kicker">Support</span>
+    <h1 class="spim-h1-doc">Need a hand?</h1>
+    <p class="spim-lede-doc">Find an answer, check your microphone and speaker, or contact us. Most sound problems take just a few seconds to fix.</p>
+  </header>
+
+  <section class="spim-block" id="faq">
+    <div class="spim-block-top">
+      <span class="spim-block-label">Common questions</span>
+    </div>
+
+    <details class="spim-acc" open>
+      <summary>Why can't my phone hear the sound?</summary>
+      <div class="spim-acc-body">
+        <p>Try these quick fixes:</p>
+        <ul>
+          <li>Turn up the volume on the sending device.</li>
+          <li>Keep the devices 10–30 cm apart.</li>
+          <li>Point the speaker towards the other device's microphone.</li>
+          <li>On the receiving device, tap <strong>Listen for sound</strong> before sending.</li>
+          <li>Make sure nothing is covering either speaker or microphone.</li>
+          <li>Allow microphone access in your browser settings, then reload the page.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="spim-acc">
+      <summary>Can I change the notification sound?</summary>
+      <div class="spim-acc-body">
+        <p>Yes. Open <strong>Catch</strong> and tap the sound option below the listening circle.</p>
+        <p>Choose a chime, ding, or whoosh. You can also use your own sound.</p>
+        <p>This sound is only played on your device. It isn't uploaded or sent with your message.</p>
+      </div>
+    </details>
+
+    <details class="spim-acc">
+      <summary>How do I open a .spim file without internet?</summary>
+      <div class="spim-acc-body">
+        <p>Open <strong>Catch</strong>, select the file option, and choose your .spim file.</p>
+        <p>Your message opens directly in your browser. No internet connection is needed.</p>
+        <p>Keep the file safe, especially if it contains a private message.</p>
+      </div>
+    </details>
+
+    <details class="spim-acc">
+      <summary>Are my messages stored online?</summary>
+      <div class="spim-acc-body">
+        <p>It depends on how you send them.</p>
+        <ul>
+          <li><strong>Link or QR code:</strong> Your message is stored online so the recipient can open it.</li>
+          <li><strong>Private message:</strong> Your message is encrypted before it leaves your browser.</li>
+          <li><strong>SPIM file:</strong> Your message can be opened without connecting to a server.</li>
+          <li><strong>Sound:</strong> Your message is sent directly between devices.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="spim-acc">
+      <summary>What is a one-time message?</summary>
+      <div class="spim-acc-body">
+        <p>A one-time message can only be opened once.</p>
+        <p>After the recipient opens it, the message is deleted and its link stops working. Even the sender cannot open it again.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="spim-block">
+    <div class="spim-block-top">
+      <span class="spim-block-label">Test your devices</span>
+    </div>
+    <p>Check that your microphone and speaker are working before sending.</p>
+
+    <div class="spim-block-grid spim-block-grid--2" style="margin-top:12px">
+
+      <div class="spim-test">
+        <div class="spim-spread">
+          <span class="spim-label">Microphone</span>
+          <span id="micTestStatus" class="spim-pill">Not tested</span>
+        </div>
+        <p style="margin-top:8px">Speak normally for a few seconds.</p>
+        <div class="spim-meter" style="max-width:none;margin:12px 0 0"><i id="micTestBar"></i></div>
+        <button id="micTestBtn" class="spim-btn spim-btn--block" style="margin-top:14px">Test microphone</button>
+      </div>
+
+      <div class="spim-test">
+        <div class="spim-spread">
+          <span class="spim-label">Speaker</span>
+          <span id="speakerTestStatus" class="spim-pill">Not tested</span>
+        </div>
+        <p style="margin-top:8px">Play a test sound to check your volume.</p>
+        <button id="speakerTestBtn" class="spim-btn spim-btn--block" style="margin-top:14px">Play test sound</button>
+        <p class="spim-eyebrow" style="margin-top:10px">Turn up your volume. You should hear a short tone.</p>
+      </div>
+
+    </div>
+
+    <div class="spim-note">
+      <span>Nothing is recorded. Your microphone switches off when you finish testing.</span>
     </div>
   </section>
 
-  <section class="spim-section" style="padding-bottom:48px">
-    <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:32px" class="spim-support-grid">
-
-      <!-- FAQ -->
-      <div id="faq">
-        <span class="spim-eyebrow">Common questions</span>
-        <div style="margin-top:12px">
-
-          <details class="spim-acc" open>
-            <summary>Why didn't my phone hear the sound?</summary>
-            <div class="spim-acc-body">
-              <p>Sound is physical, so check the room before the software:</p>
-              <ul>
-                <li>Turn the sending device's volume up — media volume, not just the ringer.</li>
-                <li>Hold the devices 10–30 cm apart, speaker toward microphone.</li>
-                <li>Tap <strong>Listen for sound</strong> on the receiving device <em>before</em> you press Create &amp; beam.</li>
-                <li>Uncover both the speaker and the mic. Cases and hands are enough to block the sound.</li>
-                <li>If the mic was blocked in the browser, allow it in the address-bar permissions and reload.</li>
-              </ul>
-            </div>
-          </details>
-
-          <details class="spim-acc">
-            <summary>How do I change the drop sound?</summary>
-            <div class="spim-acc-body">
-              <p>Open the <strong>Catch</strong> tab and use the small sound pill under the listen orb. Pick chime, ding, or whoosh — or upload your own clip with the speaker icon.</p>
-              <p>The sound plays on your device when a capsule lands. It is never uploaded, and it never travels with the capsule.</p>
-            </div>
-          </details>
-
-          <details class="spim-acc">
-            <summary>How do I open a .spim file offline?</summary>
-            <div class="spim-acc-body">
-              <p>Go to <strong>Catch</strong> and drop the file on the file area, or press it and choose the file. It opens in the tab with no network call at all.</p>
-              <p>A .spim carries the whole capsule. If it was created as private, the key is inside the file, so keep the file itself somewhere safe.</p>
-            </div>
-          </details>
-
-          <details class="spim-acc">
-            <summary>Is my data stored on your servers?</summary>
-            <div class="spim-acc-body">
-              <p>Only if you choose a link or QR. That capsule is stored so the recipient can open it, and single-view capsules are destroyed after the first open.</p>
-              <p>Private capsules are encrypted in your browser; the key lives in the link after the <span class="spim-mono">#</span> and is never sent to us. A .spim file or a sound beam never touches a server.</p>
-            </div>
-          </details>
-
-          <details class="spim-acc">
-            <summary>What happens to a single-view capsule?</summary>
-            <div class="spim-acc-body">
-              <p>It can be opened once. After the recipient opens it, the capsule is consumed and the link stops working — including for the sender.</p>
-            </div>
-          </details>
-
-        </div>
-      </div>
-
-      <!-- HARDWARE TESTS -->
-      <aside>
-        <span class="spim-eyebrow">Test your hardware</span>
-        <div class="spim-card" style="margin-top:12px">
-          <div class="spim-card-body spim-stack spim-stack--lg">
-
-            <div>
-              <div class="spim-spread">
-                <span class="spim-label">Microphone</span>
-                <span id="micTestStatus" class="spim-pill">Not tested</span>
-              </div>
-              <p class="spim-body" style="margin-top:8px;font-size:13px">Speak normally for a few seconds.</p>
-              <div class="spim-meter" style="max-width:none;margin:12px 0 0"><i id="micTestBar"></i></div>
-              <button id="micTestBtn" class="spim-btn spim-btn--block" style="margin-top:14px">Test microphone</button>
-            </div>
-
-            <hr>
-
-            <div>
-              <div class="spim-spread">
-                <span class="spim-label">Speaker</span>
-                <span id="speakerTestStatus" class="spim-pill">Not tested</span>
-              </div>
-              <p class="spim-body" style="margin-top:8px;font-size:13px">Plays the same sound a capsule uses, so you test the real path.</p>
-              <button id="speakerTestBtn" class="spim-btn spim-btn--block" style="margin-top:14px">Play test chirp</button>
-              <p class="spim-eyebrow" style="margin-top:10px">Turn the volume up. You should hear a short, high tone.</p>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="spim-note" style="margin-top:16px">
-          <span>Nothing is recorded. The mic stream stops when you stop the test.</span>
-        </div>
-      </aside>
+  <section class="spim-block" id="contact">
+    <div class="spim-block-top">
+      <span class="spim-block-label">Still need help?</span>
     </div>
-  </section>
-
-  <section class="spim-section" style="padding-bottom:72px">
-    <div class="spim-card" id="contact">
-      <div class="spim-card-body spim-spread" style="flex-wrap:wrap;gap:20px">
-        <div>
-          <h2 class="spim-h3">Still stuck?</h2>
-          <p class="spim-body" style="margin-top:6px;max-width:52ch">Tell us the device, the browser, and what you tried. A human answers.</p>
-        </div>
-        <div class="spim-row">
-          <a class="spim-btn spim-btn--primary" href="mailto:apbuttar01@gmail.com?subject=SPIM%20support">Email support</a>
-          <a class="spim-btn" href="#faq">Read the FAQ</a>
-        </div>
-      </div>
+    <h2>Talk to a real person.</h2>
+    <p>Tell us which device and browser you're using and what's going wrong. We'll help you figure it out.</p>
+    <div class="spim-row" style="margin-top:14px">
+      <a class="spim-btn spim-btn--primary" href="mailto:apbuttar01@gmail.com?subject=SPIM%20support">Email support</a>
+      <a class="spim-btn" href="#faq">Read common questions</a>
     </div>
   </section>
 </main>
@@ -248,7 +205,7 @@
         <span class="spim-mark" aria-hidden="true">S</span>
         <span class="spim-wordmark">SPIM</span>
       </a>
-      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
+      <p>Notes and images that arrive intact.</p>
     </div>
 
     <div class="spim-footer-col">
@@ -264,7 +221,6 @@
       <h4>Learn</h4>
       <a href="/why">Why SPIM</a>
       <a href="/support">Support</a>
-      <a href="/support#contact">Contact</a>
     </div>
 
     <div class="spim-footer-col">
@@ -277,7 +233,6 @@
   </div>
   <div class="spim-footer-base">
     <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified</span>
   </div>
 </footer>
 <!-- /chrome:footer -->
@@ -381,18 +336,5 @@
 </div>
 </div>
 
-<script>
-  (function () {
-    var btn = document.getElementById('spimSidebarToggle');
-    var sb = document.getElementById('spimSidebar');
-    if (!btn || !sb) return;
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var open = sb.classList.toggle('spim-app-sidebar--open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.body.classList.toggle('spim-app-sidebar-open', open);
-    });
-  })();
-</script>
 </body>
 </html>

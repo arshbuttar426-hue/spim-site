@@ -38,7 +38,8 @@ for (const f of [
   'login.html', 'create-account.html', 'account.html', 'images.html',
   'css/spim-theme.css', 'js/spim-codec.js', 'js/seam-client.js', 'js/supabaseClient.js', 'js/session-nav.js',
   'pkg/spim_wasm.js', 'favicon.svg',
-  'functions/capsules.js',
+  'js/qr.js', 'js/vendor/qrcode.min.js',
+  'functions/capsules.js', 'functions/capsules/[id].js', 'functions/capsules/[id]/consume.js',
   'functions/api/_lib.js', 'functions/api/auth/register.js', 'functions/api/auth/login.js',
   'functions/api/auth/logout.js', 'functions/api/auth/me.js',
   'functions/api/keys.js', 'functions/api/connections.js', 'functions/api/dock.js',
@@ -78,10 +79,17 @@ for (const [needle, why] of [
   if (!seam.includes(needle)) problems.push('seam.html lost ' + why + ' (' + needle + ')');
 }
 
+/* --- the shared footer still ships where it belongs ---------------------- */
+const support = fs.existsSync(path.join(root, 'support.html'))
+  ? fs.readFileSync(path.join(root, 'support.html'), 'utf8')
+  : '';
+if (!support.includes('spim-footer')) problems.push('support.html lost the shared footer');
+
 /* --- nothing experimental ------------------------------------------------ */
 for (const f of [
   'landing-proto.html', 'prima-four.html', 'spim-chirp.html',
   'spim-field.html', 'spim-quiet.html', 'spim-textfield.html', 'spim-typography.html',
+  'tailwind-proto.html', 'weui-proto.html', 'proto/',
   'js/chirp-receive.js'
 ]) mustNot(f);
 
@@ -106,7 +114,8 @@ for (const [needle, why] of [
   ['data-share="beam"', 'Beam share action'],
   ['SpimCodec', 'shared sound codec'],
   ['spim-nav', 'shared navigation'],
-  ['spim-footer', 'shared footer']
+  ['spim-main', 'one-screen studio'],
+  ['spim-studio', 'studio card']
 ]) {
   // C3: the capsule API call may live in the shared capsule client module
   // (/js/spim-capsule-client.js) now that index.html delegates delivery there.

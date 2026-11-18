@@ -4,15 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<title>SPIM — One workspace for text, images, sound, and links</title>
-<meta name="description" content="Send text and images as capsules. Share by link, QR, .spim file, Dock, or sound — and catch them on any device.">
+<title>SPIM — create a capsule</title>
+<meta name="description" content="Create a text or image capsule. Send it by link, QR, file, Dock, or sound.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/spim-theme.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 <script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
-<script type="module" src="/taste-moment/moments.js"></script>
 <script type="module">
   import init, { WasmSpim, blake3_hex_static, format_delta_encode, format_delta_apply } from '/pkg/spim_wasm.js';
   window.WasmSpim = WasmSpim;
@@ -27,37 +26,10 @@
 </script>
 </head>
 <body class="spim-page" data-page="index">
-<div class="spim-aurora"></div>
 
 <!-- C6 website redesign — Stage 1: app shell (sidebar + main) -->
 <div class="spim-app">
-  <aside class="spim-app-sidebar" id="spimSidebar" aria-label="SPIM">
-    <div class="spim-app-sidebar-inner">
-      <a class="spim-brand" href="/" aria-label="SPIM home">
-        <span class="spim-mark" aria-hidden="true">S</span>
-        <span class="spim-wordmark">SPIM</span>
-      </a>
-      <button class="spim-app-sidebar-toggle" id="spimSidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="spimSidebar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
-      <nav class="spim-app-nav" aria-label="Workspace">
-        <a href="#top">Overview</a>
-        <a href="#workspace">Studio</a>
-        <a href="#delivery">Delivery methods</a>
-        <a href="#security" data-auth="out">Privacy & integrity</a>
-        <a href="/seam">SEAM</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Manage">
-        <a href="/account#dock" data-auth="in">Dock</a>
-        <a href="/account#connections" data-auth="in">Connections</a>
-        <a href="/images" data-auth="in">Images</a>
-      </nav>
-      <nav class="spim-app-nav" aria-label="Developers">
-        <a href="/account#api" data-auth="in">API access</a>
-        <a href="/support" data-auth="out">Help & FAQ</a>
-      </nav>
-    </div>
-  </aside>
+  
   <div class="spim-app-main">
 
 <!-- chrome:nav -->
@@ -69,19 +41,14 @@
     </a>
 
     <nav class="spim-nav-links" aria-label="Primary">
-      <a href="/#text" data-nav="text" aria-current="page">Text</a>
-      <a href="/#image" data-nav="image">Image</a>
-      <a href="/#beam" data-nav="beam">Beam</a>
-      <a href="/#catch" data-nav="catch">Catch</a>
-      <a href="/seam" data-nav="seam">Seam</a>
+      <a href="/seam" data-nav="seam">Disposable Chats</a>
       <a href="/why" data-nav="why">Why</a>
       <a href="/support" data-nav="support">Support</a>
     </nav>
 
     <div class="spim-nav-actions">
       <span class="spim-nav-auth" data-auth="out">
-        <a class="spim-btn spim-btn--ghost spim-btn--sm" href="/login">Log in</a>
-        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/create-account">Create account</a>
+        <a class="spim-btn spim-btn--primary spim-btn--sm" href="/login">Account</a>
       </span>
 
       <details class="spim-account" data-auth="in" hidden>
@@ -101,8 +68,6 @@
         </div>
       </details>
 
-      <a class="spim-nav-open" href="/#open">Open .spim</a>
-
       <details class="spim-mobile-wrap">
         <summary class="spim-nav-toggle" aria-label="Open menu">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -110,18 +75,12 @@
           </svg>
         </summary>
         <nav class="spim-mobile-panel" aria-label="Menu">
-          <a href="/#text" data-nav="text" aria-current="page">Create Text</a>
-          <a href="/#image" data-nav="image">Create Image</a>
-          <a href="/#beam" data-nav="beam">Beam by Sound</a>
-          <a href="/#catch" data-nav="catch">Catch / Open</a>
-          <a href="/seam" data-nav="seam">Seam</a>
-          <a href="/#open">Open .spim</a>
+          <a href="/seam" data-nav="seam">Disposable Chats</a>
           <a href="/why" data-nav="why">Why SPIM</a>
           <a href="/support" data-nav="support">Support</a>
           <hr>
           <span data-auth="out" class="spim-mobile-auth">
-            <a href="/login">Log in</a>
-            <a href="/create-account">Create account</a>
+            <a href="/login">Account</a>
           </span>
           <span data-auth="in" class="spim-mobile-auth" hidden>
             <a href="/account#dock">Dock</a>
@@ -138,349 +97,31 @@
 </header>
 <!-- /chrome:nav -->
 
-<main class="spim-shell">
-  <section id="top" class="hero" data-enter aria-label="Private notes, images and sounds in one workspace">
-    <div class="spim-hero-inner">
-      <div class="spim-hero-grid">
-        <div class="spim-hero-copy">
-          <div class="spim-eyebrow"><span class="spim-dot spim-dot--live"></span> One workspace · Every kind of message</div>
-          <h1 class="spim-h1">Your message.<br><span class="spim-h1-accent">Your way to send it.</span></h1>
-          <p class="spim-lede">Create a capsule for text or images, then deliver it in the way that fits the moment — a link, QR, a portable file, Dock, or sound.</p>
-          <div class="spim-hero-actions">
-            <a class="spim-btn spim-btn--primary spim-btn--lg" href="/create-account">Create a capsule <span>→</span></a>
-            <a class="spim-btn spim-btn--ghost spim-btn--lg" href="#delivery">Explore delivery methods</a>
-          </div>
-          <div class="spim-hero-trust">
-            <span>✦ Private by construction</span>
-            <span>◈ Verified format</span>
-            <span>↗ Opens across devices</span>
-          </div>
-        </div>
-        <div class="spim-hero-visual" aria-label="Illustrative SPIM capsule preview">
-          <div class="spim-hero-art">
-            <div class="spim-hero-art-head">
-              <span class="spim-eyebrow-tight">Capsule preview</span>
-              <span class="spim-pill spim-pill--verified">READY TO SHARE</span>
-            </div>
-            <div style="border:1px dashed var(--spim-line-strong); border-radius:var(--spim-r-md); padding:18px; background:var(--spim-bg-soft);">
-              <div class="spim-eyebrow">TEXT CAPSULE · PERSONAL NOTE</div>
-              <div class="spim-body" style="margin-top:10px">Your message, sealed in the browser.</div>
-            </div>
-            <div class="spim-hero-art-row">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="spim-avatar" style="width:24px; height:24px; border-radius:50%; background:var(--spim-accent); color:#fff; display:grid; place-items:center; font-size:11px; font-weight:700;">S</span>
-                <span class="spim-body" style="font-size:12px; color:var(--spim-muted);">Sealed in your browser</span>
-              </div>
-              <span style="color:var(--spim-verified); font-weight:700;">✓ Verified format</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SPIM WEBSITE REDESIGN — Stage 2: approved design homepage sections -->
-  <section id="features" class="spim-section" aria-labelledby="featuresHeading">
-    <div class="spim-section-head">
-      <div>
-        <span class="spim-eyebrow">What SPIM does</span>
-        <h2 id="featuresHeading" class="spim-h2">Everything you need to move a message</h2>
-        <p class="spim-body">One capsule. Flexible ways to create, share, and receive.</p>
-      </div>
-      <a class="spim-link" href="/why">Why SPIM? <span aria-hidden="true">↗</span></a>
-    </div>
-    <div class="spim-feature-grid">
-      <article class="spim-card spim-feature" id="feature-text">
-        <div class="spim-feature-icon" aria-hidden="true">✎</div>
-        <strong class="spim-feature-title">Create text capsules</strong>
-        <p class="spim-body">Write notes in your browser and package them as one sealed capsule.</p>
-      </article>
-      <article class="spim-card spim-feature" id="feature-image">
-        <div class="spim-feature-icon" aria-hidden="true">▧</div>
-        <strong class="spim-feature-title">Share images</strong>
-        <p class="spim-body">PNG, JPEG, and WebP images sealed byte-exact inside the capsule.</p>
-      </article>
-      <article class="spim-card spim-feature" id="feature-beam">
-        <div class="spim-feature-icon" aria-hidden="true">〰</div>
-        <strong class="spim-feature-title">Beam by sound</strong>
-        <p class="spim-body">Send a capsule link as a sound between nearby devices.</p>
-      </article>
-      <article class="spim-card spim-feature" id="feature-catch">
-        <div class="spim-feature-icon" aria-hidden="true">◈</div>
-        <strong class="spim-feature-title">Catch &amp; open</strong>
-        <p class="spim-body">Open a capsule by link or by a self-contained .spim file.</p>
-      </article>
-    </div>
-  </section>
-
-  <section id="demo" class="spim-section" aria-labelledby="demoHeading">
-    <div class="spim-section-head">
-      <div>
-        <span class="spim-eyebrow">Interactive preview</span>
-        <h2 id="demoHeading" class="spim-h2">Try the capsule composer</h2>
-        <p class="spim-body">A local interactive preview of the creation experience. It does not send or store anything.</p>
-      </div>
-      <span class="spim-pill spim-pill--accent">Demo widget</span>
-    </div>
-
-    <div class="spim-workspace-grid">
-      <div class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">New text capsule</h3>
-            <span class="spim-eyebrow spim-eyebrow-block">Draft · This browser only</span>
-          </div>
-          <span class="spim-pill">Local</span>
-        </div>
-        <div class="spim-card-body spim-stack spim-stack--lg">
-          <div class="spim-demo-tabs" role="tablist" aria-label="Demo capsule type">
-            <button type="button" class="spim-demo-tab" id="demoTabText" role="tab" aria-selected="true" data-demo-tab="text">Text</button>
-            <button type="button" class="spim-demo-tab" id="demoTabImage" role="tab" aria-selected="false" data-demo-tab="image">Image info</button>
-          </div>
-          <div id="demoComposerText">
-            <div class="spim-field">
-              <label class="spim-label" for="demoText">Your note</label>
-              <textarea id="demoText" class="spim-textarea" placeholder="Write something worth sending…" maxlength="3000" style="min-height:140px"></textarea>
-            </div>
-            <div class="spim-spread">
-              <span class="spim-eyebrow" id="demoWordCount">0 words</span>
-              <span class="spim-eyebrow" id="demoCharCount">0 / 3,000</span>
-            </div>
-            <div class="spim-stack">
-              <label class="spim-check">
-                <input type="checkbox" id="demoPrivate" checked>
-                <span><strong>Private capsule</strong><span>The key stays in the link; it is not sent to the server.</span></span>
-              </label>
-              <label class="spim-check">
-                <input type="checkbox" id="demoSingle">
-                <span><strong>Single view</strong><span>Burn after the first open.</span></span>
-              </label>
-            </div>
-          </div>
-          <div id="demoComposerImage" hidden>
-            <div style="border:1px dashed var(--spim-line-strong);border-radius:var(--spim-r-md);padding:24px 18px;text-align:center;background:var(--spim-bg-soft);color:var(--spim-muted);font-size:12px;">
-              <strong style="display:block;font-size:13px;color:var(--spim-text);margin-bottom:6px">Add an image in SPIM Studio</strong>
-              <p style="margin:0 0 12px;line-height:1.6">The live product supports image capsules up to 1 MB. The demo previews text only.</p>
-              <a class="spim-btn spim-btn--quiet" href="/create-account">Open the image studio <span aria-hidden="true">→</span></a>
-            </div>
-          </div>
-          <div class="spim-row spim-spread">
-            <span class="spim-body" style="font-size:12px">Nothing is uploaded by this preview.</span>
-            <a class="spim-btn spim-btn--primary" href="/create-account">Create in SPIM</a>
-          </div>
-        </div>
-      </div>
-
-      <aside class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">Live preview</h3>
-            <span class="spim-eyebrow spim-eyebrow-block">Updates as you type</span>
-          </div>
-        </div>
-        <div class="spim-card-body spim-stack">
-          <div class="spim-card spim-card--flat" style="padding:16px;display:grid;gap:10px">
-            <span class="spim-pill spim-pill--verified" id="demoPreviewState"><i class="spim-dot"></i>Draft ready</span>
-            <h4 class="spim-h3" id="demoPreviewTitle">Your capsule preview</h4>
-            <p class="spim-body" id="demoPreviewText" style="min-height:46px;white-space:pre-wrap;overflow-wrap:anywhere">Your note will appear here as you type.</p>
-            <div class="spim-row" style="gap:6px">
-              <span class="spim-pill" id="demoPrivacyTag">PRIVATE</span>
-              <span class="spim-pill" id="demoViewTag">REUSABLE</span>
-              <span class="spim-pill">TEXT</span>
-            </div>
-          </div>
-          <div>
-            <span class="spim-body" style="font-size:12px">Choose a delivery path</span>
-            <div class="spim-row" style="margin-top:8px">
-              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="link">Link</button>
-              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="qr">QR</button>
-              <button type="button" class="spim-btn spim-btn--quiet spim-btn--sm" data-demo-delivery="file">File</button>
-            </div>
-            <p class="spim-body" id="demoDeliveryHint" style="margin-top:10px">Private capsules keep the key in the link; the key is not sent to the server.</p>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <section id="delivery" class="spim-section" aria-labelledby="deliveryHeading">
-    <div class="spim-section-head">
-      <div>
-        <span class="spim-eyebrow">Sharing</span>
-        <h2 id="deliveryHeading" class="spim-h2">Five ways to deliver</h2>
-        <p class="spim-body">Pick the route that matches where the recipient is and what they need.</p>
-      </div>
-    </div>
-    <div class="spim-delivery-layout">
-      <div class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">Delivery selector</h3>
-            <span class="spim-eyebrow spim-eyebrow-block">Tap a method to learn more</span>
-          </div>
-        </div>
-        <div class="spim-card-body spim-stack">
-          <div class="spim-delivery-tabs" role="tablist" aria-label="Delivery methods">
-            <button type="button" class="spim-delivery-tab" data-route="link" aria-pressed="true">↗ Link</button>
-            <button type="button" class="spim-delivery-tab" data-route="qr" aria-pressed="false">▦ QR</button>
-            <button type="button" class="spim-delivery-tab" data-route="file" aria-pressed="false">▤ .spim file</button>
-            <button type="button" class="spim-delivery-tab" data-route="dock" aria-pressed="false">▣ Dock</button>
-            <button type="button" class="spim-delivery-tab" data-route="sound" aria-pressed="false">〰 Sound</button>
-          </div>
-          <div class="spim-delivery-info" aria-live="polite">
-            <div class="spim-delivery-symbol" id="deliverySymbol">↗</div>
-            <div>
-              <h4 id="deliveryTitle">Share a link</h4>
-              <p id="deliveryDescription">Send a capsule link to someone anywhere. For private capsules, the decryption key stays in the link fragment and is not sent to the server.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <aside class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">Workspace handoff</h3>
-          </div>
-        </div>
-        <div class="spim-card-body spim-stack">
-          <div class="spim-route-list">
-            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">▣</span><span><strong style="color:var(--spim-text)">Dock</strong> — hold capsules for later opening or handoff.</span></div>
-            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">♧</span><span><strong style="color:var(--spim-text)">Connections</strong> — route to people, teams, or agents.</span></div>
-            <div class="spim-route-item"><span class="spim-route-ico" aria-hidden="true">▧</span><span><strong style="color:var(--spim-text)">Images</strong> — account workspace includes 16 free image capsules.</span></div>
-          </div>
-          <a class="spim-link" href="/account">Explore your workspace <span aria-hidden="true">→</span></a>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <section id="security" class="spim-section" aria-labelledby="securityHeading">
-    <div class="spim-security">
-      <div class="spim-security-icon" aria-hidden="true">◈</div>
-      <div>
-        <strong id="securityHeading" class="spim-security-title">Privacy you can understand. Integrity you can check.</strong>
-        <p class="spim-body" style="margin-top:6px">Private capsules are encrypted in the browser; their key stays in the link. A .spim file or sound beam does not touch a server. Every capsule carries a built-in integrity check. Single-view capsules are destroyed after the first open.</p>
-      </div>
-      <a class="spim-link" href="/why">How it works <span aria-hidden="true">↗</span></a>
-    </div>
-  </section>
-
-  <section id="api" class="spim-section" aria-labelledby="apiHeading">
-    <div class="spim-section-head">
-      <div>
-        <span class="spim-eyebrow">Developers</span>
-        <h2 id="apiHeading" class="spim-h2">Built for people and workflows</h2>
-        <p class="spim-body">Bring SPIM into the way you already work.</p>
-      </div>
-      <a class="spim-link" href="/account#api">Manage API keys <span aria-hidden="true">↗</span></a>
-    </div>
-    <div class="spim-api-layout">
-      <div class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">API access</h3>
-            <span class="spim-pill spim-pill--accent">Private keys</span>
-          </div>
-        </div>
-        <div class="spim-card-body spim-stack">
-          <p class="spim-body">SPIM account workspaces support private keys for the Dock and other handoffs. Keys are shown once when created and never saved in plain text.</p>
-          <div class="spim-code-window">
-            <div class="spim-code-top"><span class="spim-code-dot"></span><span class="spim-code-dot"></span><span class="spim-code-dot"></span></div>
-            <pre>Authorization: Bearer $SPIM_API_KEY
-
-# Dock endpoint
-https://www.spim.co.in/api/dock</pre>
-            <div class="spim-code-copy"><span>Copy the header template</span><button type="button" id="copyApi" class="spim-code-copy-btn">Copy ↗</button></div>
-          </div>
-        </div>
-      </div>
-      <div class="spim-api-facts">
-        <div class="spim-api-fact"><strong>Keys are shown once</strong><p>Create a named key in your account and copy it when it is issued.</p></div>
-        <div class="spim-api-fact"><strong>Dock-aware workflows</strong><p>Use the Dock to connect your workflow.</p></div>
-        <div class="spim-api-fact"><strong>Safer key storage</strong><p>Personal keys are stored only as a secure fingerprint — never in plain text.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="faq" class="spim-section" aria-labelledby="faqHeading">
-    <div class="spim-section-head">
-      <div>
-        <span class="spim-eyebrow">How it works</span>
-        <h2 id="faqHeading" class="spim-h2">How SPIM works</h2>
-        <p class="spim-body">A simple flow, with control over the handoff.</p>
-      </div>
-    </div>
-    <div class="spim-bottom-grid">
-      <div class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">From note to recipient</h3>
-            <span class="spim-eyebrow spim-eyebrow-block">3 steps</span>
-          </div>
-        </div>
-        <div class="spim-card-body">
-          <div class="spim-steps">
-            <div class="spim-step"><div class="spim-step-num">01</div><strong>Create</strong><p>Write a note or choose an image in SPIM Studio.</p></div>
-            <div class="spim-step"><div class="spim-step-num">02</div><strong>Seal</strong><p>The capsule is sealed in your browser and checked for integrity.</p></div>
-            <div class="spim-step"><div class="spim-step-num">03</div><strong>Deliver</strong><p>Send by link, QR, file, Dock, or sound.</p></div>
-          </div>
-        </div>
-      </div>
-      <div class="spim-card">
-        <div class="spim-card-head">
-          <div>
-            <h3 class="spim-h3">Good to know</h3>
-            <span class="spim-eyebrow spim-eyebrow-block">Quick answers</span>
-          </div>
-        </div>
-        <div class="spim-card-body spim-stack">
-          <div class="spim-faq-item open">
-            <button type="button" class="spim-faq-q" aria-expanded="true">Does a .spim file work offline?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
-            <div class="spim-faq-a">Yes. Open the file in Catch / Open. The file carries the capsule and can be opened without a network call.</div>
-          </div>
-          <div class="spim-faq-item">
-            <button type="button" class="spim-faq-q" aria-expanded="false">Does private mean the server has the key?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
-            <div class="spim-faq-a">No. The private capsule is encrypted in the browser. The key remains in the link fragment and is not sent to the server.</div>
-          </div>
-          <div class="spim-faq-item">
-            <button type="button" class="spim-faq-q" aria-expanded="false">What happens after a single view?<span class="spim-faq-ico" aria-hidden="true">＋</span></button>
-            <div class="spim-faq-a">A single-view capsule can be opened once. After the first open, it is consumed and the link stops working.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<section class="section ground-inverse" data-moment="iris-opens" data-moment-opts='{"from": "base"}'>
-  <div class="wrap">
-    <h2 class="spim-h2">Open your capsule</h2>
-    <p class="spim-body">A sealed capsule is a sealed capsule until you open it.</p>
-    <a class="spim-btn spim-btn--primary" href="#catch">Open a capsule</a>
+<main class="spim-main" id="workspace">
+  <div class="spim-main-head">
+    <h1 class="spim-h1-app">Create a capsule</h1>
+    <p class="spim-main-facts">Private by default. Key in link. .spim opens offline. Single view opens once.</p>
   </div>
-</section>
-
-<main class="spim-shell">
 
   <!-- UNIFIED STUDIO -->
-  <section id="workspace" class="spim-card" aria-label="SPIM studio">
+  <section class="spim-card spim-studio" aria-label="Create a capsule">
     <div class="spim-card-head spim-studio-head" style="padding:12px 14px">
-      <div class="spim-seg spim-seg--4" role="tablist" aria-label="Studio mode">
+      <div class="spim-seg spim-seg--4" role="tablist" aria-label="Capsule type">
         <button id="tabText" class="spim-seg-btn" role="tab" aria-selected="true" aria-controls="panelText">
           <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 2.5h10M8 2.5v11M5.5 13.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Send Text
+          Text
         </button>
         <button id="tabImage" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelImage">
           <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><path d="m3.5 12 3.2-3.2 2.1 2.1 1.9-1.9 1.8 1.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Send Image
+          Image
         </button>
         <button id="tabBeam" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelBeam">
           <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.5 6v4h2.2L8 12.5v-9L4.7 6H2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10.5 5.4a3.6 3.6 0 0 1 0 5.2M12.6 3.4a6.4 6.4 0 0 1 0 9.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          Beam (Sound)
+          Sound
         </button>
         <button id="tabCatch" class="spim-seg-btn" role="tab" aria-selected="false" aria-controls="panelCatch">
           <svg class="spim-seg-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="1.8" width="5" height="8.2" rx="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M3.2 7.6a4.8 4.8 0 0 0 9.6 0M8 12.4v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          Catch / Open
+          Open
         </button>
       </div>
       <span class="spim-pill" title="Everything is sealed in this tab">
@@ -494,24 +135,23 @@ https://www.spim.co.in/api/dock</pre>
       <div id="notes">
         <div class="note spim-card-body" style="padding-bottom:12px">
           <div class="spim-spread">
-            <label class="spim-label" for="noteText">Your note</label>
+            <label class="spim-label" for="noteText">Note</label>
             <button onclick="removeNote(this)" class="spim-hide spim-btn spim-btn--ghost spim-btn--sm">Remove</button>
           </div>
-          <textarea id="noteText" aria-label="Your note" placeholder="What should they know?" class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0;min-height:150px" oninput="updateMeta()"></textarea>
+          <textarea id="noteText" aria-label="Your note" placeholder="Write a note." class="spim-textarea" style="border:0;background:transparent;padding:8px 0 0" oninput="updateMeta()"></textarea>
         </div>
       </div>
 
       <div class="spim-card-foot spim-spread">
         <button onclick="addNote()" class="spim-btn spim-btn--ghost spim-btn--sm">+ Add note</button>
         <div class="spim-row">
-          <button onclick="loadSamplePayload()" class="spim-btn spim-btn--ghost spim-btn--sm">Use an example</button>
+          <button onclick="loadSamplePayload()" class="spim-btn spim-btn--ghost spim-btn--sm">Example</button>
           <span id="meta" class="spim-eyebrow">0 words</span>
         </div>
       </div>
 
       <div class="spim-card-body spim-stack">
-        <button id="createBtn" onclick="createText()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Create text capsule</button>
-        <p class="spim-center spim-eyebrow">Sealed in this tab. Nothing uploaded until you create. Then share it five ways.</p>
+        <button id="createBtn" onclick="createText()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Create</button>
         <div id="inlineError" class="spim-note spim-note--error spim-hide"></div>
       </div>
     </section>
@@ -521,7 +161,7 @@ https://www.spim.co.in/api/dock</pre>
       <div class="spim-card-body spim-stack spim-stack--lg">
         <div id="imageEmpty" class="spim-image-drop" role="button" tabindex="0" aria-label="Choose an image">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="margin:0 auto 10px;color:var(--spim-accent)"><rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="9.5" r="1.6" fill="currentColor"/><path d="m4.5 18 5-5 3.2 3.2 2.8-2.8L20 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <strong style="display:block;font-size:13px;color:var(--spim-text)">Drop an image, or choose one</strong>
+          <strong style="display:block;font-size:13px;color:var(--spim-text)">Drop or choose an image</strong>
           <span class="spim-eyebrow" style="display:block;margin-top:6px">PNG · JPEG · WebP · up to 1 MB</span>
           <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
         </div>
@@ -539,8 +179,7 @@ https://www.spim.co.in/api/dock</pre>
         <p id="imageError" class="spim-note spim-note--error" hidden></p>
         <p id="imageQuota" class="spim-eyebrow spim-center"></p>
 
-        <button id="createImageBtn" onclick="createImage()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg" disabled>Create image capsule</button>
-        <p class="spim-center spim-eyebrow">The image is stored byte-exact inside the capsule.</p>
+        <button id="createImageBtn" onclick="createImage()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg" disabled>Create</button>
       </div>
     </section>
 
@@ -551,8 +190,8 @@ https://www.spim.co.in/api/dock</pre>
           <div id="beamVisual" class="spim-beam-visual" aria-hidden="true">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 9v6h3l4 3V6L6 9H3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 8.5a5 5 0 0 1 0 7M17.5 5.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           </div>
-          <p class="spim-h3" style="margin-top:14px">Beam a capsule by sound</p>
-          <p class="spim-body" style="margin-top:6px;max-width:44ch;margin-left:auto;margin-right:auto">Create a text or image capsule, then play its link as a sound. On the other device open <a class="spim-link" href="/#catch">Catch</a> and tap <strong>Listen for sound</strong>.</p>
+          <p class="spim-h3" style="margin-top:14px">Play a link as sound</p>
+          <p class="spim-body" style="margin-top:6px">Open <a class="spim-link" href="/#catch">Catch</a> on the other device and listen.</p>
         </div>
 
         <div class="spim-field">
@@ -562,7 +201,6 @@ https://www.spim.co.in/api/dock</pre>
 
         <button id="beamBtn" onclick="beamFromInput()" class="spim-btn spim-btn--primary spim-btn--block spim-btn--lg">Play sound</button>
         <div id="beamError" class="spim-note spim-note--error spim-hide"></div>
-        <p class="spim-center spim-eyebrow">Keep both devices close · 48 kHz acoustic channel</p>
       </div>
     </section>
 
@@ -571,7 +209,7 @@ https://www.spim.co.in/api/dock</pre>
       <div id="catch" class="spim-card-body spim-stack spim-stack--lg">
 
         <div class="spim-field">
-          <label class="spim-label" for="openInput">Paste a capsule link</label>
+          <label class="spim-label" for="openInput">Capsule link</label>
           <div class="spim-row" style="flex-wrap:nowrap">
             <input id="openInput" class="spim-input spim-mono" style="min-width:0" placeholder="www.spim.co.in/receive#c/…">
             <button onclick="openCapsuleLink()" class="spim-btn">Open</button>
@@ -605,7 +243,9 @@ https://www.spim.co.in/api/dock</pre>
 
           <div class="spim-row" style="justify-content:center;margin-top:16px">
             <div class="spim-sound">
-              <label class="spim-label" for="dropSoundSel">Drop sound</label>
+              <label for="dropSoundSel" title="Drop sound" aria-label="Drop sound">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5A3.5 3.5 0 0 0 4.5 6c0 1.8-.5 2.8-1.1 3.4a.5.5 0 0 0 .36.85h8.48a.5.5 0 0 0 .36-.85c-.6-.6-1.1-1.6-1.1-3.4A3.5 3.5 0 0 0 8 2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.6 12.3a1.4 1.4 0 0 0 2.8 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </label>
               <select id="dropSoundSel" aria-label="Drop sound">
                 <option value="chime">Chime</option>
                 <option value="ding">Ding</option>
@@ -632,70 +272,13 @@ https://www.spim.co.in/api/dock</pre>
       </div>
     </section>
   </section>
-
-  <div class="spim-proof" style="margin-top:28px">
-    <span class="spim-proof-item">Text + images</span>
-    <span class="spim-proof-item">Sealed in your browser</span>
-    <span class="spim-proof-item">Byte-exact</span>
-    <a href="/why" class="spim-proof-item" style="color:var(--spim-accent)">Why SPIM →</a>
-  </div>
 </main>
 
-<section class="spim-footer-cta" aria-labelledby="footerCtaTitle">
-  <div>
-    <h2 id="footerCtaTitle" class="spim-h2">Keep the message. Choose the handoff.</h2>
-    <p class="spim-body">Create a capsule and share it in the way that works for you.</p>
-  </div>
-  <a class="spim-btn spim-btn--light" href="/create-account">Explore SPIM Studio</a>
-</section>
-
-<!-- chrome:footer -->
-<footer class="spim-footer">
-  <div class="spim-footer-inner">
-    <div class="spim-footer-brand">
-      <a class="spim-brand" href="/" aria-label="SPIM home">
-        <span class="spim-mark" aria-hidden="true">S</span>
-        <span class="spim-wordmark">SPIM</span>
-      </a>
-      <p>Notes and images that arrive intact — over a link, a file, or a sound.</p>
-    </div>
-
-    <div class="spim-footer-col">
-      <h4>Studio</h4>
-      <a href="/#text">Create text</a>
-      <a href="/#image">Create image</a>
-      <a href="/#beam">Beam by sound</a>
-      <a href="/#catch">Catch / Open</a>
-      <a href="/seam">Seam messages</a>
-    </div>
-
-    <div class="spim-footer-col">
-      <h4>Learn</h4>
-      <a href="/why">Why SPIM</a>
-      <a href="/support">Support</a>
-      <a href="/support#contact">Contact</a>
-    </div>
-
-    <div class="spim-footer-col">
-      <h4>Account</h4>
-      <a href="/login">Log in</a>
-      <a href="/create-account">Create account</a>
-      <a href="/account#dock">Dock</a>
-      <a href="/account">Account</a>
-    </div>
-  </div>
-  <div class="spim-footer-base">
-    <span>© 2026 SPIM</span>
-    <span>Private by construction · Verified</span>
-  </div>
-</footer>
-<!-- /chrome:footer -->
 
 <!-- CAPSULE READY / SHARE -->
 <div id="result" class="spim-modal spim-hide">
   <div class="spim-modal-card">
-    <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Your capsule is ready</span>
-    <h3 class="spim-h3" style="margin-top:12px">Share it any way.</h3>
+    <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Ready</span>
     <div class="spim-row" style="flex-wrap:nowrap;margin-top:16px">
       <input id="shareLink" readonly class="spim-input spim-mono" style="min-width:0">
       <button onclick="copyLink(event)" class="spim-btn spim-btn--primary">Copy</button>
@@ -730,17 +313,16 @@ https://www.spim.co.in/api/dock</pre>
 <!-- PUBLIC / PRIVATE -->
 <div id="choice" class="spim-modal spim-hide" style="z-index:60">
   <div class="spim-modal-card">
-    <span class="spim-eyebrow">Who can open it</span>
-    <h4 class="spim-h3" style="margin-top:6px">Public or private?</h4>
-    <p class="spim-body" style="margin-top:6px;font-size:12.5px">Private keeps the key in the link. Single view burns after the first open.</p>
+    <span class="spim-eyebrow">Visibility</span>
+    <h4 class="spim-h3" style="margin-top:6px">Public or private</h4>
     <div class="spim-stack" style="margin-top:16px">
-      <button id="choicePublic" onclick="selectChoice('public')" class="spim-choice" aria-pressed="true">
+      <button id="choicePublic" onclick="selectChoice('public')" class="spim-choice" aria-pressed="false">
         <span class="spim-choice-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.2 3.6 8.5S14.4 18.2 12 20.5c-2.4-2.3-3.6-5.2-3.6-8.5S9.6 5.8 12 3.5Z" stroke="currentColor" stroke-width="1.5"/></svg></span>
         <span><strong>Public</strong><p>Anyone with the link can open it.</p></span>
       </button>
-      <button id="choicePrivate" onclick="selectChoice('private')" class="spim-choice" aria-pressed="false">
+      <button id="choicePrivate" onclick="selectChoice('private')" class="spim-choice" aria-pressed="true">
         <span class="spim-choice-icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="4.5" y="11" width="15" height="9.5" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 15v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-        <span><strong>Private</strong><p>The key stays in the link and never reaches the server.</p></span>
+        <span><strong>Private</strong><p>Key stays in the link.</p></span>
       </button>
       <label class="spim-check">
         <input type="checkbox" id="singleViewCheck">
@@ -781,6 +363,7 @@ https://www.spim.co.in/api/dock</pre>
 <script src="/js/spim-audio.js"></script>
 <script src="/js/spim-capsule-client.js"></script>
 <script src="/js/session-nav.js" defer></script>
+<script src="/js/qr.js" defer></script>
 <script>
 const CANONICAL_BASE = location.origin + '/receive';
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
@@ -791,7 +374,9 @@ function countWords(s){ return s.trim() ? s.trim().split(/\s+/).filter(Boolean).
 function formatBytes(n){ if(n<1024) return n+' B'; if(n<1024*1024) return (n/1024).toFixed(1)+' KB'; return (n/1024/1024).toFixed(2)+' MB'; }
 
 let noteCount = 1;
-let selectedChoice = 'public';
+/* The homepage says "Private by default." — this is that default. */
+const DEFAULT_VISIBILITY = 'private';
+let selectedChoice = DEFAULT_VISIBILITY;
 let pendingNotes = null;
 let pendingKind = 'text';
 let lastCapsule = null;
@@ -889,7 +474,7 @@ function createText(){
   const notes = Array.prototype.slice.call(document.querySelectorAll('.note textarea')).map(function(t){ return t.value; }).filter(function(v){ return v.trim(); });
   if(!notes.length){ showErr('Add a note first.'); return; }
   if(!window.wasmReady){ showErr('Still preparing — try again in a moment.'); return; }
-  pendingNotes = notes; pendingKind = 'text'; selectedChoice = 'public';
+  pendingNotes = notes; pendingKind = 'text'; selectedChoice = DEFAULT_VISIBILITY;
   document.getElementById('singleViewCheck').checked = false;
   updateChoiceUI();
   document.getElementById('choice').classList.remove('spim-hide');
@@ -1002,7 +587,8 @@ function showResult(capsule, meta){
   document.getElementById('shareLink').dataset.key = capsule.keyB64;
   document.getElementById('qrText').textContent = capsule.link;
   const img = document.getElementById('qrImg');
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(capsule.link);
+  img.removeAttribute('src');
+  delete img.dataset.ready;
   img.classList.add('spim-hide');
   document.getElementById('qrBox').classList.add('spim-hide');
   document.getElementById('resultVerifyBadge').textContent = 'Verified · ' + String(capsule.blake3).slice(0,8) + '…';
@@ -1021,8 +607,17 @@ function copyLink(ev){
 function toggleQR(){
   const b = document.getElementById('qrBox');
   const i = document.getElementById('qrImg');
-  if(b.classList.contains('spim-hide') && i.src.indexOf('api.qrserver') >= 0) i.classList.remove('spim-hide');
+  const opening = b.classList.contains('spim-hide');
   b.classList.toggle('spim-hide');
+  if(!opening || !lastCapsule) return;
+  if(i.dataset.ready === '1'){ i.classList.remove('spim-hide'); return; }
+  /* Drawn in the browser: the link can carry the key, so it must not be sent out. */
+  window.SpimQR.render(i, lastCapsule.link).then(function(){
+    i.dataset.ready = '1';
+    i.classList.remove('spim-hide');
+  }).catch(function(){
+    shareNote('QR unavailable in this browser.', false);
+  });
 }
 function downloadSpim(){
   if(!lastCapsule || !lastCapsule.blob) return;
@@ -1185,7 +780,7 @@ function createImage(){
   clearImageError();
   if(!selectedBytes){ showImageError('Choose an image first.'); return; }
   if(!window.wasmReady){ showImageError('Engine is still loading — try again.'); return; }
-  pendingKind = 'image'; pendingNotes = null; selectedChoice = 'public';
+  pendingKind = 'image'; pendingNotes = null; selectedChoice = DEFAULT_VISIBILITY;
   document.getElementById('singleViewCheck').checked = false;
   updateChoiceUI();
   document.getElementById('choice').classList.remove('spim-hide');
@@ -1406,85 +1001,17 @@ updateMeta(); renumber();
 <script>
   /* SPIM WEBSITE REDESIGN — Stage 2: local demo composer, delivery tabs, FAQ, API copy. */
   (function () {
-    /* Demo composer — local preview only. No upload, no capsule creation, no API call. */
-    var demoText = document.getElementById('demoText');
-    var demoWordCount = document.getElementById('demoWordCount');
-    var demoCharCount = document.getElementById('demoCharCount');
-    var demoPreviewText = document.getElementById('demoPreviewText');
-    var demoPreviewTitle = document.getElementById('demoPreviewTitle');
-    var demoPrivacyTag = document.getElementById('demoPrivacyTag');
-    var demoViewTag = document.getElementById('demoViewTag');
-    var demoDeliveryHint = document.getElementById('demoDeliveryHint');
-
-    function demoCountWords(v) { var t = (v || '').trim(); return t ? t.split(/\s+/).filter(Boolean).length : 0; }
-
-    function updateDemoPreview() {
-      var v = demoText ? demoText.value : '';
-      var words = demoCountWords(v);
-      if (demoWordCount) demoWordCount.textContent = words + (words === 1 ? ' word' : ' words');
-      if (demoCharCount) demoCharCount.textContent = v.length.toLocaleString() + ' / 3,000';
-      if (demoPreviewText) demoPreviewText.textContent = v.trim() ? v : 'Your note will appear here as you type.';
-      if (demoPreviewTitle) demoPreviewTitle.textContent = v.trim() ? 'Your capsule preview' : 'An empty capsule draft';
-      var priv = document.getElementById('demoPrivate');
-      var single = document.getElementById('demoSingle');
-      if (demoPrivacyTag) {
-        var privOn = !!(priv && priv.checked);
-        demoPrivacyTag.textContent = privOn ? 'PRIVATE' : 'PUBLIC';
-        demoPrivacyTag.classList.toggle('spim-pill--accent', privOn);
-      }
-      if (demoViewTag) {
-        var singleOn = !!(single && single.checked);
-        demoViewTag.textContent = singleOn ? 'SINGLE VIEW' : 'REUSABLE';
-        demoViewTag.classList.toggle('spim-pill--verified', singleOn);
-      }
-    }
-
-    if (demoText) { demoText.addEventListener('input', updateDemoPreview); updateDemoPreview(); }
-    var demoPrivate = document.getElementById('demoPrivate');
-    var demoSingle = document.getElementById('demoSingle');
-    if (demoPrivate) demoPrivate.addEventListener('change', updateDemoPreview);
-    if (demoSingle) demoSingle.addEventListener('change', updateDemoPreview);
-
-    var DEMO_DELIVERY_HINTS = {
-      link: 'Private capsules keep the key in the link; the key is not sent to the server.',
-      qr: 'QR is a convenient handoff when the recipient is nearby.',
-      file: 'The .spim file is self-contained and can be opened offline.',
-      dock: 'Save the capsule to your Dock to hand it off later.',
-      sound: 'Beam the link as a sound; the receiver opens Catch and listens.',
-    };
-    document.querySelectorAll('[data-demo-delivery]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var key = btn.getAttribute('data-demo-delivery');
-        if (demoDeliveryHint) demoDeliveryHint.textContent = DEMO_DELIVERY_HINTS[key] || DEMO_DELIVERY_HINTS.link;
-      });
-    });
-
-    var demoTabTextBtn = document.getElementById('demoTabText');
-    var demoTabImageBtn = document.getElementById('demoTabImage');
-    var demoComposerText = document.getElementById('demoComposerText');
-    var demoComposerImage = document.getElementById('demoComposerImage');
-    function setDemoTab(which) {
-      var isText = (which || 'text') === 'text';
-      if (demoTabTextBtn) { demoTabTextBtn.setAttribute('aria-selected', isText ? 'true' : 'false'); demoTabTextBtn.classList.toggle('spim-demo-tab--active', isText); }
-      if (demoTabImageBtn) { demoTabImageBtn.setAttribute('aria-selected', isText ? 'false' : 'true'); demoTabImageBtn.classList.toggle('spim-demo-tab--active', !isText); }
-      if (demoComposerText) demoComposerText.hidden = !isText;
-      if (demoComposerImage) demoComposerImage.hidden = isText;
-    }
-    if (demoTabTextBtn) demoTabTextBtn.addEventListener('click', function () { setDemoTab('text'); });
-    if (demoTabImageBtn) demoTabImageBtn.addEventListener('click', function () { setDemoTab('image'); });
-    setDemoTab('text');
-
     /* Delivery methods — informational tabs on the homepage (no capsule flow). */
     var deliveryTabs = document.querySelectorAll('.spim-delivery-tab');
     var deliverySymbol = document.getElementById('deliverySymbol');
     var deliveryTitle = document.getElementById('deliveryTitle');
     var deliveryDesc = document.getElementById('deliveryDescription');
     var DELIVERY_INFO = {
-      link: { symbol: '↗', title: 'Share a link', description: 'Send a capsule link to someone anywhere. For private capsules, the decryption key stays in the link fragment and is not sent to the server.' },
-      qr: { symbol: '▦', title: 'Show a QR code', description: 'Let someone scan to open the capsule. QR is a convenient handoff when both people are together.' },
-      file: { symbol: '▤', title: 'Send a .spim file', description: 'Download the self-contained capsule and share it as a file. Recipients can open it in Catch / Open, including offline.' },
-      dock: { symbol: '▣', title: 'Save to Dock', description: 'Keep capsules in your account Dock so they can be opened later or handed to a saved connection.' },
-      sound: { symbol: '〰', title: 'Beam by sound', description: 'Play the capsule link as a sound. The receiving device opens Catch and listens; keep both devices nearby.' },
+      link: { symbol: '↗', title: 'Share a link', description: 'Send the link anywhere.' },
+      qr: { symbol: '▦', title: 'Show a QR code', description: 'Let someone scan to open it. Best when you are together.' },
+      file: { symbol: '▤', title: 'Send a file', description: 'Download it as one file.' },
+      dock: { symbol: '▣', title: 'Save to Dock', description: 'Keep it in your Dock to open later or hand to a connection.' },
+      sound: { symbol: '〰', title: 'Beam by sound', description: 'Play the link as a sound. The other device listens in Catch.' },
     };
     function selectDelivery(key) {
       var info = DELIVERY_INFO[key] || DELIVERY_INFO.link;
@@ -1507,36 +1034,11 @@ updateMeta(); renumber();
       });
     });
 
-    /* API header template copy (placeholder only — never a live key). */
-    var copyApiBtn = document.getElementById('copyApi');
-    if (copyApiBtn) {
-      copyApiBtn.addEventListener('click', function () {
-        var snippet = 'Authorization: Bearer $SPIM_API_KEY';
-        var reset = function () { copyApiBtn.textContent = 'Copy ↗'; };
-        var done = function () { copyApiBtn.textContent = 'Copied ✓'; setTimeout(reset, 1600); };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(snippet).then(done).catch(function () { copyApiBtn.textContent = 'Clipboard unavailable'; });
-        } else { copyApiBtn.textContent = 'Clipboard unavailable'; }
-      });
-    }
   })();
 </script>
 
 </div>
 </div>
 
-<script>
-  (function () {
-    var btn = document.getElementById('spimSidebarToggle');
-    var sb = document.getElementById('spimSidebar');
-    if (!btn || !sb) return;
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var open = sb.classList.toggle('spim-app-sidebar--open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.body.classList.toggle('spim-app-sidebar-open', open);
-    });
-  })();
-</script>
 </body>
 </html>
