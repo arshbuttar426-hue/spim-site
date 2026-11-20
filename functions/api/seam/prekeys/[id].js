@@ -9,7 +9,7 @@
  * rather than a silent key reuse.
  */
 
-import { getJSON, json } from '../../_lib.js';
+import { currentUser, getJSON, json } from '../../_lib.js';
 import {
   PREKEY_TTL,
   clientIp,
@@ -23,7 +23,16 @@ export async function onRequestGet({ request, env, params }) {
   const mailbox = String(params.id || '');
   if (!validMailbox(mailbox)) return json(400, { error: 'bad mailbox' });
 
+  // Fetching an invite is part of joining a channel, and sending already
+  // requires an account. Requiring one here stops anonymous scripts from
+  // draining every published one-time prekey.
+  const user = await currentUser(request, env);
+  if (!user) return json(401, { error: 'sign in to fetch an invite' });
+
   if (!(await rateLimit(env, `prekeys:ip:${clientIp(request)}`, 120, 3600))) {
+    return json(429, { error: 'too many prekey fetches; try again later' });
+  }
+  if (!(await rateLimit(env, `prekeys:box:${mailbox}`, 60, 3600))) {
     return json(429, { error: 'too many prekey fetches; try again later' });
   }
 

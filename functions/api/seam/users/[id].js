@@ -39,6 +39,7 @@ export async function onRequestGet({ request, env, params }) {
   return json(200, {
     id: binding.user,
     mailbox: binding.mailbox,
+    device: binding.device || null,
     expires_at: binding.expires_at,
   });
 }

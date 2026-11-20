@@ -13,6 +13,12 @@
  */
 var BOT = /(bot|crawl|spider|slurp|curl|wget|python|headless|lighthouse|monitor|uptime|scanner|zgrab|masscan|nmap|semrush|ahrefs|dataprovider)/i;
 
+// One day is one KV value. Without caps a script can grow it until every put
+// fails, which silently stops the counter for the rest of the day.
+var MAX_VISITORS = 20000;
+var MAX_PATHS = 500;
+var MAX_REFS = 200;
+
 function json(status, body) {
   return new Response(JSON.stringify(body), {
     status: status,
@@ -83,9 +89,15 @@ export async function onRequestPost({ request, env }) {
     } catch (e) {}
 
     stats.views += 1;
-    stats.visitors[visitor] = 1;
-    stats.paths[path] = (Number(stats.paths[path]) || 0) + 1;
-    if (ref) stats.refs[ref] = (Number(stats.refs[ref]) || 0) + 1;
+    if (stats.visitors[visitor] || Object.keys(stats.visitors).length < MAX_VISITORS) {
+      stats.visitors[visitor] = 1;
+    }
+    if (stats.paths[path] || Object.keys(stats.paths).length < MAX_PATHS) {
+      stats.paths[path] = (Number(stats.paths[path]) || 0) + 1;
+    }
+    if (ref && (stats.refs[ref] || Object.keys(stats.refs).length < MAX_REFS)) {
+      stats.refs[ref] = (Number(stats.refs[ref]) || 0) + 1;
+    }
 
     await env.SPIM_KV.put(key, JSON.stringify(stats), { expirationTtl: 60 * 60 * 24 * 400 });
     return done();

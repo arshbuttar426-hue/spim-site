@@ -25,6 +25,8 @@ export async function onRequestPost({ request, env, params }) {
 }
 
 export async function onRequestGet({ request, env, params }) {
+  const blocked = guard(request, env);
+  if (blocked) return blocked;
   const user = await actor(request, env);
   if (!user) return json(401, { error: 'not signed in' });
   const id = String(params.id || '').replace(/[^A-Za-z0-9_]/g, '');

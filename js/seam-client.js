@@ -520,6 +520,12 @@ async function startPeer(input) {
     const resolved = await resolveAddress(parsed.value);
     accountId = resolved.id;
     bundle = await fetchBundle(resolved.mailbox);
+    // The address resolved to a device. If the mailbox now serves a different
+    // device, someone replaced the bundle: refuse rather than open a channel
+    // to the wrong identity under the right name.
+    if (resolved.device && (!bundle || bundle.id !== resolved.device)) {
+      throw new Error('That invite no longer matches this ID. Ask for a new one.');
+    }
   } else {
     try {
       bundle = JSON.parse(parsed.value);
@@ -528,6 +534,7 @@ async function startPeer(input) {
     }
   }
 
+  if (!bundle || !bundle.id) throw new Error('That invite could not be read.');
   const peer = bundle.id;
   if (!peer) throw new Error('That invite is missing its identity.');
   if (peer === identity.id()) throw new Error('That is your own invite.');

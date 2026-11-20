@@ -8,6 +8,9 @@ import {
   sessionCookie,
   getJSON,
   readBody,
+  clientIp,
+  rateLimitPeek,
+  rateLimitHit,
 } from '../_lib.js';
 
 export async function onRequestOptions() {
@@ -23,7 +26,21 @@ export async function onRequestPost({ request, env }) {
 
   const email = normalizeEmail(body.email);
   const password = String(body.password || '');
-  if (!email || !password) return json(400, { error: 'Email and password are required.' });
+  if (!email || !password || email.length > 254 || password.length > 200) {
+    return json(400, { error: 'Email and password are required.' });
+  }
+
+  // Two brakes: one per connection, one per address. The address bucket also
+  // stops a slow guess against a single account from many IPs. Only failures
+  // are counted, so a normal sign-in never uses up the allowance.
+  const ipBucket = `login:ip:${clientIp(request)}`;
+  const emailBucket = `login:email:${email}`;
+  if (
+    !(await rateLimitPeek(env, ipBucket, 30, 15 * 60)) ||
+    !(await rateLimitPeek(env, emailBucket, 10, 15 * 60))
+  ) {
+    return json(429, { error: 'Too many attempts. Try again in a few minutes.' });
+  }
 
   const id = await env.SPIM_KV.get('email:' + email);
   const user = id ? await getJSON(env, 'user:' + id) : null;
@@ -35,6 +52,8 @@ export async function onRequestPost({ request, env }) {
   const ok = await verifyPassword(password, salt, expected);
 
   if (!user || !ok) {
+    await rateLimitHit(env, ipBucket, 15 * 60);
+    await rateLimitHit(env, emailBucket, 15 * 60);
     return json(401, { error: 'Email or password is incorrect.' });
   }
 

@@ -129,7 +129,14 @@ export function readCookie(request, name) {
   for (const part of header.split(';')) {
     const idx = part.indexOf('=');
     if (idx < 0) continue;
-    if (part.slice(0, idx).trim() === name) return decodeURIComponent(part.slice(idx + 1).trim());
+    if (part.slice(0, idx).trim() !== name) continue;
+    try {
+      return decodeURIComponent(part.slice(idx + 1).trim());
+    } catch {
+      // A malformed cookie is not a session; treat it as absent rather than
+      // letting decodeURIComponent throw a 500 from every authenticated route.
+      return '';
+    }
   }
   return '';
 }
@@ -245,6 +252,41 @@ export function badOrigin(request) {
   } catch {
     return true;
   }
+}
+
+export function clientIp(request) {
+  return request.headers.get('cf-connecting-ip') || 'unknown';
+}
+
+/**
+ * Approximate fixed-window limiter. KV has no atomic increment, so a burst can
+ * exceed the limit by a few. This is an abuse brake, not an accounting system.
+ */
+export async function rateLimitPeek(env, bucket, limit, windowSec) {
+  if (!env || !env.SPIM_KV) return true;
+  const slot = Math.floor(Date.now() / 1000 / windowSec);
+  const raw = await env.SPIM_KV.get(`rl:${bucket}:${slot}`);
+  const n = raw ? Number(raw) || 0 : 0;
+  return n < limit;
+}
+
+export async function rateLimitHit(env, bucket, windowSec) {
+  if (!env || !env.SPIM_KV) return;
+  const slot = Math.floor(Date.now() / 1000 / windowSec);
+  const key = `rl:${bucket}:${slot}`;
+  const raw = await env.SPIM_KV.get(key);
+  const n = raw ? Number(raw) || 0 : 0;
+  try {
+    await env.SPIM_KV.put(key, String(n + 1), { expirationTtl: windowSec + 60 });
+  } catch {
+    // A quota write failure must not turn a valid request into a 500.
+  }
+}
+
+export async function rateLimit(env, bucket, limit, windowSec) {
+  if (!(await rateLimitPeek(env, bucket, limit, windowSec))) return false;
+  await rateLimitHit(env, bucket, windowSec);
+  return true;
 }
 
 export function guard(request, env) {

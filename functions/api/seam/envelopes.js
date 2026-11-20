@@ -48,6 +48,10 @@ export async function onRequestPost({ request, env }) {
   if (!body) return json(400, { error: 'invalid json' });
   const mailbox = body.mailbox;
   if (!validMailbox(mailbox)) return json(400, { error: 'bad mailbox' });
+  // Per-address brake: a single mailbox cannot be filled from many IPs at once.
+  if (!(await rateLimit(env, `env:box:${mailbox}`, 120, 3600))) {
+    return json(429, { error: 'too many messages to this address; try again later' });
+  }
   if (!looksLikeSeamEnvelope(body.envelope)) {
     return json(400, { error: 'envelope is not an SMW1 capsule' });
   }

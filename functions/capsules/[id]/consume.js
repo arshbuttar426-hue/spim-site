@@ -9,9 +9,11 @@ function json(status, body) {
   });
 }
 
-// Burn rows are kept long enough to cover the life of a capsule link. A
-// scheduled task prunes them: DELETE FROM capsule_burn WHERE expires_at < ?1
+// Burn rows are kept long enough to cover the life of a capsule link. Pages
+// Functions have no cron hook here, so expired rows are pruned opportunistically
+// on each consume.
 const BURN_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const CAPSULE_TTL = 60 * 60 * 24 * 30;
 
 export async function onRequestPost({ env, params }) {
   const id = String(params.id || "").replace(/[^A-Za-z0-9_-]/g, "");
@@ -42,5 +44,25 @@ export async function onRequestPost({ env, params }) {
   if (!row || !row.meta || row.meta.changes !== 1) {
     return json(410, { error: "already destroyed" });
   }
+
+  // The burn row is the authority. Drop the payload so a consumed capsule does
+  // not keep its bytes in KV for the rest of the retention window. Do not flip
+  // the KV `consumed` flag: KV is eventually consistent, and the D1 row is the
+  // only fence.
+  try {
+    data.blob = "";
+    await env.SPIM_KV.put("capsule:" + id, JSON.stringify(data), {
+      expirationTtl: CAPSULE_TTL,
+    });
+  } catch (e) {
+    // The burn row already won; a payload-cleanup failure must not unburn it.
+  }
+
+  try {
+    await env.DB.prepare("DELETE FROM capsule_burn WHERE expires_at < ?1").bind(now).run();
+  } catch (e) {
+    // Pruning is housekeeping; never fail a successful consume over it.
+  }
+
   return json(200, { consumed: true });
 }

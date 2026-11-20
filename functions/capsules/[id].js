@@ -19,6 +19,9 @@ export async function onRequestGet({ env, params }) {
   try { data = JSON.parse(raw); } catch { return json(500, { error: "corrupt capsule" }); }
   // Capsules burned before the burn store existed still carry the KV flag.
   if (data.consumed) return json(410, { error: "destroyed", message: "This delivery has already been opened." });
+  // A consumed capsule keeps a tombstone with the payload removed, so it can
+  // still say "destroyed" after the burn row is pruned.
+  if (!data.blob) return json(410, { error: "destroyed", message: "This delivery has already been opened." });
 
   // Single-view capsules are checked against the burn store, not the KV flag:
   // KV is eventually consistent and would serve a burned capsule for up to a

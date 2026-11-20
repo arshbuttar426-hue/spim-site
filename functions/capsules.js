@@ -11,12 +11,25 @@ function json(status, body) {
 
 function randomId(len = 8) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const bytes = new Uint8Array(len);
-  crypto.getRandomValues(bytes);
+  // Rejection sampling: 256 is not a multiple of 62, so taking `byte % 62`
+  // would make the first 8 characters slightly more likely.
+  const max = 256 - (256 % chars.length);
   let out = "";
-  for (let i = 0; i < len; i++) out += chars[bytes[i] % chars.length];
+  while (out.length < len) {
+    const bytes = new Uint8Array(len * 2);
+    crypto.getRandomValues(bytes);
+    for (const b of bytes) {
+      if (b >= max) continue;
+      out += chars[b % chars.length];
+      if (out.length === len) break;
+    }
+  }
   return out;
 }
+
+// Capsules are disposable. Keep the blob long enough for a delayed open, then
+// let KV reclaim it even if nobody ever consumes it.
+const CAPSULE_TTL = 60 * 60 * 24 * 30;
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -32,10 +45,12 @@ export async function onRequestPost({ request, env }) {
     // validate base64-ish
     if (!/^[A-Za-z0-9+/=]+$/.test(blob)) return json(400, { error: "blob not base64" });
     const id = randomId(8);
-    await env.SPIM_KV.put("capsule:" + id, JSON.stringify({ blob, destroyable, consumed: false }));
+    await env.SPIM_KV.put("capsule:" + id, JSON.stringify({ blob, destroyable, consumed: false }), {
+      expirationTtl: CAPSULE_TTL,
+    });
     return json(201, { id });
   } catch (e) {
-    return json(500, { error: "create failed", detail: String((e && e.message) || e) });
+    return json(500, { error: "create failed" });
   }
 }
 

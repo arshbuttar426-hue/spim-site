@@ -10,6 +10,8 @@ import {
   randomId,
   putJSON,
   readBody,
+  clientIp,
+  rateLimit,
 } from '../_lib.js';
 
 export async function onRequestOptions() {
@@ -29,6 +31,10 @@ export async function onRequestPost({ request, env }) {
   if (!validEmail(email)) return json(400, { error: 'Enter a valid email address.' });
   if (password.length < 8) return json(400, { error: 'Password must be at least 8 characters.' });
   if (password.length > 200) return json(400, { error: 'Password is too long.' });
+
+  if (!(await rateLimit(env, `register:ip:${clientIp(request)}`, 20, 60 * 60))) {
+    return json(429, { error: 'Too many sign-ups from this connection. Try again later.' });
+  }
 
   const existing = await env.SPIM_KV.get('email:' + email);
   if (existing) return json(409, { error: 'An account with this email already exists.' });

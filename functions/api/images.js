@@ -31,10 +31,9 @@ export async function onRequestPost({ request, env }) {
     }
     quota.used += 1;
     await putJSON(env, key, quota);
-  } else if (action === 'reset') {
-    quota.used = 0;
-    await putJSON(env, key, quota);
   } else {
+    // Quota is not client-resettable. Only an explicit paid-plan change or a
+    // server-side migration may set `used` back to zero.
     return json(400, { error: 'unknown action' });
   }
 

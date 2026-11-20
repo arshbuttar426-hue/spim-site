@@ -9,7 +9,7 @@
  * signature and the identity binding before the first message is sent.
  */
 
-import { currentUser, json, readBody } from '../_lib.js';
+import { currentUser, getJSON, json, readBody } from '../_lib.js';
 import {
   MAX_BUNDLES,
   MAX_BUNDLE_BYTES,
@@ -80,6 +80,21 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
+  // A mailbox is derived from a device's public agreement key, so it is a
+  // capability. Let its first publisher keep it for the life of the binding:
+  // otherwise anyone who can resolve an address could replace the bundles and
+  // take over the owner record.
+  const [currentOwner, existing] = await Promise.all([
+    env.SPIM_KV.get(ownerKey(mailbox)),
+    getJSON(env, prekeyKey(mailbox)),
+  ]);
+  if (
+    (currentOwner && currentOwner !== user.id) ||
+    (existing && existing.owner && existing.owner !== user.id)
+  ) {
+    return json(409, { error: 'that address belongs to another account' });
+  }
+
   const now = Math.floor(Date.now() / 1000);
   const record = {
     owner: user.id,
@@ -93,10 +108,18 @@ export async function onRequestPost({ request, env }) {
   await env.SPIM_KV.put(ownerKey(mailbox), user.id, { expirationTtl: OWNER_TTL });
 
   // Make this account and this device addressable without exposing a key.
-  // Both records live exactly as long as the prekeys they point at.
-  const binding = JSON.stringify({ user: user.id, mailbox, created_at: now, expires_at: record.expires_at });
-  await env.SPIM_KV.put(userKey(user.id), binding, { expirationTtl: PREKEY_TTL });
+  // Both records live exactly as long as the prekeys they point at. `device`
+  // lets the client check that the bundle it fetched is the one this address
+  // resolved to, instead of trusting whatever currently sits at the mailbox.
   const deviceId = bundles[0] && bundles[0].id;
+  const binding = JSON.stringify({
+    user: user.id,
+    mailbox,
+    device: deviceId || null,
+    created_at: now,
+    expires_at: record.expires_at,
+  });
+  await env.SPIM_KV.put(userKey(user.id), binding, { expirationTtl: PREKEY_TTL });
   if (deviceId) {
     await env.SPIM_KV.put(identKey(deviceId), binding, { expirationTtl: PREKEY_TTL });
   }

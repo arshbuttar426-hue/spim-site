@@ -8,6 +8,8 @@ import {
 } from '../_lib.js';
 
 export async function onRequestDelete({ request, env, params }) {
+  const blocked = guard(request, env);
+  if (blocked) return blocked;
   const user = await actor(request, env);
   if (!user) return json(401, { error: 'not signed in' });
   const id = String(params.id || '').replace(/[^A-Za-z0-9_]/g, '');
