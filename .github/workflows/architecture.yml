@@ -1,0 +1,37 @@
+name: architecture
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Static module graph: cycles, broken imports, and domain boundaries.
+      # The seam-two-libs warnings are expected until the two shared libs merge.
+      - name: Dependency rules
+        run: >-
+          npx --yes dependency-cruiser@18.8.0 js functions
+          --config .github/architecture/.dependency-cruiser.cjs
+          --output-type err
+
+      # Duplicate-code ratchet. Baseline on 2026-11-20: 6.15% tokens / 6.60% lines.
+      # 8% leaves headroom for small additions but fails a meaningful regression.
+      - name: Duplication ratchet
+        run: >-
+          npx --yes jscpd@5.4.3 js functions
+          --ignore "js/vendor/**"
+          --min-lines 5 --min-tokens 40
+          --threshold 8 --reporters console
+
+      # Committed asset sizes. Catches a growing seam-client.js and any new
+      # large file before it reaches the deploy artifact.
+      - name: Asset budget
+        run: node .github/architecture/check-budget.cjs

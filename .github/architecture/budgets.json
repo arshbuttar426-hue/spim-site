@@ -1,0 +1,22 @@
+{
+  "_comment": "Byte caps for committed static assets. Values are the 2026-11-20 baseline plus ~15% headroom. When a budget is hit, either shrink the file or raise the cap deliberately — never silently.",
+  "files": {
+    "pkg/spim_wasm_bg.wasm": 650000,
+    "css/spim-theme.css": 65000,
+    "pkg/spim_wasm.js": 50000,
+    "js/seam-client.js": 47000,
+    "js/vendor/qrcode.min.js": 24000,
+    "js/spim-codec.js": 14000,
+    "js/spim-audio.js": 9000,
+    "js/spim-capsule-client.js": 8000,
+    "js/supabaseClient.js": 4000,
+    "js/session-nav.js": 3500,
+    "js/spim-analytics.js": 2000,
+    "js/qr.js": 2000
+  },
+  "totals": {
+    "authored-js": 87000,
+    "shipped-static": 870000
+  },
+  "unlisted-file-max": 50000
+}
