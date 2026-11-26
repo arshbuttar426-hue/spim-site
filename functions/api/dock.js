@@ -3,18 +3,28 @@ import {
   json,
   actor,
   listJSON,
-  putJSON,
   getJSON,
   randomId,
   readBody,
 } from './_lib.js';
+import { dockExpired, publicDockItem, putDock } from './dock/_lib.js';
 
 const CAPSULE_RE = /^[A-Za-z0-9_-]{6,16}$/;
 
 export async function onRequestGet({ request, env }) {
   const user = await actor(request, env);
   if (!user) return json(401, { error: 'not signed in' });
-  const items = await listJSON(env, 'dock:' + user.id + ':');
+  const items = [];
+  for (const raw of await listJSON(env, 'dock:' + user.id + ':')) {
+    if (dockExpired(raw)) {
+      // Scrub legacy key-bearing rows rather than leaving the secret in KV.
+      if (raw.link && raw.id) await env.SPIM_KV.delete('dock:' + user.id + ':' + raw.id);
+      continue;
+    }
+    const item = publicDockItem(raw);
+    if (raw.link && item.id) await putDock(env, 'dock:' + user.id + ':' + item.id, item);
+    items.push(item);
+  }
   items.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   return json(200, {
     items,
@@ -29,13 +39,11 @@ export async function onRequestPost({ request, env }) {
   if (!user) return json(401, { error: 'not signed in' });
 
   const body = await readBody(request);
-  const capsuleId = String((body && body.capsule_id) || '').replace(/[^A-Za-z0-9_-]/g, '');
-  const link = String((body && body.link) || '').trim();
+  const capsuleId = String((body && body.capsule_id) || '');
   const connectionId = String((body && body.connection_id) || '').replace(/[^A-Za-z0-9_]/g, '');
   const sender = String((body && body.sender_name) || user.email || 'You').slice(0, 80);
 
   if (!CAPSULE_RE.test(capsuleId)) return json(400, { error: 'bad capsule id' });
-  if (!/^https?:\/\/[^\s]+\/receive#c\//.test(link)) return json(400, { error: 'bad capsule link' });
 
   let connection = null;
   if (connectionId) {
@@ -46,7 +54,7 @@ export async function onRequestPost({ request, env }) {
   const item = {
     id: 'dock_' + randomId(8),
     capsule_id: capsuleId,
-    link,
+    private: !!(body && body.private),
     connection_id: connectionId || null,
     connection_name: connection ? connection.name : null,
     sender_name: sender,
@@ -55,6 +63,6 @@ export async function onRequestPost({ request, env }) {
     created_at: new Date().toISOString(),
     expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
   };
-  await putJSON(env, 'dock:' + user.id + ':' + item.id, item);
-  return json(201, { item });
+  await putDock(env, 'dock:' + user.id + ':' + item.id, item);
+  return json(201, { item: publicDockItem(item) });
 }

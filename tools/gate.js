@@ -11,7 +11,14 @@
  *   links     every internal link resolves inside the tree
  *   pages     same-page fragments resolve; no third-party asset hosts
  *   claims    every absolute claim has a mechanism behind it
+ *   integrity Catch and /receive verify CAP1 envelopes before trusted display
  *   burn      "opens once" is an atomic write, not a read-modify-write
+ *   single-view  create/preview/consume lifecycle is enforced server-side
+ *   file-input   .spim input is released only after the File read settles
+ *   offline      only the static shell is cached; private paths never are
+ *   beam/catch   sonic CRC integrity and software-only Catch/Beam UI invariants
+ *   dock privacy private keys never reach the server; Dock rows have a real TTL
+ *   authenticity CAP2 signatures and content ids stop recomputed-hash forgeries
  */
 'use strict';
 
@@ -46,8 +53,36 @@ const checks = [
     args: ['--test', path.join(__dirname, 'gates', 'claims.test.js')]
   },
   {
+    name: 'capsule integrity',
+    args: ['--test', path.join(__dirname, 'gates', 'integrity.test.js')]
+  },
+  {
     name: 'burn is atomic',
     args: sqliteFlags.concat(['--test', path.join(__dirname, 'gates', 'burn.test.js')])
+  },
+  {
+    name: 'single-view lifecycle',
+    args: sqliteFlags.concat(['--test', path.join(__dirname, 'gates', 'single-view.test.mjs')])
+  },
+  {
+    name: 'file-input lifecycle',
+    args: ['--test', path.join(__dirname, 'gates', 'file-input.test.js')]
+  },
+  {
+    name: 'offline service worker',
+    args: ['--test', path.join(__dirname, 'gates', 'offline.test.js')]
+  },
+  {
+    name: 'beam/catch integrity',
+    args: ['--test', path.join(__dirname, 'gates', 'beam-catch.test.js')]
+  },
+  {
+    name: 'dock privacy',
+    args: ['--test', path.join(__dirname, 'gates', 'dock-privacy.test.mjs')]
+  },
+  {
+    name: 'capsule authenticity',
+    args: ['--test', path.join(__dirname, 'gates', 'authenticity.test.js')]
   }
 ];
 

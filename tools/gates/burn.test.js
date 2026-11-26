@@ -13,11 +13,13 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 
 const root = path.join(__dirname, '..', '..');
-const migration = fs.readFileSync(path.join(root, 'migrations', '0001_capsule_burn.sql'), 'utf8');
+const migrations = ['0001_capsule_burn.sql', '0002_capsule_security.sql']
+  .map((f) => fs.readFileSync(path.join(root, 'migrations', f), 'utf8'));
+const migration = migrations.join('\n');
 const consumeSrc = fs.readFileSync(path.join(root, 'functions', 'capsules', '[id]', 'consume.js'), 'utf8');
 
 const INSERT =
-  'INSERT INTO capsule_burn (id, consumed_at, expires_at) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING';
+  'INSERT INTO capsule_open (id, receipt, consumed_at, expires_at) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO NOTHING';
 
 function fresh() {
   const db = new DatabaseSync(':memory:');
@@ -34,22 +36,23 @@ test('migration applies and is idempotent', () => {
 
 test('first consume wins, second loses, winner timestamp survives', () => {
   const db = fresh();
-  const first = db.prepare(INSERT).run('abc123', 1000, 2000);
-  const second = db.prepare(INSERT).run('abc123', 2000, 3000);
+  const first = db.prepare(INSERT).run('abc123', 'a'.repeat(16), 1000, 2000);
+  const second = db.prepare(INSERT).run('abc123', 'b'.repeat(16), 2000, 3000);
   assert.strictEqual(Number(first.changes), 1, 'first consume must win');
   assert.strictEqual(Number(second.changes), 0, 'second consume must be a no-op');
-  const row = db.prepare('SELECT consumed_at FROM capsule_burn WHERE id = ?').get('abc123');
+  const row = db.prepare('SELECT consumed_at, receipt FROM capsule_open WHERE id = ?').get('abc123');
+  assert.strictEqual(row.receipt, 'a'.repeat(16), 'the winning receipt survives');
   assert.strictEqual(Number(row.consumed_at), 1000);
 });
 
 test('distinct capsules do not collide', () => {
   const db = fresh();
-  assert.strictEqual(Number(db.prepare(INSERT).run('a', 1, 9).changes), 1);
-  assert.strictEqual(Number(db.prepare(INSERT).run('b', 1, 9).changes), 1);
+  assert.strictEqual(Number(db.prepare(INSERT).run('a', 'a'.repeat(16), 1, 9).changes), 1);
+  assert.strictEqual(Number(db.prepare(INSERT).run('b', 'b'.repeat(16), 1, 9).changes), 1);
 });
 
 test('the shipped consume statement is this statement', () => {
   assert.match(consumeSrc, /ON CONFLICT\(id\) DO NOTHING/);
-  assert.match(consumeSrc, /INSERT INTO capsule_burn/);
+  assert.match(consumeSrc, /INSERT INTO capsule_open/);
   assert.match(consumeSrc, /meta\.changes/);
 });

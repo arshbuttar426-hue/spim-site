@@ -347,10 +347,16 @@ await check('stale or foreign ack ids delete nothing', async () => {
   assert(other.json.count === 2, `foreign mailbox changed to ${other.json.count}`);
 });
 
-await check('prekey fetch does not require or leak ownership', async () => {
+await check('prekey fetch requires a session but not ownership', async () => {
   const mailbox = hex(16);
   await seedMailbox(mailbox, alice.id, 1);
-  const r = await req(`/api/seam/prekeys/${mailbox}`, { ip: hex(8) });
+
+  const anonymous = await req(`/api/seam/prekeys/${mailbox}`, { ip: hex(8) });
+  assert(anonymous.status === 401, `anonymous status ${anonymous.status}`);
+
+  // A different signed-in account may fetch: the one-time bundle is the
+  // capability, and the recipient's client verifies the signed bundle.
+  const r = await req(`/api/seam/prekeys/${mailbox}`, { ip: hex(8), cookie: cookieB });
   assert(r.status === 200, `status ${r.status}`);
   assert(!secretLeak(r.text), 'prekey response leaked a secret');
   assert(!JSON.stringify(r.json).includes(alice.id), 'prekey response leaked the owner id');
@@ -362,14 +368,19 @@ console.log('\n# concurrency');
 
 await check('parallel prekey fetches deliver distinct one-time keys', async () => {
   const mailbox = hex(16);
-  const count = 100;
+  // The relay allows 60 prekey fetches per mailbox per hour; stay under the
+  // documented quota so a 429 cannot be mistaken for a concurrency finding.
+  const count = 60;
   await seedMailbox(mailbox, alice.id, count);
   const responses = await Promise.all(
     Array.from({ length: count }, (_, i) =>
-      req(`/api/seam/prekeys/${mailbox}`, { ip: '198.51.100.' + i }))
+      req(`/api/seam/prekeys/${mailbox}`, { ip: '198.51.100.' + i, cookie: cookieB }))
   );
-  const good = responses.filter((r) => r.status === 200);
-  const keys = good.map((r) => r.json.bundle.opk[0]);
+  assert(
+    responses.every((r) => r.status === 200),
+    `parallel fetch refused: ${responses.filter((r) => r.status !== 200).map((r) => r.status).join(',') || 'none'}`
+  );
+  const keys = responses.map((r) => r.json.bundle.opk[0]);
   const unique = new Set(keys);
   if (unique.size !== keys.length) {
     findings.push(

@@ -127,7 +127,7 @@
         <div class="spim-spread" style="align-items:flex-start;flex-wrap:wrap;gap:12px">
           <div>
             <h2>Dock</h2>
-            <p class="spim-body" style="margin-top:6px">Capsules waiting to be opened or handed to a connection.</p>
+            <p class="spim-body" style="margin-top:6px">Capsules waiting to be opened or handed to a connection. Private keys stay in this browser; clearing site data removes them.</p>
           </div>
           <button type="button" id="dockRefresh" class="spim-btn spim-btn--sm">Refresh</button>
         </div>
@@ -240,13 +240,17 @@
 <!-- /chrome:footer -->
 
 <script src="/js/supabaseClient.js"></script>
+<script src="/js/dock-client.js"></script>
 <script src="/js/session-nav.js" defer></script>
 <script>
 (function(){
   var state = { user:null, images:null, dock:[], connections:[], keys:[] };
 
+  function dockUserId(){
+    return (state.user && state.user.id) || 'anon';
+  }
   function pendingDockKey(){
-    return 'spim_dock_pending:' + ((state.user && state.user.id) || 'anon');
+    return window.DockClient.pendingKey(dockUserId());
   }
 
   function esc(value){
@@ -334,10 +338,10 @@
     var list = document.getElementById('dockList');
     list.innerHTML = '<div class="spim-data-row"><span class="spim-dim">Loading…</span></div>';
     try {
+      var uid = dockUserId();
       var body = await api('/api/dock');
       var server = body.items || [];
-      var pending = [];
-      try { pending = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]'); } catch(e){}
+      var pending = window.DockClient.migratePending(uid);
       var serverIds = {};
       server.forEach(function(i){ serverIds[i.id] = true; });
       var stillPending = pending.filter(function(i){ return !serverIds[i.id]; });
@@ -352,10 +356,14 @@
         var action = status === 'docked'
           ? '<button type="button" class="spim-btn spim-btn--sm" data-dock-unload="' + esc(item.id) + '">Unload</button>'
           : '';
+        var link = window.DockClient.linkFor(uid, item);
+        var open = link
+          ? '<a class="spim-btn spim-btn--sm spim-btn--ghost" href="' + esc(link) + '">Open</a>'
+          : '<span class="spim-dim">Key not in this browser</span>';
         return '<div class="spim-data-row">'
           + '<div style="min-width:0"><div style="font-weight:600">' + esc(item.connection_name || 'Capsule') + ' · <span class="spim-mono">' + esc(item.capsule_id) + '</span></div>'
           + '<div class="spim-mono" style="margin-top:3px">' + esc(status) + ' · ' + esc(date(item.created_at)) + '</div></div>'
-          + '<div class="spim-row">' + action + '<a class="spim-btn spim-btn--sm spim-btn--ghost" href="' + esc(item.link) + '">Open</a></div>'
+          + '<div class="spim-row">' + action + open + '</div>'
           + '</div>';
       }).join('');
       list.querySelectorAll('[data-dock-unload]').forEach(function(btn){
@@ -364,6 +372,8 @@
           btn.disabled = true;
           try {
             await api('/api/dock/' + encodeURIComponent(id), {method:'POST', body:{action:'unload'}});
+            var unloaded = state.dock.filter(function(i){ return i.id === id; })[0];
+            if(unloaded && unloaded.capsule_id) window.DockClient.removeKey(uid, unloaded.capsule_id);
             try {
               var pending = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]');
               localStorage.setItem(pendingDockKey(), JSON.stringify(pending.filter(function(i){ return i.id !== id; })));
@@ -374,6 +384,8 @@
             // The item may still be replicating to this KV location. Drop the
             // local optimistic row instead of trapping the user on an error.
             if(e.message && e.message.indexOf('not found') >= 0){
+              var gone = state.dock.filter(function(i){ return i.id === id; })[0];
+              if(gone && gone.capsule_id) window.DockClient.removeKey(uid, gone.capsule_id);
               try {
                 var q = JSON.parse(localStorage.getItem(pendingDockKey()) || '[]');
                 localStorage.setItem(pendingDockKey(), JSON.stringify(q.filter(function(i){ return i.id !== id; })));

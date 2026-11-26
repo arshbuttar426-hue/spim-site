@@ -16,6 +16,13 @@
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
 
+# The service worker must be revalidated on every navigation so version
+# bumps are picked up promptly, and must be allowed to control the whole site.
+/sw.js
+  Cache-Control: no-cache, must-revalidate
+  Service-Worker-Allowed: /
+  Content-Type: application/javascript
+
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

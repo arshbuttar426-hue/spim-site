@@ -13,17 +13,16 @@ SPIM_ORIGIN = "https://similar-speeches-marine-occasion.trycloudflare.com"
 binding = "SPIM_KV"
 id = "0df622028d884c439f064e3673f4bfe9"
 
-# Single-view burn registry (see migrations/0001_capsule_burn.sql).
-# D1 is the authority for "opened once": its writes serialise, so the insert in
-# functions/capsules/[id]/consume.js is the fence. KV alone cannot do this.
+# Single-view burn registry (see migrations/0001_capsule_burn.sql) and the
+# additive id-reservation / receipt tables in migrations/0002_capsule_security.sql.
+# D1 is the authority for "opened once" and for id collisions: its writes
+# serialise, so KV alone cannot provide either fence.
 #
-# Provision before the code that needs it goes live, in this order:
+# Provisioned 2026-11-23 with:
 #   npx wrangler d1 create spim-burn
 #   npx wrangler d1 execute spim-burn --remote --file=migrations/0001_capsule_burn.sql
-# then uncomment and paste the database_id from the create output.
-#
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "spim-burn"
-# database_id = "<paste id>"
+[[d1_databases]]
+binding = "DB"
+database_name = "spim-burn"
+database_id = "682d6f0f-c7b8-4a6a-b083-52d41140d62c"
 

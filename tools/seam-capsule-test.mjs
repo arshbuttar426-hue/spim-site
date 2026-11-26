@@ -7,8 +7,8 @@
  *
  * Proves the HTTP contract the image sender uses:
  *   POST /capsules                 { blob, destroyable }  -> { id }
- *   GET  /capsules/<id>           -> { blob, destroyable } / 404 / 410
- *   POST /capsules/<id>/consume   -> { consumed } / 410 / 400
+ *   GET  /capsules/<id>           -> { blob:null, destroyable, single_view } / { blob, destroyable:false } / 404 / 410
+ *   POST /capsules/<id>/consume   -> { consumed, blob } / 410 / 400
  *
  * The `blob` is base64 of a CAP1 envelope JSON, exactly the shape the browser
  * builds (see makeTextEnvelope/makeImageEnvelope in index.html). This test
@@ -64,28 +64,39 @@ function check(name, fn) {
     .catch((e) => { fail += 1; console.log(`FAIL ${name}: ${e && e.message ? e.message : e}`); });
 }
 
-await check('image capsule: post -> get -> consume -> get(destroyed)', async () => {
+await check('image capsule: preview has no blob -> consume releases once -> get(destroyed)', async () => {
   const env = makeCapsuleEnvelope(['shot'], true); // kind = image
-  const post = await req('/capsules', { method: 'POST', body: { blob: b64encode(env), destroyable: true } });
+  const blob = b64encode(env);
+  const post = await req('/capsules', { method: 'POST', body: { blob, destroyable: true } });
   assert.equal(post.status, 201);
   const { id } = await post.json();
 
-  const get1 = await req('/capsules/' + id);
-  assert.equal(get1.status, 200);
-  const got = await get1.json();
-  assert.equal(got.destroyable, true);
-  assert.ok(got.blob);
+  // A direct GET is only a preview. It must not hand out a single-view payload,
+  // no matter how many times it is requested.
+  for (let i = 0; i < 3; i++) {
+    const get = await req('/capsules/' + id);
+    assert.equal(get.status, 200);
+    const got = await get.json();
+    assert.equal(got.destroyable, true);
+    assert.equal(got.single_view, true);
+    assert.equal(got.blob, null, 'GET ' + i + ' leaked the single-view payload');
+  }
 
-  const consume = await req('/capsules/' + id + '/consume', { method: 'POST' });
+  const receipt = 'c0ffee00c0ffee00';
+  const consume = await req('/capsules/' + id + '/consume', { method: 'POST', body: { receipt } });
   assert.equal(consume.status, 200);
   const cons = await consume.json();
   assert.equal(cons.consumed, true);
+  assert.equal(cons.blob, blob, 'consume is the only response that releases the payload');
 
   const get2 = await req('/capsules/' + id);
   assert.equal(get2.status, 410);
 
-  const consume2 = await req('/capsules/' + id + '/consume', { method: 'POST' });
-  assert.equal(consume2.status, 410);
+  const consume2 = await req('/capsules/' + id + '/consume', { method: 'POST', body: { receipt } });
+  assert.equal(consume2.status, 200, 'the same receipt recovers the lost consume response');
+  assert.equal((await consume2.json()).retry, true);
+  const consume3 = await req('/capsules/' + id + '/consume', { method: 'POST', body: { receipt } });
+  assert.equal(consume3.status, 410, 'the receipt allowed more than one recovery');
 });
 
 await check('text capsule: post -> get -> consume refused when not destroyable', async () => {

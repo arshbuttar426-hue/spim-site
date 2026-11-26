@@ -7,6 +7,35 @@
  * links marked as current on the home studio.
  */
 (function () {
+  // Register the offline service worker where supported. Registration is
+  // deliberately best-effort: a failed SW must never break online behaviour.
+  // The SW itself only caches the static shell and never caches private paths.
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+    });
+  }
+
+  // Minimal, honest offline notice. Local .spim files keep working offline;
+  // server-backed features do not. Never imply those features are available.
+  var offlineBanner;
+  function updateOfflineBanner() {
+    if (!offlineBanner) {
+      offlineBanner = document.createElement('div');
+      offlineBanner.setAttribute('role', 'status');
+      offlineBanner.setAttribute('data-spim-offline', '');
+      offlineBanner.textContent = 'You are offline. Local .spim files still open; accounts, capsules and chats need a connection.';
+      offlineBanner.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;' +
+        'padding:10px 16px;background:#1b2330;color:#e7e9ee;border-top:1px solid #33405a;' +
+        'font:13px/1.5 system-ui,sans-serif;text-align:center';
+    }
+    if (navigator.onLine === false) {
+      if (!offlineBanner.parentNode) document.body.appendChild(offlineBanner);
+    } else if (offlineBanner.parentNode) {
+      offlineBanner.parentNode.removeChild(offlineBanner);
+    }
+  }
+
   function qsa(sel, root) {
     return Array.prototype.slice.call((root || document).querySelectorAll(sel));
   }
@@ -69,6 +98,9 @@
   async function boot() {
     wireSignOut();
     markCurrent();
+    updateOfflineBanner();
+    window.addEventListener('online', updateOfflineBanner);
+    window.addEventListener('offline', updateOfflineBanner);
     window.addEventListener('hashchange', markCurrent);
     window.addEventListener('spim:tab', markCurrent);
 

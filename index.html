@@ -260,9 +260,9 @@
           </div>
         </div>
 
-        <div id="caughtCard" class="spim-hide" style="border:1px solid var(--spim-verified-line);background:var(--spim-verified-soft);border-radius:var(--spim-r-md);padding:16px">
+        <div id="caughtCard" class="spim-hide" style="border:1px solid var(--spim-line);border-radius:var(--spim-r-md);padding:16px">
           <div class="spim-row" style="justify-content:space-between">
-            <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Caught · verified</span>
+            <span id="caughtBadge" class="spim-pill"><i class="spim-dot"></i>Caught · unverified</span>
             <button id="copyCaughtBtn" class="spim-btn spim-btn--ghost spim-btn--sm">Copy</button>
           </div>
           <p id="caughtText" class="spim-body" style="margin-top:10px;color:var(--spim-text);word-break:break-word;white-space:pre-wrap"></p>
@@ -362,6 +362,7 @@
 <script src="/js/spim-codec.js"></script>
 <script src="/js/spim-audio.js"></script>
 <script src="/js/spim-capsule-client.js"></script>
+<script src="/js/dock-client.js"></script>
 <script src="/js/session-nav.js" defer></script>
 <script src="/js/qr.js" defer></script>
 <script>
@@ -537,25 +538,31 @@ async function doCreate(choice, single){
       env = spimMakeTextEnvelope(notes);
     }
     env.flags = single ? 1 : 0;
-    env.blake3 = spimBlake3Hex(JSON.stringify(Object.assign({}, env, {blake3:""})));
-
-    const json = JSON.stringify(env);
+    // CAP2: sign the canonical envelope first, then address its exact bytes.
+    // The id travels in the link so a swapped/recomputed blob cannot pass.
+    env.magic = 'CAP2';
+    await spimSealCap2(env);
+    const json = spimCanonicalJson(env);
+    const id = await spimCapsuleId(json);
     const isPrivate = choice === 'private';
     let blob, keyB64 = null;
     if(isPrivate){
       const kb = await spimGenerateKey();
       keyB64 = spimB64UrlEncode(kb);
-      blob = await spimEncryptEnvelope(json, kb);
+      // Private keys stay client-side; AAD binds ciphertext to this capsule id.
+      blob = await spimEncryptEnvelope(json, kb, 'SPIM-CAP2:' + id);
     } else {
       blob = spimB64EncodeStr(json);
     }
 
-    const id = await spimPostCapsule(blob, single);
+    const postedId = await spimPostCapsule(blob, single, id, 2);
+    if(postedId !== id) throw new Error('capsule id mismatch');
     const base = CANONICAL_BASE + '#c/' + id;
     const link = isPrivate ? base + '#' + keyB64 : base;
 
     lastCapsule = {
       id: id,
+      version: 2,
       link: link,
       keyB64: keyB64 || '',
       blob: blob,
@@ -591,8 +598,9 @@ function showResult(capsule, meta){
   delete img.dataset.ready;
   img.classList.add('spim-hide');
   document.getElementById('qrBox').classList.add('spim-hide');
-  document.getElementById('resultVerifyBadge').textContent = 'Verified · ' + String(capsule.blake3).slice(0,8) + '…';
-  document.getElementById('resultMeta').textContent = meta + (capsule.single ? ' · single view' : '');
+  document.getElementById('resultVerifyBadge').textContent = 'Signed · authentic CAP2';
+  document.getElementById('resultVerifyBadge').title = 'ECDSA P-256 signature over the canonical capsule; the link id commits to these exact bytes.';
+  document.getElementById('resultMeta').textContent = meta + ' · ' + String(capsule.id).slice(0,8) + '…' + (capsule.single ? ' · single view' : '');
   document.getElementById('shareMsg').classList.add('spim-hide');
   document.querySelectorAll('#result [data-share]').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
   document.getElementById('result').classList.remove('spim-hide');
@@ -621,7 +629,7 @@ function toggleQR(){
 }
 function downloadSpim(){
   if(!lastCapsule || !lastCapsule.blob) return;
-  const spim = {spim_file:1, version:1, locked:!!lastCapsule.keyB64, key_b64url:lastCapsule.keyB64 || null, blob:lastCapsule.blob};
+  const spim = {spim_file:1, version:2, id:lastCapsule.id, locked:!!lastCapsule.keyB64, key_b64url:lastCapsule.keyB64 || null, blob:lastCapsule.blob};
   const b = new Blob([JSON.stringify(spim)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(b);
@@ -648,21 +656,37 @@ async function dockCapsule(){
     const meBody = await me.json().catch(function(){ return {}; });
     const uid = (meBody && meBody.user && meBody.user.id) || 'anon';
     const storageKey = 'spim_dock_pending:' + uid;
+    const privateKey = lastCapsule.keyB64 || '';
+    // Persist first: never create a private Dock row this browser cannot open.
+    if(privateKey && !window.DockClient.saveKey(uid, lastCapsule.id, privateKey)){
+      shareNote('Could not save the private key in this browser. Nothing was sent to Dock.', false);
+      return;
+    }
     const r = await fetch('/api/dock', {
       method:'POST', credentials:'include',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({capsule_id:lastCapsule.id, link:lastCapsule.link})
+      // Only a reference and a non-secret marker go to the server. The key is
+      // kept in this browser and used to rebuild the link when Dock is viewed.
+      body:JSON.stringify({capsule_id:lastCapsule.id, private:!!privateKey})
     });
     const body = await r.json().catch(function(){ return {}; });
-    if(!r.ok){ shareNote(body.error || 'Could not save to Dock.', false); return; }
+    if(!r.ok){
+      if(privateKey) window.DockClient.removeKey(uid, lastCapsule.id);
+      shareNote(body.error || 'Could not save to Dock.', false);
+      return;
+    }
     if(body && body.item){
       try {
         const pending = JSON.parse(localStorage.getItem(storageKey) || '[]');
         const next = [body.item].concat(pending.filter(function(i){ return i.id !== body.item.id; }));
         localStorage.setItem(storageKey, JSON.stringify(next.slice(0, 20)));
       } catch(e){}
+    } else if(privateKey){
+      window.DockClient.removeKey(uid, lastCapsule.id);
     }
-    shareNote('Saved to your Dock. Open Account → Dock to unload it.', true);
+    shareNote(privateKey
+      ? 'Saved to your Dock. Private key stays in this browser; open Account → Dock to unload it.'
+      : 'Saved to your Dock. Open Account → Dock to unload it.', true);
   } catch(e){
     shareNote('Could not reach the Dock service.', false);
   }
@@ -841,6 +865,7 @@ function stopBeam(){
 /* ---- catch: sound ------------------------------------------------------- */
 let micCtx = null, micStream = null, micNode = null, receiver = null, listening = false, caughtCount = 0;
 let dropCtx = null, customDropBuf = null, lastCaught = '', lastCaughtAt = 0;
+let catchDisplaySeq = 0;
 
 function audioCtx(){
   return window.SpimAudio.getContext();
@@ -859,18 +884,46 @@ function setListeningUI(on,note){
   label.textContent = on ? 'Listening — tap to stop' : 'Listen for sound';
   document.getElementById('catchState').textContent = note || (on ? 'Listening' : 'Idle');
 }
+/* Every Catch display goes through here. Only a caller holding a current
+ * display token can write to the card, so a slow/older async open cannot
+ * overwrite a newer Catch result. `verified` must be the result of
+ * spimVerifyEnvelope(); sound-caught text has no integrity metadata and is
+ * therefore always shown as unverified. */
+function showCaught(token, text, verified, href, trust){
+  if(token !== catchDisplaySeq) return false;
+  const card = document.getElementById('caughtCard');
+  const badge = document.getElementById('caughtBadge');
+  // "verified" here has always meant unkeyed hash integrity for CAP1. Say so
+  // explicitly; only a verified CAP2 signature earns the "authentic" label.
+  // CAP1 hashes are unkeyed. "integrity-only" is the truthful label; the green
+  // verified pill is reserved for a CAP2 signature plus content address.
+  const label = trust === 'authentic' ? 'authentic' : trust === 'integrity' ? 'integrity-only' : (verified ? 'verified' : 'unverified');
+  badge.innerHTML = '<i class="spim-dot"></i>Caught · ' + label;
+  badge.title = trust === 'authentic'
+    ? 'CAP2 digital signature and content address verified.'
+    : trust === 'integrity'
+      ? 'Integrity checked with unkeyed hashes only; no cryptographic authenticity.'
+      : 'No verification was performed.';
+  const authentic = trust === 'authentic';
+  badge.classList.toggle('spim-pill--verified', authentic);
+  card.style.borderColor = authentic ? 'var(--spim-verified-line)' : 'var(--spim-line)';
+  card.style.background = authentic ? 'var(--spim-verified-soft)' : '';
+  document.getElementById('caughtText').textContent = text;
+  const open = document.getElementById('caughtOpen');
+  if(href && (/^https?:\/\//i.test(href) || /^\/receive#c\//.test(href))){ open.href = href; open.classList.remove('spim-hide'); }
+  else { open.classList.add('spim-hide'); }
+  caughtCount++;
+  document.getElementById('catchCount').textContent = caughtCount + ' caught';
+  card.classList.remove('spim-hide');
+  return true;
+}
 function onCaught(payload){
   const text = new TextDecoder().decode(payload);
   const now = performance.now();
   if(text === lastCaught && now - lastCaughtAt < 2500) return;
   lastCaught = text; lastCaughtAt = now;
-  caughtCount++;
-  document.getElementById('catchCount').textContent = caughtCount + ' caught';
-  document.getElementById('caughtText').textContent = text;
-  const open = document.getElementById('caughtOpen');
-  if(/^https?:\/\//i.test(text) || /\/receive#c\//.test(text)){ open.href = text; open.classList.remove('spim-hide'); }
-  else { open.classList.add('spim-hide'); }
-  document.getElementById('caughtCard').classList.remove('spim-hide');
+  const token = ++catchDisplaySeq;
+  showCaught(token, text, false, text);
   playDrop();
 }
 async function startListen(){
@@ -919,53 +972,89 @@ document.getElementById('copyCaughtBtn').onclick = function(e){
 };
 
 /* ---- catch: local .spim ------------------------------------------------- */
-function resolveEnvelopeNotes(env){
-  // Tolerant reconstruction for catch/display: skip notes that cannot be
-  // reconstructed rather than failing the whole open.
-  const notes = spimResolveCatchNotes(env);
-  return notes.map(function(n){ return {source: n.source}; });
-}
-async function openSpimFile(file){
+async function openSpimFile(file, onRead){
   const msg = document.getElementById('fileMsg');
   msg.classList.add('spim-hide');
-  if(!file) return;
-  if(!window.wasmReady) await window.wasmInitPromise;
+  // A file input must not be reset until file.text() has settled: WebKit
+  // detaches the File when .value is cleared, invalidating an in-flight read.
+  // onRead is supplied by the input handler, is idempotent, and releases the
+  // input on every path (success, failure, stale result).
+  let released = false;
+  function release(){ if(!released){ released = true; if(typeof onRead === 'function') onRead(); } }
+  if(!file){ release(); return; }
+  const token = ++catchDisplaySeq;
+  const badge = document.getElementById('caughtBadge');
+  /* Clear any previous result before verification. No content is trusted
+   * until spimVerifyEnvelope() returns successfully. */
+  document.getElementById('caughtCard').classList.add('spim-hide');
+  document.getElementById('caughtOpen').classList.add('spim-hide');
+  document.getElementById('caughtText').textContent = '';
+  badge.innerHTML = '<i class="spim-dot"></i>Verifying…';
+  badge.classList.remove('spim-pill--verified');
   try {
-    const text = await file.text();
+    if(!window.wasmReady){
+      try { await window.wasmInitPromise; } catch(e){}
+      if(token !== catchDisplaySeq) return;
+    }
+    let text;
+    try { text = await file.text(); } catch(e){ throw new Error('file read failed'); }
+    release();
+    if(token !== catchDisplaySeq) return;
     let wrapper;
     try { wrapper = JSON.parse(text); } catch(e){ throw new Error('not a .spim file'); }
-    let blob = wrapper.blob, key = wrapper.key_b64url;
-    let jsonStr;
-    if(blob && key){
-      const kb = spimB64UrlDecode(key);
-      jsonStr = await spimDecryptEnvelope(blob, kb);
-    } else if(blob){
-      jsonStr = spimB64DecodeStr(blob);
+    let jsonStr, expectedId=null, aadState=null;
+    if(wrapper && wrapper.spim_file === 1){
+      if(typeof wrapper.blob !== 'string' || !wrapper.blob) throw new Error('not a .spim file');
+      if(wrapper.version !== undefined && wrapper.version !== 1 && wrapper.version !== 2) throw new Error('unsupported .spim version');
+      if(wrapper.version === 2){
+        if(typeof wrapper.id !== 'string' || !/^[0-9a-f]{16}$/i.test(wrapper.id)) throw new Error('missing capsule id');
+        expectedId = wrapper.id;
+      }
+      if(wrapper.locked){
+        if(typeof wrapper.key_b64url !== 'string' || !wrapper.key_b64url) throw new Error('This .spim is locked and needs its key.');
+        aadState = wrapper.version === 2 ? true : false;
+        const aad = aadState ? 'SPIM-CAP2:' + expectedId : undefined;
+        jsonStr = await spimDecryptEnvelope(wrapper.blob, spimB64UrlDecode(wrapper.key_b64url), aad);
+        if(token !== catchDisplaySeq) return;
+      } else {
+        jsonStr = spimB64DecodeStr(wrapper.blob);
+      }
     } else {
-      jsonStr = text;
+      jsonStr = text; // legacy raw envelope JSON — integrity only
     }
-    const env = JSON.parse(jsonStr);
-    if(env.magic !== 'CAP1') throw new Error('not a capsule');
-    const notes = resolveEnvelopeNotes(env);
+    /* Full authenticity check: same procedure as /receive. CAP2 must verify
+     * its signature and id; CAP1 stays integrity-only and is never labelled
+     * authentic. Throws on any mismatch before any content is displayed. */
+    const verified = await spimAuthenticateEnvelope(jsonStr, expectedId, aadState);
+    if(token !== catchDisplaySeq) return;
+    const env = verified.env;
+    const notes = verified.notes;
     const images = env.images || [];
-    caughtCount++;
-    document.getElementById('catchCount').textContent = caughtCount + ' caught';
     let display = notes.map(function(n){ return n.source; }).join('\n\n———\n\n');
     if(images.length) display = (display ? display + '\n\n' : '') + images.map(function(im){ return '[image] ' + (im.filename || 'image') + ' · ' + (im.mime || ''); }).join('\n');
-    document.getElementById('caughtText').textContent = display || '(empty capsule)';
-    document.getElementById('caughtOpen').classList.add('spim-hide');
-    document.getElementById('caughtCard').classList.remove('spim-hide');
+    showCaught(token, display || '(empty capsule)', true, null, verified.trust);
     playDrop();
   } catch(e){
-    msg.textContent = e.message === 'not a .spim file' ? 'That file is not a .spim capsule.' : 'Could not open this file. Is it the original, unedited .spim?';
+    if(token !== catchDisplaySeq) return;
+    document.getElementById('caughtCard').classList.add('spim-hide');
+    document.getElementById('caughtText').textContent = '';
+    badge.innerHTML = '<i class="spim-dot"></i>Caught · unverified';
+    badge.classList.remove('spim-pill--verified');
+    msg.textContent = e && e.message === 'file read failed'
+      ? 'That file could not be read. Choose it again to retry.'
+      : e && e.message === 'not a .spim file'
+        ? 'That file is not a .spim capsule.'
+        : 'This file could not be verified. The content was not opened.';
     msg.classList.remove('spim-hide');
+  } finally {
+    release();
   }
 }
 const drop = document.getElementById('spimDrop');
 const fileInput = document.getElementById('spimFile');
 drop.onclick = function(){ fileInput.click(); };
 drop.onkeydown = function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } };
-fileInput.onchange = function(e){ openSpimFile(e.target.files && e.target.files[0]); e.target.value = ''; };
+fileInput.onchange = function(e){ const input = e.target; openSpimFile(input.files && input.files[0], function(){ input.value = ''; }); };
 ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('is-over'); }); });
 ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('is-over'); }); });
 drop.addEventListener('drop', function(e){ openSpimFile(e.dataTransfer.files && e.dataTransfer.files[0]); });

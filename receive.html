@@ -101,7 +101,7 @@
       </div>
       <div class="spim-card-body">
         <h1 class="spim-h2">Someone sent you something.</h1>
-        <p class="spim-body" style="margin-top:8px">Sealed when it was written. Verified when it opens.</p>
+        <p class="spim-body" style="margin-top:8px" id="postcardSubtitle">Checking the capsule before anything is shown.</p>
 
         <div id="postcardLoading" class="spim-note" style="margin-top:20px">Opening · verifying…</div>
 
@@ -112,7 +112,7 @@
             <button onclick="downloadSpimReceive()" class="spim-btn spim-btn--ghost spim-btn--sm">Download .spim</button>
             <span class="spim-dim">·</span>
             <button onclick="document.getElementById('spimFileInput').click()" class="spim-btn spim-btn--ghost spim-btn--sm">Open local .spim</button>
-            <input type="file" id="spimFileInput" accept=".spim,application/json,.json" class="spim-hide" onchange="openSpimFile(this.files[0])">
+            <input type="file" id="spimFileInput" accept=".spim,application/json,.json" class="spim-hide" onchange="spimOpenLocalFile(this)">
           </div>
         </div>
 
@@ -139,11 +139,11 @@
         </div>
 
         <div class="spim-row" style="justify-content:center;margin-top:22px">
-          <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Verified · reconstructed</span>
+          <span id="postcardTrust" class="spim-pill"><i class="spim-dot"></i>Checking…</span>
           <button class="spim-btn spim-btn--ghost spim-btn--sm" onclick="document.getElementById('verifyDetail2').classList.toggle('spim-hide')">Details</button>
         </div>
         <div id="verifyDetail2" class="spim-note spim-hide" style="margin-top:10px;flex-direction:column;gap:4px;font-family:var(--spim-mono);font-size:10px">
-          <div style="color:var(--spim-text)">Verified</div>
+          <div id="trustDetail" style="color:var(--spim-text)">Checking…</div>
           <div style="word-break:break-all">Integrity: <span id="blake3hex">—</span></div>
           <div>SPIM: <span id="spimVerify">—</span></div>
         </div>
@@ -157,16 +157,16 @@
     <div class="spim-spread" style="margin-bottom:22px">
       <a href="/" class="spim-link" style="font-size:13px">← Create</a>
       <div class="spim-row">
-        <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i><span id="recTrust2">Verified</span></span>
+        <span id="recTrustPill" class="spim-pill"><i class="spim-dot"></i><span id="recTrust2">Checking…</span></span>
         <button class="spim-btn spim-btn--ghost spim-btn--sm" onclick="document.getElementById('verifyDetail3').classList.toggle('spim-hide')">Details</button>
       </div>
     </div>
     <div id="verifyDetail3" class="spim-note spim-hide" style="margin-bottom:18px;font-family:var(--spim-mono);font-size:10px">
-      Reconstructed from the capsule, then checked against its seal.
+      <span id="trustDetail3">Verified before display.</span>
     </div>
 
     <span class="spim-kicker">Shared capsule</span>
-    <h1 class="spim-h2" style="margin-top:10px"><span id="recCount2">—</span> notes, intact.</h1>
+    <h1 class="spim-h2" style="margin-top:10px"><span id="recCount2">—</span> notes.</h1>
     <p class="spim-body" style="margin-top:6px">Search across everything, without an account.</p>
 
     <div class="spim-row" style="margin-top:20px;flex-wrap:nowrap">
@@ -182,7 +182,7 @@
   <div id="imageView" class="spim-hide">
     <div class="spim-spread" style="margin-bottom:22px">
       <a href="/" class="spim-link" style="font-size:13px">← Create</a>
-      <span class="spim-pill spim-pill--verified"><i class="spim-dot"></i>Verified · image</span>
+      <span id="imageTrust" class="spim-pill"><i class="spim-dot"></i>Checking…</span>
     </div>
     <span class="spim-kicker">Shared image</span>
     <h1 class="spim-h2" style="margin-top:10px" id="imageTitle">Shared image</h1>
@@ -194,7 +194,7 @@
         <button onclick="handleImageView()" class="spim-btn">View full size</button>
       </div>
     </div>
-    <p class="spim-eyebrow spim-center" style="margin-top:14px" id="imageVerify">Verified · reconstructed, not generated.</p>
+    <p class="spim-eyebrow spim-center" style="margin-top:14px" id="imageVerify">Checked before display.</p>
   </div>
 
 </main>
@@ -240,7 +240,14 @@
 <!-- /chrome:footer -->
 <script src="/js/spim-capsule-client.js"></script>
 <script>
-let currentEnv=null, currentId=null, currentKey=null, currentBlob=null;
+let currentEnv=null, currentId=null, currentKey=null, currentBlob=null, currentAuthenticId=null;
+// One receipt per delivered link; retries reuse it so a lost response cannot
+// become a second view or an ambiguous "not opened" claim.
+let currentReceipt=null;
+// Consumption state comes from the server, never from a browser flag. A capsule
+// is consumed only by a successful POST /capsules/:id/consume; the GET below is
+// a postcard preview and is explicitly NOT consumption.
+let currentDestroyable=false, currentRemote=false;
 function parseReceiveHash(){
   const h=location.hash.replace(/^#/,'');
   if(h.startsWith('c/')){
@@ -260,71 +267,190 @@ function highlightText(text, terms){
   }
   return esc.replace(/\n/g,'<br>');
 }
+// Trust labels must name the mechanism. CAP1's unkeyed hashes are integrity,
+// never authenticity; only a verified CAP2 signature earns "authentic".
+function setTrustUI(trust){
+  const authentic=trust==='authentic';
+  const postcard=document.getElementById('postcardTrust');
+  postcard.innerHTML='<i class="spim-dot"></i>'+(authentic?'Authentic · CAP2 signature':'Integrity only · legacy CAP1');
+  postcard.classList.toggle('spim-pill--verified',authentic);
+  postcard.title=authentic?'CAP2 ECDSA signature and content address verified.':'Unkeyed hashes only; no cryptographic authenticity.';
+  document.getElementById('trustDetail').textContent=authentic
+    ? 'CAP2 signature verified · content address bound'
+    : 'Unkeyed hash integrity only; not an authenticity proof';
+  document.getElementById('postcardSubtitle').textContent=authentic
+    ? 'Signed when it was written. Verified when it opens.'
+    : 'Legacy capsule: integrity checked, not cryptographically authenticated.';
+  const rec=document.getElementById('recTrust2');
+  rec.textContent=authentic?'Authentic · CAP2':'Integrity only · CAP1';
+  document.getElementById('recTrustPill').classList.toggle('spim-pill--verified',authentic);
+  document.getElementById('trustDetail3').textContent=authentic
+    ? 'Signature and id verified before display.'
+    : 'Unkeyed hash integrity only; no authenticity proof.';
+  const img=document.getElementById('imageTrust');
+  img.innerHTML='<i class="spim-dot"></i>'+(authentic?'Authentic · image':'Integrity only · image');
+  img.classList.toggle('spim-pill--verified',authentic);
+  document.getElementById('imageVerify').textContent=authentic
+    ? 'Signature verified · exact bytes, not generated.'
+    : 'Unkeyed hash integrity only; no authenticity proof.';
+}
 // Verify + render a decoded envelope JSON string (already decrypted/decoded).
-function finalizeEnvelope(jsonStr){
-  const env=JSON.parse(jsonStr);
-  if(env.magic!=="CAP1") throw new Error('bad magic');
-  const stored=env.blake3; const comp=spimBlake3Hex(JSON.stringify({...env, blake3:""}));
-  document.getElementById('blake3hex').textContent=comp;
-  if(comp!==stored) throw new Error('blake3 mismatch');
-  // Resolve notes: legacy raw notes[] or zero-redundancy reconstruction from spim_b64
-  const notes=spimResolveNotes(env);
-  env.notes=notes;
-  // Verify SPIM reconstruction + per-note integrity
-  if(notes.length){
-    if(!spimVerifyNotes(notes)) throw new Error('blake3 mismatch');
-    document.getElementById('spimVerify').textContent='Verified';
-  } else {
-    document.getElementById('spimVerify').textContent='—';
-  }
-  // Image integrity: verify source_blake3 on bytes
-  if(env.images && env.images.length){
-    for(const img of env.images){ spimVerifyImage(img); }
-  }
+// aadState: null (public), true (CAP2 private AAD bound), false (legacy private).
+async function finalizeEnvelope(jsonStr, expectedId, aadState){
+  const verified=await spimAuthenticateEnvelope(jsonStr, expectedId, aadState);
+  currentAuthenticId=verified.id||null;
+  const env=verified.env;
+  document.getElementById('blake3hex').textContent=verified.blake3;
+  document.getElementById('spimVerify').textContent=verified.notes.length ? 'Verified' : '—';
+  setTrustUI(verified.trust);
   document.getElementById('postcardLoading').classList.add('spim-hide');
   document.getElementById('postcardActions').classList.remove('spim-hide');
   if(env.images && env.images.length){
     const img=env.images[0];
-    document.getElementById('postcardMeta').textContent=`1 image · ${img.filename||img.mime} · ${(img.source_bytes_b64.length*3/4/1024).toFixed(1)} KB` + ((env.flags&1)?' · One-time':'');
+    document.getElementById('postcardMeta').textContent=`1 image · ${img.filename||img.mime} · ${(img.source_bytes_b64.length*3/4/1024).toFixed(1)} KB` + (currentDestroyable?' · One-time':'');
     // Change postcard title for image
     document.querySelector('#postcardView h1').innerHTML='Someone sent you<br>an image.';
   } else {
-    document.getElementById('postcardMeta').textContent=`${env.notes.length} ${env.notes.length===1?'note':'notes'} · ${env.word_count} words` + ((env.flags&1)?' · One-time':'');
+    document.getElementById('postcardMeta').textContent=`${env.notes.length} ${env.notes.length===1?'note':'notes'} · ${env.word_count} words` + (currentDestroyable?' · One-time':'');
   }
   currentEnv=env;
 }
+
+// Decode a blob returned by /capsules or /consume. Remote CAP2 private blobs
+// are decrypted with AAD bound to the link id; the legacy no-AAD fallback is
+// kept only for old links and is rejected by the authenticator for CAP2.
+async function decodeRemoteBlob(blob){
+  let jsonStr, aadState=null;
+  if(currentKey){
+    let kb;
+    try{ kb=spimB64UrlDecode(currentKey); }catch(e){ throw new Error('decrypt failed'); }
+    if(/^[0-9a-f]{16}$/i.test(currentId)){
+      try{ jsonStr=await spimDecryptEnvelope(blob,kb,'SPIM-CAP2:'+currentId); aadState=true; }
+      catch(e){
+        try{ jsonStr=await spimDecryptEnvelope(blob,kb); aadState=false; }
+        catch(e2){ throw new Error('decrypt failed'); }
+      }
+    }else{
+      try{ jsonStr=await spimDecryptEnvelope(blob,kb); aadState=false; }
+      catch(e){ throw new Error('decrypt failed'); }
+    }
+  }else{
+    try{ jsonStr=spimB64DecodeStr(blob); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); return null; }
+    try{ JSON.parse(jsonStr); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); return null; }
+  }
+  return {jsonStr, aadState};
+}
+async function finalizeFromBlob(blob){
+  const decoded=await decodeRemoteBlob(blob);
+  if(!decoded) return false;
+  currentBlob=blob;
+  await finalizeEnvelope(decoded.jsonStr, currentId, decoded.aadState);
+  return true;
+}
+function showSingleViewPreview(){
+  document.getElementById('postcardLoading').classList.add('spim-hide');
+  document.getElementById('postcardActions').classList.remove('spim-hide');
+  document.getElementById('postcardSubtitle').textContent='One-time delivery. Nothing is shown until you choose to open it.';
+  document.getElementById('postcardTrust').innerHTML='<i class="spim-dot"></i>Not opened';
+  document.getElementById('trustDetail').textContent='The payload is released only by a successful one-time open.';
+}
+
 async function loadReceive(){
   const p=parseReceiveHash();
   if(!p){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
   currentId=p.id; currentKey=p.key;
+  currentEnv=null; currentBlob=null; currentAuthenticId=null;
+  currentReceipt=spimRandomHex(8);
+  currentDestroyable=false; currentRemote=false;
   if(!window.wasmReady) await window.wasmInitPromise;
   try{
     const res=await fetch('/capsules/'+encodeURIComponent(p.id));
     if(res.status===404) throw new Error('not found');
-    if(res.status===410) throw new Error('destroyed');
+    if(res.status===400) throw new Error('bad id');
+    if(res.status===410){
+      let remoteExpired=false;
+      try{ const e=await res.json(); remoteExpired=!!(e && e.error==='expired'); }catch(_){}
+      throw new Error(remoteExpired ? 'expired' : 'destroyed');
+    }
+    if(res.status===503) throw new Error('unavailable');
     if(!res.ok) throw new Error('fetch '+res.status);
     const j=await res.json();
-    currentBlob=j.blob;
-    let jsonStr;
-    if(p.key){
-      try{ const kb=spimB64UrlDecode(p.key); jsonStr=await spimDecryptEnvelope(j.blob, kb); }catch(e){ throw new Error('decrypt failed'); }
-    }else{
-      try{ jsonStr=spimB64DecodeStr(j.blob); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
-      try{ JSON.parse(jsonStr); }catch(e){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('postcardLoading').classList.add('spim-hide'); return; }
+    currentRemote=true;
+    currentDestroyable=!!j.destroyable;
+    if(currentDestroyable){
+      // The server deliberately withholds the payload. Revealing it is the
+      // one-time POST below, so a direct GET or prefetch cannot read it.
+      showSingleViewPreview();
+      return;
     }
-    finalizeEnvelope(jsonStr);
+    await finalizeFromBlob(j.blob);
   }catch(e){
     document.getElementById('postcardLoading').classList.add('spim-hide');
     const m=e.message||'';
     if(m.includes('decrypt')){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('privErr2').textContent='The private key does not match this capsule. Check that you copied the full link including the key after #.'; document.getElementById('privErr2').classList.remove('spim-hide'); }
     else if(m.includes('not found')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='The capsule doesn’t exist or has expired.'; document.getElementById('postcardErrorMsg').textContent='Check the link. Example: www.spim.co.in/receive#c/Ab3x9Q'; }
-    else if(m.includes('destroyed')){ document.getElementById('postcardDestroyed').classList.remove('spim-hide'); }
-    else if(m.includes('blake3')||m.includes('verification')||m.includes('integrity')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='The capsule was received, but its contents could not be verified.'; document.getElementById('postcardErrorMsg').textContent='The data may be corrupted. Ask the sender to recreate the capsule.'; }
+    else if(m.includes('bad id')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='This capsule link is malformed.'; document.getElementById('postcardErrorMsg').textContent='Check that you copied the whole link.'; }
+    else if(m.includes('expired')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='This delivery has expired.'; document.getElementById('postcardErrorMsg').textContent='Ask the sender to create a new capsule.'; }
+    else if(m.includes('destroyed')){ showDestroyedState(); }
+    else if(m.includes('unavailable')||m.includes('fetch')||m.includes('Failed to fetch')||m.includes('NetworkError')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='Could not reach the capsule service.'; document.getElementById('postcardErrorMsg').textContent='Your capsule has not been opened. Please try again in a moment.'; }
+    else if(m.includes('blake3')||m.includes('verification')||m.includes('integrity')||m.includes('signature')||m.includes('capsule id')||m.includes('auth')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='The capsule was received, but its authenticity could not be verified.'; document.getElementById('postcardErrorMsg').textContent='Nothing was shown. Ask the sender to recreate the capsule.'; }
     else document.getElementById('postcardError').classList.remove('spim-hide');
   }
 }
+
+// A revealed payload is only ever shown after the server confirms consumption.
+// Returns true only when it is safe to reveal; every failure path leaves the
+// content hidden and tells the user to retry.
+async function consumeBeforeReveal(){
+  if(!currentRemote || !currentDestroyable) return true;
+  if(currentEnv) return true;
+  let res;
+  try{
+    res=await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{
+      method:'POST', headers:{'content-type':'application/json'},
+      body:JSON.stringify({receipt:currentReceipt})
+    });
+  }catch(e){
+    showConsumeError('Connection interrupted. The server may have opened this capsule; retrying with the same attempt will tell you.');
+    return false;
+  }
+  if(res.status===200){
+    const j=await res.json();
+    if(!j || !j.blob){ showConsumeError('The server opened this capsule but returned no content. Please ask the sender for a new link.'); return false; }
+    try{
+      if(!(await finalizeFromBlob(j.blob))) return false;
+    }catch(e){
+      document.getElementById('postcardLoading').classList.add('spim-hide');
+      document.getElementById('postcardError').classList.remove('spim-hide');
+      document.getElementById('postcardErrorTitle').textContent='This capsule was opened but could not be verified.';
+      document.getElementById('postcardErrorMsg').textContent='Nothing was shown. Ask the sender to recreate the capsule.';
+      return false;
+    }
+    return true;
+  }
+  if(res.status===410){ showDestroyedState(); return false; }
+  if(res.status===503){
+    showConsumeError('The server could not open this capsule right now. It has not been opened — please try again.');
+    return false;
+  }
+  showConsumeError('The server did not confirm this open. It may or may not have been opened; retry with the same link before asking for a new one.');
+  return false;
+}
+function showDestroyedState(){
+  ['postcardLoading','postcardActions','postcardError','postcardPrivate','collectionView','imageView'].forEach(id=>document.getElementById(id).classList.add('spim-hide'));
+  document.getElementById('postcardView').classList.remove('spim-hide');
+  document.getElementById('postcardDestroyed').classList.remove('spim-hide');
+}
+function showConsumeError(msg){
+  document.getElementById('postcardLoading').classList.add('spim-hide');
+  document.getElementById('postcardError').classList.remove('spim-hide');
+  document.getElementById('postcardErrorTitle').textContent='Could not open this capsule.';
+  document.getElementById('postcardErrorMsg').textContent=msg;
+}
 let currentImageUrl=null;
 async function handleDownload(){
+  // A single-view postcard has no env yet; consume first, then use it.
+  if(!(await consumeBeforeReveal())) return;
   if(!currentEnv) return;
   if(currentEnv.images && currentEnv.images.length){
     // Image download - exact bytes
@@ -337,59 +463,89 @@ async function handleDownload(){
     const content=currentEnv.notes.map((n,i)=>`Note ${String(i+1).padStart(2,'0')}\n---------\n${n.source}`).join('\n\n');
     const blob=new Blob([content],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='collection.txt'; a.click();
   }
-  if(currentEnv.flags & 1){
-    try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
-  }
 }
 function handleImageSave(){ handleDownload(); }
-function handleImageView(){
+async function handleImageView(){
   if(!currentImageUrl) return;
+  if(!(await consumeBeforeReveal())) return;
   window.open(currentImageUrl, '_blank');
 }
-// Portable .spim container: {spim_file:1, version:1, locked, key_b64url, blob}
-// where blob is the exact capsule blob (b64 envelope if public, AES-GCM if private).
-function downloadSpimReceive(){
+// Portable .spim container: {spim_file:1, version:1|2, id?, locked, key_b64url, blob}
+// version 2 carries the content-address id and an AES-GCM AAD-bound private blob.
+async function downloadSpimReceive(){
+  if(!(await consumeBeforeReveal())) return;
   if(!currentEnv || !currentBlob) return;
   const id=currentId||'capsule';
-  const spim={spim_file:1, version:1, locked:!!currentKey, key_b64url:currentKey||null, blob:currentBlob};
+  const cap2 = !!currentAuthenticId;
+  const spim={spim_file:1, version:cap2?2:1, ...(cap2?{id:currentAuthenticId}:{}), locked:!!currentKey, key_b64url:currentKey||null, blob:currentBlob};
   const b=new Blob([JSON.stringify(spim)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=id+'.spim'; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 // Open a local .spim file (or raw envelope JSON) fully offline — zero network.
-async function openSpimFile(file){
-  if(!file) return;
-  if(!window.wasmReady) await window.wasmInitPromise;
+// The file input must not be reset until file.text() settles: WebKit detaches
+// the File when .value is cleared, invalidating an in-flight read. onRead is
+// supplied by the input handler, is idempotent, and runs on every exit path.
+let localFileSeq = 0;
+async function openSpimFile(file, onRead){
+  let released = false;
+  function release(){ if(!released){ released = true; if(typeof onRead === 'function') onRead(); } }
+  if(!file){ release(); return; }
+  const token = ++localFileSeq;
   try{
-    const text=await file.text();
+    if(!window.wasmReady) await window.wasmInitPromise;
+    if(token !== localFileSeq) return;
+    let text;
+    try{ text = await file.text(); }catch(e){ throw new Error('file read failed'); }
+    release();
+    if(token !== localFileSeq) return;
+    currentRemote=false; currentDestroyable=false; currentAuthenticId=null;
     let wrapper=null;
     try{ wrapper=JSON.parse(text); }catch(e){ throw new Error('bad envelope'); }
-    let jsonStr;
+    let jsonStr, expectedId=null, aadState=null;
     if(wrapper && wrapper.spim_file===1){
       if(!wrapper.blob) throw new Error('bad spim');
+      if(wrapper.version!==undefined && wrapper.version!==1 && wrapper.version!==2) throw new Error('unsupported spim version');
+      if(wrapper.version===2){
+        if(typeof wrapper.id!=='string' || !/^[0-9a-f]{16}$/i.test(wrapper.id)) throw new Error('bad capsule id');
+        expectedId=wrapper.id;
+      }
       currentBlob=wrapper.blob; currentKey=wrapper.key_b64url||null; currentId=(file.name||'local').replace(/\.spim$/i,'');
       if(wrapper.locked){
         if(!wrapper.key_b64url) throw new Error('decrypt failed');
-        jsonStr=await spimDecryptEnvelope(wrapper.blob, spimB64UrlDecode(wrapper.key_b64url));
+        aadState=wrapper.version===2;
+        const aad=aadState?'SPIM-CAP2:'+expectedId:undefined;
+        jsonStr=await spimDecryptEnvelope(wrapper.blob, spimB64UrlDecode(wrapper.key_b64url), aad);
+        if(token !== localFileSeq) return;
       } else {
         jsonStr=spimB64DecodeStr(wrapper.blob);
       }
     } else {
-      // Raw envelope JSON (or legacy .json)
+      // Raw envelope JSON (or legacy .json) — integrity only, never authentic.
       currentBlob=null; currentKey=null; currentId=(file.name||'local').replace(/\.(spim|json)$/i,'');
       jsonStr=text;
     }
-    finalizeEnvelope(jsonStr);
+    await finalizeEnvelope(jsonStr, expectedId, aadState);
   }catch(e){
+    if(token !== localFileSeq) return;
     document.getElementById('postcardLoading').classList.add('spim-hide');
     const m=e.message||'';
     if(m.includes('decrypt')){ document.getElementById('postcardPrivate').classList.remove('spim-hide'); document.getElementById('privErr2').textContent='This .spim is locked and needs its key. Download it again with the full link including the key.'; document.getElementById('privErr2').classList.remove('spim-hide'); }
-    else if(m.includes('blake3')||m.includes('bad')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='This file could not be verified.'; document.getElementById('postcardErrorMsg').textContent='The .spim file may be corrupted. Ask the sender to recreate it.'; }
+    else if(m.includes('file read failed')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='That file could not be read.'; document.getElementById('postcardErrorMsg').textContent='The read was interrupted. Choose the file again to retry.'; }
+    else if(m.includes('blake3')||m.includes('bad')||m.includes('signature')||m.includes('capsule id')||m.includes('unsupported')||m.includes('auth')){ document.getElementById('postcardError').classList.remove('spim-hide'); document.getElementById('postcardErrorTitle').textContent='This file could not be authenticated.'; document.getElementById('postcardErrorMsg').textContent='Nothing was shown. The .spim file may be corrupted or tampered with.'; }
     else document.getElementById('postcardError').classList.remove('spim-hide');
+  } finally {
+    release();
   }
+}
+function spimOpenLocalFile(input){
+  openSpimFile(input.files && input.files[0], function(){ input.value = ''; });
 }
 let currentWasm2=null;
 async function handleOpenHere(){
+  // The postcard preview deliberately has no env; the open is what reveals it.
+  if(!(await consumeBeforeReveal())) return;
+  if(!currentEnv) return;
   if(currentEnv.images && currentEnv.images.length){
     // Image capsule - show imageView
     document.getElementById('postcardView').classList.add('spim-hide');
@@ -401,10 +557,7 @@ async function handleOpenHere(){
     currentImageUrl=URL.createObjectURL(blob);
     document.getElementById('imageDisplay').src=currentImageUrl;
     document.getElementById('imageTitle').textContent=img.filename||'Shared image';
-    document.getElementById('imageMeta').textContent=`${img.mime} · ${(bytes.length/1024).toFixed(1)} KB` + (currentEnv.flags & 1 ? ' · One-time' : '');
-    if(currentEnv.flags & 1){
-      try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
-    }
+    document.getElementById('imageMeta').textContent=`${img.mime} · ${(bytes.length/1024).toFixed(1)} KB` + (currentDestroyable ? ' · One-time' : '');
     return;
   }
   document.getElementById('postcardView').classList.add('spim-hide');
@@ -417,9 +570,6 @@ async function handleOpenHere(){
   document.getElementById('recCount2').textContent = `${currentEnv.notes.length} ${currentEnv.notes.length===1?'note':'notes'}`;
   // render all notes initially
   renderCollection2();
-  if(currentEnv.flags & 1){
-    try{ await fetch('/capsules/'+encodeURIComponent(currentId)+'/consume',{method:'POST'}); }catch(e){}
-  }
 }
 function doSearch2(){
   const q=document.getElementById('search2').value;

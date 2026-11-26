@@ -16,6 +16,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -32,12 +33,23 @@ export class MockKV {
 
   async get(key) {
     this.ops.get += 1;
-    return this.map.has(key) ? this.map.get(key) : null;
+    const rec = this.map.get(key);
+    if (!rec) return null;
+    if (rec.expiresAt && rec.expiresAt <= Date.now()) {
+      this.map.delete(key);
+      return null;
+    }
+    return rec.value;
   }
 
-  async put(key, value) {
+  async put(key, value, options = {}) {
     this.ops.put += 1;
-    this.map.set(key, value);
+    const expiresAt = options.expirationTtl
+      ? Date.now() + options.expirationTtl * 1000
+      : options.expiration
+        ? new Date(options.expiration).getTime()
+        : null;
+    this.map.set(key, { value, expiresAt: Number.isFinite(expiresAt) ? expiresAt : null });
   }
 
   async delete(key) {
@@ -68,6 +80,53 @@ export class MockKV {
   reset() {
     this.map.clear();
     this.ops = { get: 0, put: 0, delete: 0, list: 0 };
+  }
+}
+
+/** The subset of D1 the burn fence uses, backed by in-memory SQLite. */
+export class MockD1 {
+  constructor() {
+    this.db = new DatabaseSync(':memory:');
+    const dir = path.join(SITE_ROOT, 'migrations');
+    for (const file of fs.readdirSync(dir).filter((f) => /\.sql$/.test(f)).sort()) {
+      this.db.exec(fs.readFileSync(path.join(dir, file), 'utf8'));
+    }
+  }
+
+  prepare(sql) {
+    const db = this.db;
+    let args = [];
+    const statement = {
+      bind(...values) {
+        args = values;
+        return statement;
+      },
+      async first() {
+        const row = db.prepare(sql).get(...args);
+        return row || null;
+      },
+      async run() {
+        const info = db.prepare(sql).run(...args);
+        return { meta: { changes: Number(info.changes) } };
+      },
+    };
+    return statement;
+  }
+
+  count() {
+    const burn = Number(this.db.prepare('SELECT COUNT(*) AS n FROM capsule_burn').get().n);
+    const open = Number(this.db.prepare('SELECT COUNT(*) AS n FROM capsule_open').get().n);
+    return burn + open;
+  }
+
+  reset() {
+    this.db.prepare('DELETE FROM capsule_burn').run();
+    this.db.prepare('DELETE FROM capsule_open').run();
+    this.db.prepare('DELETE FROM capsule_reservation').run();
+  }
+
+  close() {
+    this.db.close();
   }
 }
 
@@ -165,6 +224,7 @@ export async function loadSiteModules() {
     keys: await load('functions/api/keys.js'),
     connections: await load('functions/api/connections.js'),
     dock: await load('functions/api/dock.js'),
+    dockItem: await load('functions/api/dock/[id].js'),
     images: await load('functions/api/images.js'),
     capsules: await load('functions/capsules.js'),
     seamPrekeys: await load('functions/api/seam/prekeys.js'),
@@ -194,6 +254,7 @@ const ROUTES = [
 ];
 
 const DYNAMIC = [
+  [/^\/api\/dock\/([^/]+)$/, 'dockItem'],
   [/^\/api\/seam\/prekeys\/([^/]+)$/, 'seamPrekey'],
   [/^\/api\/seam\/envelopes\/([^/]+)\/ack$/, 'seamAck'],
   [/^\/api\/seam\/envelopes\/([^/]+)$/, 'seamDrain'],
@@ -269,6 +330,12 @@ function staticResponse(res, cache, pathname, method, security) {
     'cache-control': ext === '.html' ? 'public, max-age=0, must-revalidate' : 'public, max-age=300',
     'content-length': String(bytes.length),
   };
+  // Mirror the /sw.js rule in _headers so local browser tests behave like Pages.
+  if (rel === 'sw.js') {
+    headers['cache-control'] = 'no-cache, must-revalidate';
+    headers['service-worker-allowed'] = '/';
+    headers['content-type'] = 'application/javascript';
+  }
   if (method === 'HEAD') return send(res, 200, headers, '');
   return send(res, 200, headers, bytes);
 }
@@ -289,9 +356,11 @@ export async function startLocalSite(opts = {}) {
   }
 
   const kv = opts.kv || new MockKV();
+  const db = opts.db || new MockD1();
   const env = {
     ...(opts.env || {}),
     SPIM_KV: kv,
+    DB: db,
     SPIM_AUTH_SECRET: (opts.env && opts.env.SPIM_AUTH_SECRET) || 'local-harness-secret',
     SEAM_TEST_MODE: '1',
   };
@@ -319,13 +388,34 @@ export async function startLocalSite(opts = {}) {
         return send(res, 200, { 'content-type': 'application/json' }, JSON.stringify({
           kv_ops: kv.ops,
           kv_keys: kv.map.size,
+          burn_rows: db.count(),
+          reservations: Number(db.db.prepare('SELECT COUNT(*) AS n FROM capsule_reservation').get().n),
           mailboxes: kv.size('seam:env:'),
           prekeys: kv.size('seam:prekey:'),
         }));
       }
       if (pathname === '/__test/reset' && req.method === 'POST') {
         kv.reset();
+        db.reset();
         return send(res, 200, { 'content-type': 'application/json' }, '{"ok":true}');
+      }
+      if (pathname === '/__test/kv') {
+        const prefix = url.searchParams.get('prefix') || '';
+        const rows = [...kv.map.entries()]
+          .filter(([key]) => key.startsWith(prefix))
+          .map(([key, rec]) => ({ key, value: rec.value, expiresAt: rec.expiresAt }));
+        return send(res, 200, { 'content-type': 'application/json' }, JSON.stringify({ rows }));
+      }
+      if (pathname === '/__test/kv/put' && req.method === 'POST') {
+        return readRaw(req).then(async (raw) => {
+          let body = null;
+          try { body = JSON.parse(raw.toString('utf8')); } catch {}
+          if (!body || typeof body.key !== 'string' || typeof body.value !== 'string') {
+            return send(res, 400, { 'content-type': 'application/json' }, '{"error":"bad kv put"}');
+          }
+          await kv.put(body.key, body.value, body.options || {});
+          return send(res, 200, { 'content-type': 'application/json' }, '{"ok":true}');
+        }).catch(() => send(res, 400, { 'content-type': 'application/json' }, '{"error":"bad kv put"}'));
       }
       return send(res, 404, { 'content-type': 'application/json' }, '{"error":"unknown test route"}');
     }
@@ -389,6 +479,7 @@ export async function startLocalSite(opts = {}) {
     base,
     env,
     kv,
+    db,
     mods,
     async close() {
       if (typeof server.closeIdleConnections === 'function') server.closeIdleConnections();

@@ -129,9 +129,21 @@ await check('publish rejects a malformed bundle', async () => {
   assert.equal(res.status, 400);
 });
 
-await check('prekeys are delivered one at a time', async () => {
-  const first = await fetchPrekey({
+await check('prekey fetch requires a session', async () => {
+  // Fetching an invite must not let an anonymous script drain one-time keys.
+  const res = await fetchPrekey({
     request: req(`http://localhost/api/seam/prekeys/${mailbox}`),
+    env,
+    params: { id: mailbox },
+  });
+  assert.equal(res.status, 401);
+});
+
+await check('prekeys are delivered one at a time', async () => {
+  // Any signed-in account may fetch; mailbox ownership is not the gate. The
+  // one-time bundle is the capability and the recipient's client verifies it.
+  const first = await fetchPrekey({
+    request: req(`http://localhost/api/seam/prekeys/${mailbox}`, { cookie: cookie2 }),
     env,
     params: { id: mailbox },
   });
@@ -141,7 +153,7 @@ await check('prekeys are delivered one at a time', async () => {
   assert.equal(one.bundle.opk[0], bundle(0).opk[0]);
 
   const second = await fetchPrekey({
-    request: req(`http://localhost/api/seam/prekeys/${mailbox}`),
+    request: req(`http://localhost/api/seam/prekeys/${mailbox}`, { cookie: cookie2 }),
     env,
     params: { id: mailbox },
   });
@@ -151,7 +163,7 @@ await check('prekeys are delivered one at a time', async () => {
   assert.equal(two.bundle.opk[0], bundle(1).opk[0]);
 
   const third = await fetchPrekey({
-    request: req(`http://localhost/api/seam/prekeys/${mailbox}`),
+    request: req(`http://localhost/api/seam/prekeys/${mailbox}`, { cookie: cookie2 }),
     env,
     params: { id: mailbox },
   });

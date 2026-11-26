@@ -57,6 +57,7 @@ const load = (rel) => import(pathToFileURL(path.join(root, rel)).href);
 const lib = await load('functions/api/_lib.js');
 const publishPrekeys = await load('functions/api/seam/prekeys.js');
 const fetchPrekey = await load('functions/api/seam/prekeys/[id].js');
+const lookupUser = await load('functions/api/seam/users/[id].js');
 const postEnvelope = await load('functions/api/seam/envelopes.js');
 const drainMailbox = await load('functions/api/seam/envelopes/[id].js');
 const ackMailbox = await load('functions/api/seam/envelopes/[id]/ack.js');
@@ -135,17 +136,9 @@ async function route(req, res, url) {
   let response = null;
   let m;
 
-  // Record before dispatch: the function consumes the body stream.
-  if (p === '/api/seam/envelopes' && req.method === 'POST' && raw) {
-    try {
-      const body = JSON.parse(raw.toString('utf8'));
-      posted.push({ mailbox: body.mailbox, envelope: body.envelope });
-    } catch {
-      // A malformed body is refused by the function; nothing to record.
-    }
-  }
-
-  if (p === '/api/seam/prekeys' && req.method === 'POST') {
+  if ((m = p.match(/^\/api\/seam\/users\/([^/]+)$/)) && req.method === 'GET') {
+    response = await lookupUser.onRequestGet({ request, env, params: { id: m[1] } });
+  } else if (p === '/api/seam/prekeys' && req.method === 'POST') {
     response = await publishPrekeys.onRequestPost({ request, env });
   } else if ((m = p.match(/^\/api\/seam\/prekeys\/([^/]+)$/)) && req.method === 'GET') {
     response = await fetchPrekey.onRequestGet({ request, env, params: { id: m[1] } });
@@ -158,6 +151,15 @@ async function route(req, res, url) {
   }
 
   if (response) {
+    if (p === '/api/seam/envelopes' && req.method === 'POST' && raw) {
+      try {
+        const body = JSON.parse(raw.toString('utf8'));
+        // Record the real relay verdict, not just that a POST happened.
+        posted.push({ mailbox: body.mailbox, envelope: body.envelope, status: response.status });
+      } catch {
+        // A malformed body is refused by the function; nothing useful to record.
+      }
+    }
     if (process.env.SEAM_TEST_LOG) {
       console.log(`     ${req.method} ${p} -> ${response.status}`);
     }
@@ -237,10 +239,10 @@ async function check(name, fn) {
         if (page) {
           console.log(`     ${label} status: ${await statusText(page)}`);
           const cards = await page.evaluate(() => ({
-            create: document.getElementById('seamCreateCard')?.hidden,
-            unlock: document.getElementById('seamUnlockCard')?.hidden,
-            identity: document.getElementById('seamIdentityCard')?.hidden,
-            workspace: document.getElementById('seamWorkspace')?.hidden,
+            state: document.getElementById('seamApp')?.dataset.seamState,
+            panels: [...document.querySelectorAll('[data-panel]')]
+              .filter((el) => !el.hidden)
+              .map((el) => el.dataset.panel),
           }));
           console.log(`     ${label} cards: ${JSON.stringify(cards)}`);
         }
@@ -269,6 +271,16 @@ async function contextFor(user) {
 
 const statusText = (page) => page.$eval('#seamStatus', (el) => el.textContent || '');
 const visible = (page, sel) => page.$eval(sel, (el) => !el.hidden && el.offsetParent !== null);
+const panel = (page, name) =>
+  page.$eval(`[data-panel="${name}"]`, (el) => !el.hidden && el.offsetParent !== null);
+
+/** "Check now" lives inside a collapsed menu in the current UI. */
+async function refresh(page) {
+  await page.evaluate(() => {
+    document.getElementById('seamMenu').open = true;
+  });
+  await page.click('#seamRefreshBtn');
+}
 
 async function createIdentity(page, passphrase) {
   await page.goto('/seam.html');
@@ -278,25 +290,26 @@ async function createIdentity(page, passphrase) {
   await page.fill('#seamPass', passphrase);
   await page.click('#seamCreateBtn');
   await page.waitForFunction(
-    () => /Identity created/.test(document.getElementById('seamStatus').textContent || ''),
+    () => /Channel created/.test(document.getElementById('seamStatus').textContent || ''),
     null,
     { polling: 100, timeout: 30_000 }
   );
 }
 
-async function waitForText(page, text, timeout = 20_000) {
+async function waitForText(page, text, timeout = 20_000, selector = '.seam-message') {
   await page.waitForFunction(
-    (needle) =>
-      [...document.querySelectorAll('.spim-message')].some((m) =>
-        (m.textContent || '').includes(needle)
+    (args) =>
+      [...document.querySelectorAll(args.selector)].some((m) =>
+        (m.textContent || '').includes(args.text)
       ),
-    text,
+    { text, selector },
     { polling: 100, timeout }
   );
 }
 
-const ctxA = await contextFor({ id: 'user_a', email: 'a@example.test' });
-const ctxB = await contextFor({ id: 'user_b', email: 'b@example.test' });
+// Real account ids match functions/api/seam/users/[id].js:ADDRESS_RE.
+const ctxA = await contextFor({ id: 'usr_aaaaaaaa01', email: 'a@example.test' });
+const ctxB = await contextFor({ id: 'usr_bbbbbbbb01', email: 'b@example.test' });
 const a = await ctxA.newPage();
 const b = await ctxB.newPage();
 if (process.env.SEAM_TEST_LOG) {
@@ -305,17 +318,19 @@ if (process.env.SEAM_TEST_LOG) {
 }
 
 let mailboxA = '';
+let inviteA = '';
 let passA = 'correct horse battery staple';
 
 await check('A creates an identity and publishes prekeys', async () => {
   await createIdentity(a, passA);
-  assert.equal(await visible(a, '#seamIdentityCard'), true);
+  assert.equal(await panel(a, 'home'), true);
   mailboxA = (await a.textContent('#seamMailbox')).trim();
   assert.match(mailboxA, /^[0-9a-f]{32}$/);
   const published = (await a.textContent('#seamPublished')).trim();
   assert.notEqual(published, 'not yet');
   const invite = await a.inputValue('#seamInvite');
-  assert.ok(invite.includes(`mailbox=${mailboxA}`));
+  assert.match(invite, /\/seam\?to=usr_[0-9a-z]{8,32}$/);
+  inviteA = invite;
 });
 
 let mailboxB = '';
@@ -326,43 +341,45 @@ await check('B creates an identity from A’s invite', async () => {
   assert.notEqual(mailboxA, mailboxB);
 });
 
+const relayPosted = async (mailbox) => (await (await fetch(`${base}/test/posted?mailbox=${mailbox}`)).json());
+
 await check('B opens the conversation and the first capsule carries the handshake', async () => {
-  await b.fill('#seamPeer', mailboxA);
+  const beforeRelay = (await relayPosted(mailboxA)).length;
+  await b.fill('#seamPeer', inviteA);
   await b.click('#seamPeerStartBtn');
   await b.waitForFunction(
-    () => /Conversation ready/.test(document.getElementById('seamStatus').textContent || ''),
+    () => /Channel open/.test(document.getElementById('seamStatus').textContent || ''),
     null,
     { polling: 100, timeout: 15_000 }
   );
   await b.fill('#seamBody', 'hello from B');
   await b.click('#seamSendBtn');
-  await b.waitForFunction(
-    () => /Sealed and sent/.test(document.getElementById('seamStatus').textContent || ''),
-    null,
-    { polling: 100, timeout: 15_000 }
-  );
+  await waitForText(b, 'hello from B', 15_000, '.seam-message--out');
+  const delivered = (await relayPosted(mailboxA)).slice(beforeRelay);
+  assert.ok(delivered.length > 0, 'relay must receive the sent capsule');
+  assert.ok(delivered.some((e) => e.status === 201), 'relay must accept the sent capsule');
   assert.equal((await b.textContent('#seamPrekeys')).trim(), '16');
 });
 
 await check('A accepts the handshake and reads the first message', async () => {
-  await a.click('#seamRefreshBtn');
+  await refresh(a);
   await waitForText(a, 'hello from B');
-  assert.equal(await visible(a, '#seamWorkspace'), true);
+  assert.equal(await panel(a, 'chat'), true);
 });
 
 await check('A replies across the ratchet', async () => {
-  await a.click('.spim-thread');
+  const beforeRelay = (await relayPosted(mailboxB)).length;
+  await a.click('.seam-thread');
   await a.fill('#seamBody', 'hello from A');
   await a.click('#seamSendBtn');
-  await a.waitForFunction(
-    () => /Sealed and sent/.test(document.getElementById('seamStatus').textContent || ''),
-    null,
-    { polling: 100, timeout: 15_000 }
-  );
+  await waitForText(a, 'hello from A', 15_000, '.seam-message--out');
+  const delivered = (await relayPosted(mailboxB)).slice(beforeRelay);
+  assert.ok(delivered.length > 0, 'relay must receive A’s reply');
+  assert.ok(delivered.some((e) => e.status === 201), 'relay must accept A’s reply');
 });
 
 await check('B reads the reply', async () => {
-  await b.click('#seamRefreshBtn');
+  await refresh(b);
   await waitForText(b, 'hello from A');
 });
 
@@ -374,28 +391,31 @@ await check('a wrong passphrase cannot open the sealed state', async () => {
   await a.fill('#seamPassUnlock', 'definitely the wrong passphrase');
   await a.click('#seamUnlockBtn');
   await a.waitForFunction(
-    () => /store as sealed not_as readable/.test(document.getElementById('seamStatus').textContent || ''),
+    () => /doesn't open this device/.test(document.getElementById('seamStatus').textContent || ''),
     null,
     { polling: 100, timeout: 20_000 }
   );
-  assert.equal(await visible(a, '#seamUnlockCard'), true);
+  assert.equal(await panel(a, 'locked'), true);
 });
 
 await check('the right passphrase restores history and the session', async () => {
   await a.fill('#seamPassUnlock', passA);
   await a.click('#seamUnlockBtn');
-  await a.waitForFunction(() => !document.getElementById('seamIdentityCard').hidden, null, {
-    timeout: 30_000,
-  });
+  await a.waitForFunction(
+    () => ['home', 'chat'].includes(document.getElementById('seamApp').dataset.seamState),
+    null,
+    { timeout: 30_000 }
+  );
   await waitForText(a, 'hello from B');
   await waitForText(a, 'hello from A');
 });
 
 await check('a replayed capsule is refused and does not duplicate', async () => {
-  const before = await a.$$eval('.spim-message', (els) => els.length);
+  const before = await a.$$eval('.seam-message', (els) => els.length);
   const seen = await (await fetch(`${base}/test/posted?mailbox=${mailboxA}`)).json();
-  assert.ok(seen.length >= 1, 'relay recorded A’s inbound capsule');
-  const replay = seen[seen.length - 1];
+  assert.ok(seen.some((e) => e.status === 201), 'relay recorded A’s inbound capsule');
+  const replaySeen = seen.find((e) => e.status === 201) || seen[0];
+  const replay = { mailbox: replaySeen.mailbox, envelope: replaySeen.envelope };
 
   const status = await a.evaluate(async (item) => {
     const res = await fetch('/api/seam/envelopes', {
@@ -407,13 +427,14 @@ await check('a replayed capsule is refused and does not duplicate', async () => 
   }, replay);
   assert.equal(status, 201);
 
-  await a.click('#seamRefreshBtn');
+  // Do not refresh: a manual refresh overwrites the refusal note. The normal
+  // poll must surface the client's direct replay-refusal status.
   await a.waitForFunction(
-    () => /replayed/.test(document.getElementById('seamStatus').textContent || ''),
+    () => /could not be opened/.test(document.getElementById('seamStatus').textContent || ''),
     null,
     { polling: 100, timeout: 20_000 }
   );
-  const after = await a.$$eval('.spim-message', (els) => els.length);
+  const after = await a.$$eval('.seam-message', (els) => els.length);
   assert.equal(after, before, 'a refused replay must not append a message');
 
   const queue = await (await fetch(`${base}/test/queue?mailbox=${mailboxA}`)).json();
@@ -421,9 +442,13 @@ await check('a replayed capsule is refused and does not duplicate', async () => 
 });
 
 await check('a third ratchet step still flows after the refusal', async () => {
+  const beforeRelay = (await relayPosted(mailboxB)).length;
   await a.fill('#seamBody', 'still here');
   await a.click('#seamSendBtn');
-  await b.click('#seamRefreshBtn');
+  const delivered = (await relayPosted(mailboxB)).slice(beforeRelay);
+  assert.ok(delivered.length > 0, 'relay must receive the post-refusal message');
+  assert.ok(delivered.some((e) => e.status === 201), 'relay must accept the post-refusal message');
+  await refresh(b);
   await waitForText(b, 'still here');
 });
 

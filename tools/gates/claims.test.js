@@ -32,10 +32,15 @@ test('"opens once" implies an atomic consume', () => {
     /ON CONFLICT\(id\) DO NOTHING/,
     'consume must be an atomic insert, not a read-modify-write'
   );
-  assert.doesNotMatch(
+  assert.match(
     consume,
-    /data\.consumed\s*=\s*true/,
-    'consume still flips the KV flag after reading it'
+    /INSERT INTO capsule_open/,
+    'consume must win a serialised D1 insert, not a KV read-modify-write'
+  );
+  assert.match(
+    consume,
+    /return json\(200, \{ consumed: true, id, blob \}\)/,
+    'the payload must be released only by the consume response'
   );
 });
 
